@@ -30,6 +30,16 @@ func init() {
 				&controllers.SuricataController{},
 			),
 		),
+		beego.NSNamespace("/zeek",
+			beego.NSInclude(
+				&controllers.ZeekController{},
+			),
+		),
+		beego.NSNamespace("/wazuh",
+			beego.NSInclude(
+				&controllers.WazuhController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

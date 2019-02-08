@@ -8,6 +8,8 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhnode/database"
     "owlhnode/suricata"
+    "owlhnode/wazuh"
+    "owlhnode/zeek"
 )
 
 func main() {
@@ -16,6 +18,8 @@ func main() {
     err := ndb.Get_master()
 
     suricata.Installed()
+    wazuh.Installed()
+    zeek.Installed()
 
     if err != nil {
         logs.Info("Main -> no puedo leer el master")
