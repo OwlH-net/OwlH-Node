@@ -15,15 +15,6 @@ import (
 func main() {
 
     ndb.Conn()
-    err := ndb.Get_master()
-
-    suricata.Installed()
-    wazuh.Installed()
-    zeek.Installed()
-
-    if err != nil {
-        logs.Info("Main -> no puedo leer el master")
-    }
 
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
