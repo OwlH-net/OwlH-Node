@@ -10,7 +10,7 @@ import (
 
 func suriPath() (exists bool) {
     if _, err := os.Stat("/etc/suricata"); os.IsNotExist(err) {
-        logs.Error("Suricata no esta instalado, al menos la carpeta /etc/suricata no existe")
+        logs.Error("Suricata not installed, at least folder /etc/suricata dosn't exist")
         return false
     }
     return true
@@ -20,11 +20,11 @@ func suriBin() (exists bool) {
     out, err := exec.Command("suricata","-V").Output()
     if err == nil {
         if strings.Contains(string(out), "Suricata version") {
-            logs.Info("Suricata binario existe -> " + string(out))
+            logs.Info("Suricata installed -> " + string(out))
             return true
         }
     }
-    logs.Error("Suricata binario NO existe")
+    logs.Error("Suricata Suricata not installed")
     return false
 }
 
@@ -35,12 +35,12 @@ func suriRunning() (running bool) {
         if strings.Contains(string(out), "suricata") {
             spid := regexp.MustCompile("[0-9]+")
             pid := spid.FindAllString(string(out),1)
-            logs.Info("Suricata esta en ejecucion -> " + string(out))
-            logs.Info("Suricata esta en ejecucion PID -> %s", pid[0])
+            logs.Info("Suricata is running -> " + string(out))
+            logs.Info("Suricata PID -> %s", pid[0])
             return true
         }
     }
-    logs.Error("Suricata NO esta en ejecucion -> " + string(out))
+    logs.Error("Suricata isn't running " + string(out))
     return false
 }
 
@@ -51,10 +51,10 @@ func Installed() (isIt bool){
     suricata = suriBin()
     suricata = suriRunning()
     if suricata {
-        logs.Info("Suricata Existe")
+        logs.Info("Suricata installed and running")
         return true
     } else {
-        logs.Error("Suricata no existe")
+        logs.Error("Suricata isn't present or not running")
     }
     return false
 }

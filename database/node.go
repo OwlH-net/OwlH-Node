@@ -22,14 +22,13 @@ func AddNode(node Node) (err error){
     if Db != nil {
         stmt, err := Db.Prepare("INSERT INTO node(node_name, node_ip, node_port, node_type, node_UUID) values(?,?,?,?,?)")
         if err != nil {
-            logs.Error("DB NODE -> Error en el prepare, se ha perdido la conn a bd? ")
-            return errors.New("DB NODE -> Error en el prepare, se ha perdido la conn a bd?")
+            logs.Error("DB NODE -> Add NODE -> Error db.prepare -> maybe db conn lost? ")
+            return errors.New("DB NODE -> Add NODE -> Error db.prepare -> maybe db conn lost? ")
         }
         //Validate fields!!!
         res, err := stmt.Exec(node.NName, node.NIp, node.NPort, node.NType, node.NUUID )
-        logs.Info("DB -> info", res)
         if err != nil {
-            logs.Error("DB NODE -> La Query no ha funcionado bien: %s", err.Error())
+            logs.Error("DB NODE -> ADD NODE : %s", err.Error())
             return errors.New("DB NODE -> La Query no ha funcionado bien: " + err.Error())
         }
         return nil
