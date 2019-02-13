@@ -29,7 +29,19 @@ func (m *SuricataController) Get() {
 // @router /bpf [get]
 func (m *SuricataController) GetBPF() {
     logs.Info ("Suricata controller -> GET BPF")
-    localbpf := models.GetBPF()
-    m.Data["json"] = map[string]string{"status": localbpf}
+    currentBPF := models.GetBPF()
+    m.Data["json"] = map[string]string{"current": currentBPF}
+    m.ServeJSON()
+}
+
+// @Title Set Suricata BPF
+// @Description Set Surucata BPF
+// @Success 200 {object} models.suricata
+// @router /bpf [put]
+func (m *SuricataController) SetBPF() {
+    logs.Info ("Suricata controller -> SET BPF")
+    newBPF := m.Ctx.Input.Param(":bpf")
+    isSetBPF := models.SetBPF(newBPF)
+    m.Data["json"] = map[string]string{"status": isSetBPF}
     m.ServeJSON()
 }

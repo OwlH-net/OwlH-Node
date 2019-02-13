@@ -58,3 +58,11 @@ func Installed() (isIt bool){
     }
     return false
 }
+
+func GetBPF()(currentBPF string) {
+    return ""
+}
+
+func SetBPF(newBPF string)(status bool) {
+    return true
+}
