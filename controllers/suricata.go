@@ -23,3 +23,13 @@ func (m *SuricataController) Get() {
     m.ServeJSON()
 }
 
+// @Title Get Suricata BPF
+// @Description get Surucata BPF
+// @Success 200 {object} models.suricata
+// @router /bpf [get]
+func (m *SuricataController) GetBPF() {
+    logs.Info ("Suricata controller -> GET BPF")
+    localbpf := models.GetBPF()
+    m.Data["json"] = map[string]string{"status": localbpf}
+    m.ServeJSON()
+}

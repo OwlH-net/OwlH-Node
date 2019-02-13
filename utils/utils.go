@@ -25,8 +25,8 @@ func GetConf(param string)(value string) {
     var config map[string]string
     json.Unmarshal([]byte(byteValue), &config)
 
-    if (config[param] != nil) {
-        return config[param]
+    if value, exists := config[param]; exists {
+        return value
     } else {
         return "ERROR"
     }
