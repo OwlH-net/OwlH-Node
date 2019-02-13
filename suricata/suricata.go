@@ -6,6 +6,7 @@ import (
     "os/exec"
     "strings"
     "regexp"
+    "owlhnode/utils"
 )
 
 func suriPath() (exists bool) {
@@ -60,9 +61,12 @@ func Installed() (isIt bool){
 }
 
 func GetBPF()(currentBPF string) {
+    utils.GetConf("bpfPath")
     return ""
 }
 
 func SetBPF(newBPF string)(status bool) {
+    utils.GetConf("bpfPath")
+
     return true
 }
