@@ -15,19 +15,44 @@ import (
 )
 
 
-func GetConf(param string)(value string) { 
-    //crear json con bpd: path
+func GetConf()(path string, file string) { //leer json del fichero para obtener el path del bpf
+    
+    //crear json con bpf: path y bpf: file
     //crear directorios y fichero
-
-
     confFilePath := "/etc/owlh/conf/main.conf"
-    confFile, err := os.Open(confFilePath)
-
+    jsonPathBpf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
         logs.Error ("utils/GetConf -> can't open Conf file -> " + confFilePath)
+        return "", ""
+    }
+    //confFile:=string(jsonPathBpf)
+
+    var anode map[string]string
+    json.Unmarshal(jsonPathBpf, &anode)
+
+    logs.Error ("utils.GetConf  || path --> "+anode["path"]+" file -->"+anode["file"])
+
+
+    return anode["path"], anode["file"]
+
+
+
+/*
+
+    confFile, err := os.Open(confFilePath)
+    if err != nil {
+        logs.Error ("utils/GetConf -> can't open Conf file -> " + confFilePath)
+        return ""
     }
     defer confFile.Close()
 
+    var anode map[string]string
+    json.Unmarshal(confFile, &anode)
+
+    return anode["bpf"]
+*/
+
+    /*
     byteValue, _ := ioutil.ReadAll(confFile)
 
     var config map[string]string
@@ -38,6 +63,7 @@ func GetConf(param string)(value string) {
     } else {
         return "ERROR"
     }
+    */
 }
 
 func UpdateBPFFile(path string, file string, bpf string) (err error) {
@@ -63,6 +89,10 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
 func BackupFile(path string, file string) (err error) { 
     
     t := time.Now()
+
+    logs.Info ("NODE:UTILS.GO //  PATH  -->" + path)
+    logs.Info ("NODE:UTILS.GO //  FILE  -->" + file)
+
     newFile := file+"-"+strconv.FormatInt(t.Unix(), 10)
     logs.Info ("NODE:UTILS.GO // NEW FILE NAME -->" + newFile)
 

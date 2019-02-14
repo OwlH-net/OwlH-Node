@@ -23,6 +23,8 @@ func (m *SuricataController) Get() {
     m.ServeJSON()
 }
 
+
+/*
 // @Title Get Suricata BPF
 // @Description get Surucata BPF
 // @Success 200 {object} models.suricata
@@ -33,6 +35,9 @@ func (m *SuricataController) GetBPF() {
     m.Data["json"] = map[string]string{"current": currentBPF}
     m.ServeJSON()
 }
+*/
+
+
 
 // @Title PUT Suricata BPF
 // @Description Set Surucata BPF into filter.bpf file

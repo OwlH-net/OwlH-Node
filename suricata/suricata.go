@@ -59,23 +59,26 @@ func Installed() (isIt bool){
     }
     return false
 }
-
+/*
 func GetBPF()(currentBPF string) {
     utils.GetConf("bpfPath")
     return ""
 }
-
+*/
 func SetBPF(n map[string]string)(bpf string, err error) {
-    //utils.GetConf("bpfPath")
-    logs.Info("log de N[BPF]-- "+n["bpf"])
-    err = utils.BackupFile("/etc/owlh/suricata/", "filter.bpf")
+    
+    //read path
+    path, file := utils.GetConf()    
+
+    //make backup file
+    err = utils.BackupFile(path, file)
     if err != nil{
         return "",err    
     }
 
+    //write bpf into the file
     textbpf := n["bpf"]
-
-    err = utils.UpdateBPFFile("/etc/owlh/suricata/", "filter.bpf", textbpf)
+    err = utils.UpdateBPFFile(path, file, textbpf)
     if err != nil{
         return "",err    
     }
