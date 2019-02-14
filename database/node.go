@@ -26,7 +26,7 @@ func AddNode(node Node) (err error){
             return errors.New("DB NODE -> Add NODE -> Error db.prepare -> maybe db conn lost? ")
         }
         //Validate fields!!!
-        res, err := stmt.Exec(node.NName, node.NIp, node.NPort, node.NType, node.NUUID )
+        _, err = stmt.Exec(node.NName, node.NIp, node.NPort, node.NType, node.NUUID )
         if err != nil {
             logs.Error("DB NODE -> ADD NODE : %s", err.Error())
             return errors.New("DB NODE -> La Query no ha funcionado bien: " + err.Error())

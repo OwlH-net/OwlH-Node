@@ -46,15 +46,17 @@ func Get_master() (err error) {
     )
 
     if Db != nil {
-        $sql := "SELECT * FROM master WHERE master_id=1;"
-        row := Db.QueryRow($sql)
-        logs.Info ("DB -> Row %s", row)
+        sql := "SELECT * FROM master WHERE master_id=1;"
+        row := Db.QueryRow(sql) //$
+        logs.Info ("DB -> Row %s", row) //$
         err = row.Scan(&id, &name, &ip, &port)
-        if err == sql.ErrNoRows {
+        /*
+        if err == row.ErrNoRows { //()
             logs.Warn("DB -> There are no rows for query")
         }
+        */
         if err != nil {
-            logs.Warn("DB -> no hemos leido bien los campos de scan")
+            logs.Warn("DB -> Can't read database")
         }
         logs.Info("DB -> Master : id - %s, name - %s, ip - %s, port - %d", id,name,ip,port)
     } else {

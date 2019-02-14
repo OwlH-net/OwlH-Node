@@ -65,8 +65,20 @@ func GetBPF()(currentBPF string) {
     return ""
 }
 
-func SetBPF(newBPF string)(status bool) {
-    utils.GetConf("bpfPath")
+func SetBPF(n map[string]string)(bpf string, err error) {
+    //utils.GetConf("bpfPath")
+    logs.Info("log de N[BPF]-- "+n["bpf"])
+    err = utils.BackupFile("/etc/owlh/suricata/", "filter.bpf")
+    if err != nil{
+        return "",err    
+    }
 
-    return true
+    textbpf := n["bpf"]
+
+    err = utils.UpdateBPFFile("/etc/owlh/suricata/", "filter.bpf", textbpf)
+    if err != nil{
+        return "",err    
+    }
+
+    return bpf, nil
 }

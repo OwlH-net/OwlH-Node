@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"owlhnode/models"
-	//"encoding/json"
+	"encoding/json"
 	"strconv"
 	"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
@@ -34,14 +34,26 @@ func (m *SuricataController) GetBPF() {
     m.ServeJSON()
 }
 
-// @Title Set Suricata BPF
-// @Description Set Surucata BPF
+// @Title PUT Suricata BPF
+// @Description Set Surucata BPF into filter.bpf file
 // @Success 200 {object} models.suricata
 // @router /bpf [put]
-func (m *SuricataController) SetBPF() {
+func (n *SuricataController) SetBPF() {
     logs.Info ("Suricata controller -> SET BPF")
-    newBPF := m.Ctx.Input.Param(":bpf")
-    isSetBPF := models.SetBPF(newBPF)
-    m.Data["json"] = map[string]string{"status": isSetBPF}
-    m.ServeJSON()
+    
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    data,err := models.SetBPF(anode)
+
+    n.Data["json"] = map[string]string{"bpf Node": data}
+
+    if err != nil {
+        logs.Info("BPF JSON RECEIVED -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+
+    //newBPF := m.Ctx.Input.Param(":bpf")
+    //isSetBPF := models.SetBPF(newBPF)
+    n.Data["json"] = map[string]string{"status": "true"}
+    n.ServeJSON()
 }
