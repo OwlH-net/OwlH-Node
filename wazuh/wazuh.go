@@ -6,10 +6,18 @@ import (
     "os/exec"
     "strings"
     "regexp"
+    "owlhnode/utils"
 )
 
 func WazuhPath() (exists bool) {
-    if _, err := os.Stat("/var/ossec"); os.IsNotExist(err) {
+    //Retrieve path for wazuh.
+	loadDataWazuhPath := map[string]map[string]string{}
+	loadDataWazuhPath["loadDataWazuhPath"] = map[string]string{}
+	loadDataWazuhPath["loadDataWazuhPath"]["path"] = ""
+    loadDataWazuhPath = utils.GetConf(loadDataWazuhPath)    
+    path := loadDataWazuhPath["loadDataWazuhPath"]["path"]
+    
+    if _, err := os.Stat(path); os.IsNotExist(err) {
         logs.Error("Wazuh no esta instalado, al menos la carpeta /var/ossec no existe")
         return false
     }
@@ -17,7 +25,16 @@ func WazuhPath() (exists bool) {
 }
 
 func WazuhBin() (exists bool) {
-    out, err := exec.Command("/var/ossec/bin/ossec-control","-V").Output()
+    //Retrieve bin for wazuh.
+	loadDataWazuhBin := map[string]map[string]string{}
+	loadDataWazuhBin["loadDataWazuhBin"] = map[string]string{}
+    loadDataWazuhBin["loadDataWazuhBin"]["path"] = ""
+    loadDataWazuhBin["loadDataWazuhBin"]["param"] = ""
+    loadDataWazuhBin = utils.GetConf(loadDataWazuhBin)    
+    path := loadDataWazuhBin["loadDataWazuhBin"]["path"]
+    param := loadDataWazuhBin["loadDataWazuhBin"]["param"]
+
+    out, err := exec.Command(path,param).Output()
     if err == nil {
         if strings.Contains(string(out), "Wazuh") {
             logs.Info("Wazuh binario existe -> " + string(out))
@@ -29,8 +46,20 @@ func WazuhBin() (exists bool) {
 }
 
 func WazuhRunning() (running bool) {
-    cmd := "ps -ef | grep ossec | grep -v grep | grep -v sudo | awk '{print $8 \" \" $2}' "
-    out, err := exec.Command("bash", "-c", cmd).Output()
+    //Retrieve running for suricata.
+	loadDatasuriWazuhRunning := map[string]map[string]string{}
+	loadDatasuriWazuhRunning["loadDatasuriWazuhRunning"] = map[string]string{}
+    loadDatasuriWazuhRunning["loadDatasuriWazuhRunning"]["cmd"] = ""
+    loadDatasuriWazuhRunning["loadDatasuriWazuhRunning"]["param"] = ""
+    loadDatasuriWazuhRunning["loadDatasuriWazuhRunning"]["command"] = ""
+    loadDatasuriWazuhRunning = utils.GetConf(loadDatasuriWazuhRunning)    
+    cmd := loadDatasuriWazuhRunning["loadDatasuriWazuhRunning"]["cmd"]
+    param := loadDatasuriWazuhRunning["loadDatasuriWazuhRunning"]["param"]
+    command := loadDatasuriWazuhRunning["loadDatasuriWazuhRunning"]["command"]
+
+    //cmd := "ps -ef | grep ossec | grep -v grep | grep -v sudo | awk '{print $8 \" \" $2}' "
+    //out, err := exec.Command("bash", "-c", cmd).Output()
+    out, err := exec.Command(command, param, cmd).Output()
     if err == nil {
         if strings.Contains(string(out), "ossec") {
             spid := regexp.MustCompile("[0-9]+")

@@ -4,6 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "database/sql"
     "strconv"
+    "owlhnode/utils"
 //    "fmt"
 //   "time"
     _ "github.com/mattn/go-sqlite3"
@@ -27,8 +28,21 @@ func init() {
 func Conn() {
     logs.Info("DB -> sql.Open, let's try to be Ready")
     var err error
-//    Db, err = sql.Open("sqlite3", "database/node.db")
-    Db, err = sql.Open("sqlite3", "/etc/owlh/databases/node.db")
+    logs.Info("Set Suricata BPF -- Making Map")
+
+    //Retrieve path and command for open sql.
+	loadDataSQL := map[string]map[string]string{}
+	loadDataSQL["dbsConn"] = map[string]string{}
+	loadDataSQL["dbsConn"]["path"] = ""
+	loadDataSQL["dbsConn"]["cmd"] = "" 
+    loadDataSQL = utils.GetConf(loadDataSQL)    
+    path := loadDataSQL["dbsConn"]["path"]
+    cmd := loadDataSQL["dbsConn"]["cmd"]
+
+    logs.Debug(path+" -*-*-*-*-*-* "+cmd)
+
+    //Db, err = sql.Open("sqlite3", "/etc/owlh/databases/node.db")
+    Db, err = sql.Open(cmd, path)
     if err != nil {
         panic("DB Open Failed ")
     }

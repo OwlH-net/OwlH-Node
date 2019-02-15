@@ -6,10 +6,19 @@ import (
     "os/exec"
     "strings"
     "regexp"
+    "owlhnode/utils"
 )
 
 func ZeekPath() (exists bool) {
-    if _, err := os.Stat("/etc/zeek"); os.IsNotExist(err) {
+    //Retrieve path for wazuh.
+	loadDataZeekPath := map[string]map[string]string{}
+	loadDataZeekPath["loadDataZeekPath"] = map[string]string{}
+	loadDataZeekPath["loadDataZeekPath"]["path"] = ""
+    loadDataZeekPath = utils.GetConf(loadDataZeekPath)    
+    path := loadDataZeekPath["loadDataZeekPath"]["path"]
+
+    //if _, err := os.Stat("/etc/zeek"); os.IsNotExist(err) {
+    if _, err := os.Stat(path); os.IsNotExist(err) {
         logs.Error("Zeek no esta instalado, al menos la carpeta /etc/zeek no existe")
         return false
     }
@@ -17,7 +26,17 @@ func ZeekPath() (exists bool) {
 }
 
 func ZeekBin() (exists bool) {
-    out, err := exec.Command("broctl","-V").Output()
+    //Retrieve bin for wazuh.
+	loadDataZeekBin := map[string]map[string]string{}
+	loadDataZeekBin["loadDataZeekBin"] = map[string]string{}
+    loadDataZeekBin["loadDataZeekBin"]["cmd"] = ""
+    loadDataZeekBin["loadDataZeekBin"]["param"] = ""
+    loadDataZeekBin = utils.GetConf(loadDataZeekBin)    
+    cmd := loadDataZeekBin["loadDataZeekBin"]["cmd"]
+    param := loadDataZeekBin["loadDataZeekBin"]["param"]
+
+    //out, err := exec.Command("broctl","-V").Output()
+    out, err := exec.Command(cmd,param).Output()
     if err == nil {
         if strings.Contains(string(out), "Zeek version") {
             logs.Info("Zeek binario existe -> " + string(out))
@@ -29,8 +48,20 @@ func ZeekBin() (exists bool) {
 }
 
 func ZeekRunning() (running bool) {
-    cmd := "ps -ef | grep zeek | grep -v grep | grep -v sudo | awk '{print $8 \" \" $2}' "
-    out, err := exec.Command("bash", "-c", cmd).Output()
+    //Retrieve running for suricata.
+	loadDatasuriZeekRunning := map[string]map[string]string{}
+	loadDatasuriZeekRunning["loadDatasuriZeekRunning"] = map[string]string{}
+    loadDatasuriZeekRunning["loadDatasuriZeekRunning"]["cmd"] = ""
+    loadDatasuriZeekRunning["loadDatasuriZeekRunning"]["param"] = ""
+    loadDatasuriZeekRunning["loadDatasuriZeekRunning"]["command"] = ""
+    loadDatasuriZeekRunning = utils.GetConf(loadDatasuriZeekRunning)    
+    cmd := loadDatasuriZeekRunning["loadDatasuriZeekRunning"]["cmd"]
+    param := loadDatasuriZeekRunning["loadDatasuriZeekRunning"]["param"]
+    command := loadDatasuriZeekRunning["loadDatasuriZeekRunning"]["command"]
+
+    //cmd := "ps -ef | grep zeek | grep -v grep | grep -v sudo | awk '{print $8 \" \" $2}' "
+    //out, err := exec.Command("bash", "-c", cmd).Output()
+    out, err := exec.Command(command, param, cmd).Output()
     if err == nil {
         if strings.Contains(string(out), "zeek") {
             spid := regexp.MustCompile("[0-9]+")

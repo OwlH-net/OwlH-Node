@@ -15,55 +15,34 @@ import (
 )
 
 
-func GetConf()(path string, file string) { //leer json del fichero para obtener el path del bpf
-    
-    //crear json con bpf: path y bpf: file
-    //crear directorios y fichero
+func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string) { //leer json del fichero para obtener el path del bpf
     confFilePath := "/etc/owlh/conf/main.conf"
     jsonPathBpf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
-        logs.Error ("utils/GetConf -> can't open Conf file -> " + confFilePath)
-        return "", ""
+        logs.Error("utils/GetConf -> can't open Conf file -> " + confFilePath)
+        return nil
     }
-    //confFile:=string(jsonPathBpf)
 
-    var anode map[string]string
+    var anode map[string]map[string]string
     json.Unmarshal(jsonPathBpf, &anode)
 
-    logs.Error ("utils.GetConf  || path --> "+anode["path"]+" file -->"+anode["file"])
+    logs.Debug(anode)
 
-
-    return anode["path"], anode["file"]
-
-
-
-/*
-
-    confFile, err := os.Open(confFilePath)
-    if err != nil {
-        logs.Error ("utils/GetConf -> can't open Conf file -> " + confFilePath)
-        return ""
+    logs.Error("|................|")
+    for k,y := range loadData { 
+        for y,_ := range y {
+            if v, ok := anode[k][y]; ok {
+                logs.Debug(k+"-"+y+"-"+v)
+                logs.Info(anode[k][y])
+                logs.Notice(loadData[k][y])
+                loadData[k][y] = v
+            }else{
+                loadData[k][y] = "None"
+            }
+        }
     }
-    defer confFile.Close()
-
-    var anode map[string]string
-    json.Unmarshal(confFile, &anode)
-
-    return anode["bpf"]
-*/
-
-    /*
-    byteValue, _ := ioutil.ReadAll(confFile)
-
-    var config map[string]string
-    json.Unmarshal([]byte(byteValue), &config)
-
-    if value, exists := config[param]; exists {
-        return value
-    } else {
-        return "ERROR"
-    }
-    */
+    
+    return loadData
 }
 
 func UpdateBPFFile(path string, file string, bpf string) (err error) {
@@ -72,7 +51,6 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
 	if err != nil {
 		logs.Info(err)
     }
-
     //write new bpf content
     newBPF, err := os.OpenFile(path+file, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
     if err != nil {
@@ -87,17 +65,15 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
 }
 
 func BackupFile(path string, file string) (err error) { 
-    
     t := time.Now()
-
-    logs.Info ("NODE:UTILS.GO //  PATH  -->" + path)
-    logs.Info ("NODE:UTILS.GO //  FILE  -->" + file)
 
     newFile := file+"-"+strconv.FormatInt(t.Unix(), 10)
     logs.Info ("NODE:UTILS.GO // NEW FILE NAME -->" + newFile)
 
     srcFolder := path+file
     destFolder := path+newFile
+    logs.Info ("NODE:UTILS.GO // OLD FILE NAME -->" + srcFolder)
+    logs.Info ("NODE:UTILS.GO // DST FILE NAME -->" + destFolder)
     cpCmd := exec.Command("cp", srcFolder, destFolder)
     err = cpCmd.Run()
     if err != nil{
@@ -105,46 +81,4 @@ func BackupFile(path string, file string) (err error) {
     }
 
     return err
-
-/*
-    //reader
-    fileReader, err := os.Open(path+file)
-    if (err != nil) { 
-        logs.Info ("Error io.Reader for make a Backup file")
-        return err
-    }
-    //writer
-
-
-    old := data, err := ioutil.ReadFile(path+file)
-    new := path+newFile
-
-    err = io.Copy(old, new)
-    return err
-    
-    sourceFileStat, err := os.Stat(path+file)
-    if err != nil {
-            return err
-    }
-    in, err := os.Open(path+file)
-    if err != nil {
-        return err
-    }
-    
-    defer file.Close()
-    t := time.Now()
-    rename := file+"-"+strconv.FormatInt(t.Unix(), 10)
-
-    dst := os.Rename(path+file, path+rename)
-
-    out, err := os.Create(dst)
-    if err != nil {
-        return err
-    }
-
-    defer out.Close()
-
-    nBytes, err := io.Copy(destination, source)
-    return nBytes, err
-    */
 }
