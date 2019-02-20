@@ -66,14 +66,9 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
 
 func BackupFile(path string, file string) (err error) { 
     t := time.Now()
-
     newFile := file+"-"+strconv.FormatInt(t.Unix(), 10)
-    logs.Info ("NODE:UTILS.GO // NEW FILE NAME -->" + newFile)
-
     srcFolder := path+file
     destFolder := path+newFile
-    logs.Info ("NODE:UTILS.GO // OLD FILE NAME -->" + srcFolder)
-    logs.Info ("NODE:UTILS.GO // DST FILE NAME -->" + destFolder)
     cpCmd := exec.Command("cp", srcFolder, destFolder)
     err = cpCmd.Run()
     if err != nil{

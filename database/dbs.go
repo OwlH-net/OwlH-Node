@@ -39,8 +39,6 @@ func Conn() {
     path := loadDataSQL["dbsConn"]["path"]
     cmd := loadDataSQL["dbsConn"]["cmd"]
 
-    logs.Debug(path+" -*-*-*-*-*-* "+cmd)
-
     //Db, err = sql.Open("sqlite3", "/etc/owlh/databases/node.db")
     Db, err = sql.Open(cmd, path)
     if err != nil {
@@ -64,11 +62,7 @@ func Get_master() (err error) {
         row := Db.QueryRow(sql) //$
         logs.Info ("DB -> Row %s", row) //$
         err = row.Scan(&id, &name, &ip, &port)
-        /*
-        if err == row.ErrNoRows { //()
-            logs.Warn("DB -> There are no rows for query")
-        }
-        */
+
         if err != nil {
             logs.Warn("DB -> Can't read database")
         }
