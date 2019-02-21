@@ -62,3 +62,28 @@ func (n *SuricataController) SetBPF() {
     n.Data["json"] = map[string]string{"status": "true"}
     n.ServeJSON()
 }
+
+// @Title RetrieveFile
+// @Description Retrieve file from master
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /retrieve [post]
+func (n *SuricataController) RetrieveFile() {
+    logs.Info("retrieve -> In")
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    logs.Info(anode)
+    n.Data["json"] = anode
+    // if err != nil {
+    //     n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
+    // }
+    
+    n.Data["json"] = map[string]string{"ack": "true"}
+    logs.Info("retrieve -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+
+
+
+
+
+}

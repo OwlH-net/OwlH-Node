@@ -26,15 +26,15 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
     var anode map[string]map[string]string
     json.Unmarshal(jsonPathBpf, &anode)
 
-    logs.Debug(anode)
+    //logs.Debug(anode)
 
     logs.Error("|................|")
     for k,y := range loadData { 
         for y,_ := range y {
             if v, ok := anode[k][y]; ok {
-                logs.Debug(k+"-"+y+"-"+v)
-                logs.Info(anode[k][y])
-                logs.Notice(loadData[k][y])
+                //logs.Debug(k+"-"+y+"-"+v)
+                //logs.Info(anode[k][y])
+                //logs.Notice(loadData[k][y])
                 loadData[k][y] = v
             }else{
                 loadData[k][y] = "None"
