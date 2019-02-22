@@ -67,23 +67,57 @@ func (n *SuricataController) SetBPF() {
 // @Description Retrieve file from master
 // @Success 200 {object} models.Node
 // @Failure 403 body is empty
-// @router /retrieve [post]
+// @router /retrieve [put]
 func (n *SuricataController) RetrieveFile() {
     logs.Info("retrieve -> In")
-    var anode map[string]string
+    var anode map[string][]byte
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    logs.Info(anode)
-    n.Data["json"] = anode
-    // if err != nil {
-    //     n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
-    // }
-    
+    err := models.RetrieveFile(anode)
+    //logs.Info(string(anode["data"]))
     n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Info("Ruleset retrieve OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     logs.Info("retrieve -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
+}
 
+// @Title SendFile
+// @Description send back the requested file
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /send [get]
+func (n *SuricataController) SendFile() {
+    logs.Info("send -> In")
+    data,err := models.SendFile()
+    n.Data["json"] = string(data)
 
+    if err != nil {
+        logs.Info("send OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    logs.Info("send -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}
 
+// @Title SaveFile
+// @Description save back the requested file
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /save [put]
+func (n *SuricataController) SaveFile() {
+    logs.Info("save -> In")   
 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.SaveFile(anode)
 
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Info("save OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    logs.Info("save -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
 }

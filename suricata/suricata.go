@@ -7,6 +7,7 @@ import (
     "strings"
     "regexp"
     "owlhnode/utils"
+    "io/ioutil"
 )
 
 func suriPath() (exists bool) {
@@ -120,4 +121,55 @@ func SetBPF(n map[string]string)(bpf string, err error) {
     }
 
     return bpf, nil
+}
+
+//Retrieve data, make a backup file and write the new data on the original file
+func RetrieveFile(file map[string][]byte)(err error){
+    fileRetrieved := file["data"]
+    path := "/etc/owlh/suricata/ruleset/"
+    fileToEdit := "owlh.rules"
+    
+    err = utils.BackupFile(path, fileToEdit)
+    if err != nil{
+        return err    
+    }
+    
+    err = utils.WriteNewDataOnFile(path+fileToEdit, fileRetrieved)
+    if err != nil{
+        return err    
+    }
+
+    return nil
+}
+
+//read file and send to webpage
+func SendFile()(data string, err error){
+    path := "/etc/owlh/conf/main.conf"
+    URLFile, err := ioutil.ReadFile(path) // just pass the file name
+    if err != nil {
+        return "",err
+    }
+    return string(URLFile), err
+}
+
+//read changed file, make a backup and save into file
+func SaveFile(file map[string]string)(err error){
+    path := "/etc/owlh/conf/"
+    fileName := "main.conf"
+    fileRetrieved := file["data"]
+
+    //make file backup before overwrite
+    err = utils.BackupFile(path, fileName)
+    if err != nil {
+        return err
+    }
+
+    //make byte array for save the file modified
+    bytearray := []byte(fileRetrieved)
+    err = utils.WriteNewDataOnFile(path+fileName, bytearray)
+    if err != nil {
+        return err
+    }
+
+    return err
 }

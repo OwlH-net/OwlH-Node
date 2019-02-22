@@ -7,7 +7,8 @@ import (
     //"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
     "io/ioutil"
-    //"io"
+    // "io"
+    // "strings"
     "os"
     "time"
     "os/exec"
@@ -64,16 +65,27 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
     return nil
 }
 
-func BackupFile(path string, file string) (err error) { 
+func BackupFile(path string, fileName string) (err error) { 
     t := time.Now()
-    newFile := file+"-"+strconv.FormatInt(t.Unix(), 10)
-    srcFolder := path+file
+    newFile := fileName+"-"+strconv.FormatInt(t.Unix(), 10)
+    srcFolder := path+fileName
     destFolder := path+newFile
     cpCmd := exec.Command("cp", srcFolder, destFolder)
     err = cpCmd.Run()
     if err != nil{
         logs.Info ("Erro exec cmd command")
+        return err
     }
 
-    return err
+    return nil
+}
+
+func WriteNewDataOnFile(path string, data []byte)(err error){
+    
+    err = ioutil.WriteFile(path, data, 0644)
+	if err != nil {
+		return err
+	}
+
+    return nil
 }
