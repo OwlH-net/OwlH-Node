@@ -1,4 +1,4 @@
-package suricata
+package file
 
 import (
     "github.com/astaxie/beego/logs"
@@ -14,29 +14,40 @@ import (
 func SendFile(file string)(data map[string]string, err error){
 	var voidArray map[string]string
 
+	sendBackArray := make(map[string]string)
+
 	logs.Info("Intro")
 
     //create map and obtain file
     loadData := map[string]map[string]string{}
 	loadData["files"] = map[string]string{}
 	loadData["files"][file] = ""
-    loadData = utils.GetConf(loadData)
+	loadData = utils.GetConf(loadData)
+	
+
+
     
     //save url from file selected and open file
     fileConfPath := loadData["files"][file]
     logs.Warn(fileConfPath)
-    URLFile, err := ioutil.ReadFile(fileConfPath) // just pass the file name
+	URLFile, err := ioutil.ReadFile(fileConfPath) // just pass the file name
     if err != nil {
+		logs.Info("eRROR")
         return voidArray,err
     }
 	
-	data["fileContent"] = string(URLFile)
-	data["fileName"] = string(file)
+	sendBackArray["fileContent"] = string(URLFile)
+	logs.Info(file+" // "+string(URLFile))
+	sendBackArray["fileName"] = file
+
+	logs.Warn("	tras lectura ")
+	logs.Info(sendBackArray["fileContent"])
+	logs.Info(sendBackArray["fileName"])
 
 	logs.Info("outro")
 
 
-	return data, err
+	return sendBackArray, err
 }
 
 //read changed file, make a backup and save into file
