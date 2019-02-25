@@ -15,8 +15,9 @@ import (
     "fmt"
 )
 
-
-func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string) { //leer json del fichero para obtener el path del bpf
+//Read map data
+//leer json del fichero para obtener el path del bpf
+func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string) { 
     confFilePath := "/etc/owlh/conf/main.conf"
     jsonPathBpf, err := ioutil.ReadFile(confFilePath)
     if err != nil {

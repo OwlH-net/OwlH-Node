@@ -29,6 +29,11 @@ func init() {
 				&controllers.WazuhController{},
 			),
 		),
+		beego.NSNamespace("/file",
+		beego.NSInclude(
+			&controllers.FileController{},
+		),
+	),
 	)
 	beego.AddNamespace(ns)
 }

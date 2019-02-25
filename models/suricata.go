@@ -25,15 +25,3 @@ func RetrieveFile(n map[string][]byte) (err error) {
     err = suricata.RetrieveFile(n)
     return err
 }
-
-func SendFile() (data string, err error) {
-    logs.Info("SendFile into Node file")
-    data,err = suricata.SendFile()
-    return data,err
-}
-
-func SaveFile(data map[string]string) (err error) {
-    logs.Info("SaveFile into Node file")
-    err = suricata.SaveFile(data)
-    return err
-}
