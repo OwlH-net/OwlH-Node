@@ -30,10 +30,15 @@ func init() {
 			),
 		),
 		beego.NSNamespace("/file",
-		beego.NSInclude(
-			&controllers.FileController{},
+			beego.NSInclude(
+				&controllers.FileController{},
+			),
 		),
-	),
+		beego.NSNamespace("/stap",
+			beego.NSInclude(
+				&controllers.StapController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

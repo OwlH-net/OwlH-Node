@@ -13,6 +13,7 @@ import (
     "time"
     "os/exec"
     "fmt"
+    "crypto/rand"
 )
 
 //Read map data
@@ -72,7 +73,6 @@ func BackupFullPath(path string) (err error) {
         logs.Info ("Erro exec cmd command")
         return err
     }
-
     return nil
 }
     
@@ -122,4 +122,50 @@ func GetConfFiles()(loadDataReturn map[string]string, err error) {
     logs.Info(anode["files"])
 
     return anode["files"], nil
+}
+
+func Generate()(uuid string)  {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		logs.Info(err)
+	}
+	uuid = fmt.Sprintf("%x-%x-%x-%x-%x",b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	logs.Info(uuid)
+	return uuid
+}
+
+func LoadDefaultServerData(fileName string)(json map[string]string, err error){
+
+    //Get full path
+    loadData := map[string]map[string]string{}
+    loadData["files"] = map[string]string{}
+    loadData["files"][fileName] = ""
+    loadData = GetConf(loadData)
+
+    logs.Info(loadData["files"][fileName])
+    fileContent := make(map[string]string)
+
+    // jsonFile, err := os.Open(loadData["files"][fileName])
+    // defer jsonFile.Close()
+    // if err != nil {
+    //     return nil,err
+    // }
+    //byteValue, _ := ioutil.ReadAll(jsonFile)
+
+    rawData, err := ioutil.ReadFile(loadData["files"][fileName])
+    if err != nil {
+        return nil,err
+    }
+
+
+
+    fileContent["fileContent"] = string(rawData)
+    // json.Unmarshal(jsonPath, &fullPath)
+    // jsonParser := json.NewDecoder(configFile)
+    // jsonParser.Decode(&jsonReturned)
+    
+    logs.Info(fileContent)
+
+    return fileContent,nil
 }

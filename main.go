@@ -14,6 +14,7 @@ import (
 
 func main() {
 
+    ndb.SConn()
     ndb.Conn()
 
     if beego.BConfig.RunMode == "dev" {
