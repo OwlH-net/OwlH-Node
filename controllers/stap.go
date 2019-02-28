@@ -13,7 +13,7 @@ type StapController struct {
 }
 
 // @Title AddServer
-// @Description get Surucata status
+// @Description Add a new server to stap
 // @Success 200 {object} models.stap
 // @router / [post]
 func (n *StapController) AddServer() {
@@ -27,9 +27,27 @@ func (n *StapController) AddServer() {
 	n.Data["json"] = map[string]string{"ack": "true"}
 
 	if err != nil {
-        logs.Info("BPF JSON RECEIVED -- ERROR : %s", err.Error())
+        logs.Info("AddServer JSON RECEIVED -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
 
+    n.ServeJSON()
+}
+
+// @Title GetAllServers
+// @Description get all servers stap
+// @Success 200 {object} models.stap
+// @router / [get]
+func (n *StapController) GetAllServers() {
+	logs.Info ("stap controller -> AddServer")
+
+	servers, err := models.GetAllServers()
+
+	n.Data["json"] = servers
+
+	if err != nil {
+        logs.Info("AddServer JSON RECEIVED -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
     n.ServeJSON()
 }

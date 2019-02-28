@@ -146,26 +146,12 @@ func LoadDefaultServerData(fileName string)(json map[string]string, err error){
     logs.Info(loadData["files"][fileName])
     fileContent := make(map[string]string)
 
-    // jsonFile, err := os.Open(loadData["files"][fileName])
-    // defer jsonFile.Close()
-    // if err != nil {
-    //     return nil,err
-    // }
-    //byteValue, _ := ioutil.ReadAll(jsonFile)
-
     rawData, err := ioutil.ReadFile(loadData["files"][fileName])
     if err != nil {
         return nil,err
     }
 
-
-
     fileContent["fileContent"] = string(rawData)
-    // json.Unmarshal(jsonPath, &fullPath)
-    // jsonParser := json.NewDecoder(configFile)
-    // jsonParser.Decode(&jsonReturned)
     
-    logs.Info(fileContent)
-
     return fileContent,nil
 }

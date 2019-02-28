@@ -10,3 +10,8 @@ func AddServer(elem map[string]string) (err error) {
 	err = stap.AddServer(elem)
     return err
 }
+func GetAllServers()(servers *map[string]map[string]string, err error) {
+    logs.Info("GetAllServers stap into Node file")
+	servers,err = stap.GetAllServers()
+    return servers,err
+}
