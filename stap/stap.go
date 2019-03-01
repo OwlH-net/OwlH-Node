@@ -89,3 +89,34 @@ func GetAllServers()(data *map[string]map[string]string, err error){
 	} 
 	return &allservers, nil
 } 
+
+func GetServer(serveruuid string)(data *map[string]map[string]string, err error){
+	var uniqueid string
+	var param string
+	var value string
+	var allservers = map[string]map[string]string{}
+
+	//database connection
+	if ndb.Sdb == nil {
+        logs.Error("GetAllServers stap -- Can't access to database")
+        return nil,errors.New("GetAllServers stap -- Can't access to database")
+	} 
+	//query and make map[]map[]
+	sql := "select server_uniqueid, server_param, server_value from servers where server_uniqueid = '"+serveruuid+"';"
+    rows, err := ndb.Sdb.Query(sql)
+    if err != nil {
+        logs.Error("GetAllServers stap Error al ejecutar la query: %s", err.Error())
+        return nil, err
+    }
+	for rows.Next() {
+        if err = rows.Scan(&uniqueid, &param, &value); err != nil {
+            logs.Error("GetAllServers stap -- No hemos podido leer del resultado de la query: %s", err.Error())
+            return nil, err
+        }
+        if allservers[uniqueid] == nil { allservers[uniqueid] = map[string]string{}}
+		allservers[uniqueid][param]=value
+		
+		logs.Info(param+"   ----   "+value)
+	} 
+	return &allservers, nil
+} 

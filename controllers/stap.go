@@ -51,3 +51,21 @@ func (n *StapController) GetAllServers() {
 	}
     n.ServeJSON()
 }
+
+// @Title GetServer
+// @Description get a server stap
+// @Success 200 {object} models.stap
+// @router /server/:uuid [get]
+func (n *StapController) GetServer() {
+	logs.Info ("stap controller -> GetServer")
+	uuid := n.GetString(":uuid") 
+	server, err := models.GetServer(uuid)
+
+	n.Data["json"] = server
+
+	if err != nil {
+        logs.Info("GetServer JSON RECEIVED -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    n.ServeJSON()
+}
