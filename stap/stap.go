@@ -120,3 +120,96 @@ func GetServer(serveruuid string)(data *map[string]map[string]string, err error)
 	} 
 	return &allservers, nil
 } 
+
+
+
+func PingStap() (isIt map[string]bool){
+    stap := make(map[string]bool)
+    //stap = false
+	stap["stapStatus"] = ""
+	
+	sql := "select node_value from stap where node_uniqueid = \""+uuid+"\" and node_param = \"status\";"
+    logs.Info("Stap select for check if exist query sql %s",sql)
+    rows, err := ndb.Db.Query(sql)
+    if err != nil {
+        logs.Info("Stap query error %s",err.Error())
+        return "", err
+    }
+	defer rows.Close()
+    if rows.Next() {
+        //rows.Close()
+        logs.Info("Stap UPDATE")
+        updtbpf, err := ndb.Db.Prepare("update stap set node_value = ? where node_uniqueid = ? and node_param = ?;")
+
+        if (err != nil){
+            logs.Info("Put BPF Suricata prepare UPDATE -- "+err.Error())
+            return "", err
+        }
+        _, err = updtbpf.Exec(&jsonbpf, &jsonnid, bpftext)  
+        defer updtbpf.Close()      
+
+        return "SuccessUpdate", err
+    }else{
+        logs.Info("Put BPF Suricata res INSERT")
+        indtbpf, err := ndb.Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values (?,?,?);")
+        _, err = indtbpf.Exec(&jsonnid, bpftext, &jsonbpf)  
+        defer indtbpf.Close()
+        if (err != nil){
+            return "", err
+        }
+        return "SuccessInsert", err
+    }
+    return "Error", errors.New("Put SuricataBPF -- There is no defined BPF")
+	
+
+
+
+    logs.Warn("stap --> ")
+    logs.Warn(stap)
+}
+
+
+//Run stap
+func RunStap()(data string, err error){
+
+    // //Retrieve path for Stap.
+    StartStap := map[string]map[string]string{}
+    StartStap["stapStart"] = map[string]string{}
+    StartStap["stapStart"]["start"] = ""
+    StartStap["stapStart"]["param"] = ""
+    StartStap["stapStart"]["command"] = ""
+    StartStap = utils.GetConf(StartStap)    
+    cmd := StartStap["stapStart"]["start"]
+    param := StartStap["stapStart"]["param"]
+    command := StartStap["stapStart"]["command"]
+
+    out,err := exec.Command(command, param, cmd).Output()
+    logs.Info(string(out))
+    if err != nil {
+        logs.Error("Error launching Stap: "+err.Error())
+        return "",err
+    }
+    return "Stap system is on",nil
+}
+
+//Stop Stap
+func StopStap()(data string, err error){
+
+    // //Retrieve path for Stap.
+    StopStap := map[string]map[string]string{}
+	StopStap["stapStop"] = map[string]string{}
+    StopStap["stapStop"]["stop"] = ""
+    StopStap["stapStop"]["param"] = ""
+    StopStap["stapStop"]["command"] = ""
+    StopStap = utils.GetConf(StopStap)    
+    cmd := StopStap["stapStop"]["stop"]
+    param := StopStap["stapStop"]["param"]
+    command := StopStap["stapStop"]["command"]
+
+    _,err = exec.Command(command, param, cmd).Output()
+    if err != nil {
+        logs.Error("Error stopping Stap: "+err.Error())
+        return "",err
+    }
+    return "Stap stopped ",nil
+}

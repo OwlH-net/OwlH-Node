@@ -81,7 +81,10 @@ func Installed() (isIt map[string]bool){
     suricata["path"] = suriPath()
     suricata["bin"] = suriBin()
     suricata["running"] = suriRunning()
+    
+    logs.Warn("SURICATA --> ")
     logs.Warn(suricata)
+
     if suricata["Path"] || suricata["Bin"] || suricata["Running"] {
         logs.Info("Suricata installed and running")
         return suricata
@@ -158,15 +161,6 @@ func RunSuricata()(data string, err error){
     param := StartSuricata["suriStart"]["param"]
     command := StartSuricata["suriStart"]["command"]
 
-    logs.Info("Loading parameters Node GetConf")
-    logs.Info("Loading parameters Node GetConf")
-    logs.Info("Loading parameters Node GetConf")
-    logs.Info("Loading parameters Node GetConf")
-    logs.Info("Loading parameters Node GetConf")
-    logs.Info(cmd)
-    logs.Info(param)
-    logs.Info(command)
-
     out,err := exec.Command(command, param, cmd).Output()
     logs.Info(string(out))
     if err != nil {
@@ -197,4 +191,3 @@ func StopSuricata()(data string, err error){
     }
     return "Suricata stopped ",nil
 }
-
