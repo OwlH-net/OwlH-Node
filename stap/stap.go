@@ -40,7 +40,7 @@ func AddServer(elem map[string]string) (err error){
 	
 	//Load default server data from main.conf
 	jsonDefaultData,err := utils.LoadDefaultServerData("defaults.json")
-	logs.Info("Fichero Leido!")
+	logs.Info("File readed !!!")
 	logs.Info(jsonDefaultData)
 	jsonData := make(map[string]string)
 	//parse raw data into byte array
@@ -123,93 +123,170 @@ func GetServer(serveruuid string)(data *map[string]map[string]string, err error)
 
 
 
-func PingStap() (isIt map[string]bool){
+func PingStap(uuid string) (isIt map[string]bool){
+    //database connection
+	if ndb.Sdb == nil {
+        logs.Error("PingStap stap -- Can't access to database")
+        return nil
+    } 
+    var res string
     stap := make(map[string]bool)
     //stap = false
-	stap["stapStatus"] = ""
+	stap["stapStatus"] = false
 	
-	sql := "select node_value from stap where node_uniqueid = \""+uuid+"\" and node_param = \"status\";"
+	sql := "select stap_value from stap where stap_uniqueid = \""+uuid+"\" and stap_param = \"status\";"
     logs.Info("Stap select for check if exist query sql %s",sql)
-    rows, err := ndb.Db.Query(sql)
+    rows, err := ndb.Sdb.Query(sql)
+    // rows, err := ndb.Db.Query(sql).Scan(&res)
+    // logs.Info("Value returned query Stap-->"+res)
     if err != nil {
-        logs.Info("Stap query error %s",err.Error())
-        return "", err
+        logs.Info("Query Error immediately after retrieve data %s",err.Error())
+        return stap
     }
+    logs.Info("After rows Query")
 	defer rows.Close()
     if rows.Next() {
-        //rows.Close()
-        logs.Info("Stap UPDATE")
-        updtbpf, err := ndb.Db.Prepare("update stap set node_value = ? where node_uniqueid = ? and node_param = ?;")
-
-        if (err != nil){
-            logs.Info("Put BPF Suricata prepare UPDATE -- "+err.Error())
-            return "", err
+        err := rows.Scan(&res)
+        if err != nil {
+            logs.Info("Stap query error %s",err.Error())
+            return stap
         }
-        _, err = updtbpf.Exec(&jsonbpf, &jsonnid, bpftext)  
-        defer updtbpf.Close()      
-
-        return "SuccessUpdate", err
+        logs.Info("Stap status exists on stap DB --> Value: "+res)
+        if res=="true"{stap["stapStatus"]=true}else{stap["stapStatus"]=false}
+        logs.Warn("Stap status-->")
+        logs.Warn(stap)
+        return stap
     }else{
-        logs.Info("Put BPF Suricata res INSERT")
-        indtbpf, err := ndb.Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values (?,?,?);")
-        _, err = indtbpf.Exec(&jsonnid, bpftext, &jsonbpf)  
-        defer indtbpf.Close()
+        logs.Info("Put Stap status INSERT")
+        insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
+        _, err = insertStap.Exec(&uuid, "status", "false")  
+        defer insertStap.Close()
         if (err != nil){
-            return "", err
+            return stap
         }
-        return "SuccessInsert", err
+        return stap
     }
-    return "Error", errors.New("Put SuricataBPF -- There is no defined BPF")
-	
-
-
-
-    logs.Warn("stap --> ")
-    logs.Warn(stap)
 }
 
 
 //Run stap
-func RunStap()(data string, err error){
-
-    // //Retrieve path for Stap.
-    StartStap := map[string]map[string]string{}
-    StartStap["stapStart"] = map[string]string{}
-    StartStap["stapStart"]["start"] = ""
-    StartStap["stapStart"]["param"] = ""
-    StartStap["stapStart"]["command"] = ""
-    StartStap = utils.GetConf(StartStap)    
-    cmd := StartStap["stapStart"]["start"]
-    param := StartStap["stapStart"]["param"]
-    command := StartStap["stapStart"]["command"]
-
-    out,err := exec.Command(command, param, cmd).Output()
-    logs.Info(string(out))
-    if err != nil {
-        logs.Error("Error launching Stap: "+err.Error())
-        return "",err
+func RunStap(uuid string)(data string, err error){
+    //database connection
+	if ndb.Sdb == nil {
+        logs.Error("RunStap stap -- Can't access to database")
+        return "",errors.New("RunStap stap -- Can't access to database")
+	} 
+    logs.Info("Starting Stap...")
+    //insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
+    updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_uniqueid = ? and stap_param = ?;")
+    _, err = updateStap.Exec("true", &uuid, "status")  
+    defer updateStap.Close()
+    if (err != nil){
+        return "", err
     }
-    return "Stap system is on",nil
+    return "Stap is Running!", err
 }
 
 //Stop Stap
-func StopStap()(data string, err error){
-
-    // //Retrieve path for Stap.
-    StopStap := map[string]map[string]string{}
-	StopStap["stapStop"] = map[string]string{}
-    StopStap["stapStop"]["stop"] = ""
-    StopStap["stapStop"]["param"] = ""
-    StopStap["stapStop"]["command"] = ""
-    StopStap = utils.GetConf(StopStap)    
-    cmd := StopStap["stapStop"]["stop"]
-    param := StopStap["stapStop"]["param"]
-    command := StopStap["stapStop"]["command"]
-
-    _,err = exec.Command(command, param, cmd).Output()
-    if err != nil {
-        logs.Error("Error stopping Stap: "+err.Error())
-        return "",err
+func StopStap(uuid string)(data string, err error){
+    //database connection
+	if ndb.Sdb == nil {
+        logs.Error("StopStap stap -- Can't access to database")
+        return "",errors.New("StopStap stap -- Can't access to database")
+	} 
+    logs.Info("Stopping Stap...")
+    updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_uniqueid = ? and stap_param = ?;")
+    _, err = updateStap.Exec("false", &uuid, "status")  
+    defer updateStap.Close()
+    if (err != nil){
+        return "", err
     }
-    return "Stap stopped ",nil
+    return "Stap is stoped", err
+}
+
+//Run stap specific server
+func RunStapServer(serveruuid string)(data string, err error){
+    //database connection
+	if ndb.Sdb == nil {
+        logs.Error("RunStapServer stap -- Can't access to database")
+        return "",errors.New("RunStapServer stap -- Can't access to database")
+    } 
+    logs.Error("Server uuid "+serveruuid)
+    logs.Info("Starting specific Stap server...")
+    //insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
+    sql := "update servers set server_value = ? where server_uniqueid = ? and server_param = ?;"
+    updateStartStapServer, err := ndb.Sdb.Prepare(sql)
+    _, err = updateStartStapServer.Exec("true", &serveruuid, "status")  
+    
+    defer updateStartStapServer.Close()
+    if (err != nil){
+        logs.Error("RunStapServer error updating: %s", err.Error())
+        return "", err
+    }
+    logs.Error("RunStapServer finishing function at Node")
+    return "Stap specific server is Running!", err
+}
+
+//Stop Stap specific server
+func StopStapServer(serveruuid string)(data string, err error){
+    //database connection
+	if ndb.Sdb == nil {
+        logs.Error("StopStapServer stap -- Can't access to database")
+        return "",errors.New("StopStapServer stap -- Can't access to database")
+	} 
+    logs.Info("Stopping specific Stap server...")
+    updateStopStapServer, err := ndb.Sdb.Prepare("update servers set server_value = ? where server_uniqueid = ? and server_param = ?;")
+    _, err = updateStopStapServer.Exec("false", &serveruuid, "status")  
+    defer updateStopStapServer.Close()
+    if (err != nil){
+        logs.Error("StopStapServer error updating: %s", err.Error())
+        return "", err
+    }
+    return "Stap specific server  is stoped", err
+}
+
+func PingServerStap(server string) (isIt map[string]bool){
+    //database connection
+	if ndb.Sdb == nil {
+        logs.Error("PingServerStap stap -- Can't access to database")
+        return nil
+    } 
+    var res string
+    stap := make(map[string]bool)
+	stap["stapStatus"] = false
+	
+	sql := "select server_value from servers where server_uniqueid = \""+server+"\" and server_param = \"status\";"
+    logs.Info("PingServerStap select for check if exist query sql %s",sql)
+    rows, err := ndb.Sdb.Query(sql)
+    // rows, err := ndb.Db.Query(sql).Scan(&res)
+    // logs.Info("Value returned query PingServerStap-->"+res)
+    if err != nil {
+        logs.Info("Query Error immediately after retrieve data %s",err.Error())
+        return stap
+    }
+    logs.Info("After rows Query")
+	defer rows.Close()
+    if rows.Next() {
+        err := rows.Scan(&res)
+        if err != nil {
+            logs.Info("Stap query error %s",err.Error())
+            return stap
+        }
+        logs.Info("Stap status exists on stap DB --> Value: "+res)
+        if res=="true"{stap["stapStatus"]=true}else{stap["stapStatus"]=false}
+        logs.Warn("PingServerStap status-->")
+        logs.Warn(stap)
+        return stap
+    }
+    return stap
+    // else{
+    //     logs.Info("Put Stap status INSERT")
+    //     insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
+    //     _, err = insertStap.Exec(&server, "status", "false")  
+    //     defer insertStap.Close()
+    //     if (err != nil){
+    //         return stap
+    //     }
+    //     return stap
+    // }
 }
