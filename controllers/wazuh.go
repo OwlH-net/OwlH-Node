@@ -3,7 +3,7 @@ package controllers
 import (
 	"owlhnode/models"
 	//"encoding/json"
-	"strconv"
+	// "strconv"
 	"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
 )
@@ -19,7 +19,40 @@ type WazuhController struct {
 func (m *WazuhController) Get() {
     logs.Info ("Wazuh controller -> GET")
 	mstatus := models.GetWazuh()
-	m.Data["json"] = map[string]string{"status": strconv.FormatBool(mstatus)}
+	m.Data["json"] = mstatus
     m.ServeJSON()
 }
 
+// @Title RunWazuh
+// @Description Run wazuh system
+// @Success 200 {object} models.wazuh
+// @Failure 403 body is empty
+// @router /RunWazuh [put]
+func (n *WazuhController) RunWazuh() {
+    logs.Info("RunWazuh -> In")
+    data,err := models.RunWazuh()
+    n.Data["json"] = data
+    if err != nil {
+        logs.Info("RunWazuh OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    logs.Info("RunWazuh -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}
+
+// @Title StopWazuh
+// @Description Run wazuh system
+// @Success 200 {object} models.wazuh
+// @Failure 403 body is empty
+// @router /StopWazuh [put]
+func (n *WazuhController) StopWazuh() {
+    logs.Info("StopWazuh -> In")
+    data,err := models.StopWazuh()
+    n.Data["json"] = data
+    if err != nil {
+        logs.Info("StopWazuh OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    logs.Info("StopWazuh -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}

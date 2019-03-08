@@ -3,7 +3,7 @@ package controllers
 import (
 	"owlhnode/models"
 	//"encoding/json"
-	"strconv"
+	// "strconv"
 	"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
 )
@@ -19,7 +19,40 @@ type ZeekController struct {
 func (m *ZeekController) Get() {
     logs.Info ("Zeek controller -> GET")
 	mstatus := models.GetZeek()
-	m.Data["json"] = map[string]string{"status": strconv.FormatBool(mstatus)}
+	m.Data["json"] = mstatus
     m.ServeJSON()
 }
 
+// @Title RunZeek
+// @Description Run zeek system
+// @Success 200 {object} models.zeek
+// @Failure 403 body is empty
+// @router /RunZeek [put]
+func (n *ZeekController) RunZeek() {
+    logs.Info("RunZeek -> In")
+    data,err := models.RunZeek()
+    n.Data["json"] = data
+    if err != nil {
+        logs.Info("RunZeek OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    logs.Info("RunZeek -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}
+
+// @Title StopZeek
+// @Description Run zeek system
+// @Success 200 {object} models.zeek
+// @Failure 403 body is empty
+// @router /StopZeek [put]
+func (n *ZeekController) StopZeek() {
+    logs.Info("StopZeek -> In")
+    data,err := models.StopZeek()
+    n.Data["json"] = data
+    if err != nil {
+        logs.Info("StopZeek OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    logs.Info("StopZeek -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}

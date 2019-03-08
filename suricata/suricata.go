@@ -7,6 +7,7 @@ import (
     "strings"
     "regexp"
     "owlhnode/utils"
+    // "fmt"
     // "io/ioutil"
 )
 
@@ -74,19 +75,23 @@ func suriRunning() (running bool) {
     return false
 }
 
-func Installed() (isIt bool){
-    var suricata bool
-    suricata = false
-    suricata = suriPath()
-    suricata = suriBin()
-    suricata = suriRunning()
-    if suricata {
+func Installed() (isIt map[string]bool){
+    suricata := make(map[string]bool)
+    //suricata = false
+    suricata["path"] = suriPath()
+    suricata["bin"] = suriBin()
+    suricata["running"] = suriRunning()
+    
+    logs.Warn("SURICATA --> ")
+    logs.Warn(suricata)
+
+    if suricata["Path"] || suricata["Bin"] || suricata["Running"] {
         logs.Info("Suricata installed and running")
-        return true
+        return suricata
     } else {
         logs.Error("Suricata isn't present or not running")
-    }
-    return false
+        return suricata
+    }   
 }
 /*
 func GetBPF()(currentBPF string) {
@@ -140,4 +145,49 @@ func RetrieveFile(file map[string][]byte)(err error){
     }
 
     return nil
+}
+
+//Run suricata
+func RunSuricata()(data string, err error){
+
+    // //Retrieve path for suricata.
+    StartSuricata := map[string]map[string]string{}
+    StartSuricata["suriStart"] = map[string]string{}
+    StartSuricata["suriStart"]["start"] = ""
+    StartSuricata["suriStart"]["param"] = ""
+    StartSuricata["suriStart"]["command"] = ""
+    StartSuricata = utils.GetConf(StartSuricata)    
+    cmd := StartSuricata["suriStart"]["start"]
+    param := StartSuricata["suriStart"]["param"]
+    command := StartSuricata["suriStart"]["command"]
+
+    out,err := exec.Command(command, param, cmd).Output()
+    logs.Info(string(out))
+    if err != nil {
+        logs.Error("Error launching suricata: "+err.Error())
+        return "",err
+    }
+    return "Suricata system is on",nil
+}
+
+//Stop suricata
+func StopSuricata()(data string, err error){
+
+    // //Retrieve path for suricata.
+    StopSuricata := map[string]map[string]string{}
+	StopSuricata["suriStop"] = map[string]string{}
+    StopSuricata["suriStop"]["stop"] = ""
+    StopSuricata["suriStop"]["param"] = ""
+    StopSuricata["suriStop"]["command"] = ""
+    StopSuricata = utils.GetConf(StopSuricata)    
+    cmd := StopSuricata["suriStop"]["stop"]
+    param := StopSuricata["suriStop"]["param"]
+    command := StopSuricata["suriStop"]["command"]
+
+    _,err = exec.Command(command, param, cmd).Output()
+    if err != nil {
+        logs.Error("Error stopping suricata: "+err.Error())
+        return "",err
+    }
+    return "Suricata stopped ",nil
 }

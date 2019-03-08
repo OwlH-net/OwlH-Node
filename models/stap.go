@@ -21,3 +21,35 @@ func GetServer(serveruuid string)(servers *map[string]map[string]string, err err
 	servers,err = stap.GetServer(serveruuid)
     return servers,err
 }
+
+func PingStap(uuid string) (status map[string]bool) {
+	return stap.PingStap(uuid)
+}
+
+func PingServerStap(server string) (status map[string]bool) {
+	return stap.PingServerStap(server)
+}
+
+func RunStap(uuid string) (data string, err error) {
+    logs.Info("Run RunStap system into node server")
+    data,err = stap.RunStap(uuid)
+    return data,err
+}
+
+func StopStap(uuid string) (data string, err error) {
+    logs.Info("Stops StopStap system into node server")
+    data,err = stap.StopStap(uuid)
+    return data,err
+}
+
+func RunStapServer(serveruuid string) (data string, err error) {
+    logs.Info("Run RunStapServer system into node server")
+    data,err = stap.RunStapServer(serveruuid)
+    return data,err
+}
+
+func StopStapServer(serveruuid string) (data string, err error) {
+    logs.Info("Stops StopStapServer system into node server")
+    data,err = stap.StopStapServer(serveruuid)
+    return data,err
+}
