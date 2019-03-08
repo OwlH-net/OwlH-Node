@@ -134,11 +134,11 @@ func PingStap(uuid string) (isIt map[string]bool){
     //stap = false
 	stap["stapStatus"] = false
 	
-	sql := "select stap_value from stap where stap_uniqueid = \""+uuid+"\" and stap_param = \"status\";"
+	//sql := "select stap_value from stap where stap_uniqueid = \""+uuid+"\" and stap_param = \"status\";"
+	sql := "select stap_value from stap where stap_param = \"status\";"
     logs.Info("Stap select for check if exist query sql %s",sql)
     rows, err := ndb.Sdb.Query(sql)
-    // rows, err := ndb.Db.Query(sql).Scan(&res)
-    // logs.Info("Value returned query Stap-->"+res)
+
     if err != nil {
         logs.Info("Query Error immediately after retrieve data %s",err.Error())
         return stap
@@ -155,17 +155,17 @@ func PingStap(uuid string) (isIt map[string]bool){
         if res=="true"{stap["stapStatus"]=true}else{stap["stapStatus"]=false}
         logs.Warn("Stap status-->")
         logs.Warn(stap)
-        return stap
-    }else{
+    }else if uuid != "" {
         logs.Info("Put Stap status INSERT")
         insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
         _, err = insertStap.Exec(&uuid, "status", "false")  
         defer insertStap.Close()
         if (err != nil){
+            logs.Info("Error Insert uuid !=")
             return stap
         }
-        return stap
     }
+    return stap
 }
 
 
@@ -258,8 +258,6 @@ func PingServerStap(server string) (isIt map[string]bool){
 	sql := "select server_value from servers where server_uniqueid = \""+server+"\" and server_param = \"status\";"
     logs.Info("PingServerStap select for check if exist query sql %s",sql)
     rows, err := ndb.Sdb.Query(sql)
-    // rows, err := ndb.Db.Query(sql).Scan(&res)
-    // logs.Info("Value returned query PingServerStap-->"+res)
     if err != nil {
         logs.Info("Query Error immediately after retrieve data %s",err.Error())
         return stap
@@ -279,14 +277,4 @@ func PingServerStap(server string) (isIt map[string]bool){
         return stap
     }
     return stap
-    // else{
-    //     logs.Info("Put Stap status INSERT")
-    //     insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
-    //     _, err = insertStap.Exec(&server, "status", "false")  
-    //     defer insertStap.Close()
-    //     if (err != nil){
-    //         return stap
-    //     }
-    //     return stap
-    // }
 }
