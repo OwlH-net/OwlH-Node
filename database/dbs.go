@@ -26,9 +26,8 @@ func init() {
 }
 
 func Conn() {
-    logs.Info("DB -> sql.Open, let's try to be Ready")
+    logs.Info("ndb -> DB -> sql.Open, let's try to be Ready")
     var err error
-    logs.Info("Set Suricata BPF -- Making Map")
 
     //Retrieve path and command for open sql.
 	loadDataSQL := map[string]map[string]string{}
@@ -42,9 +41,9 @@ func Conn() {
     //Db, err = sql.Open("sqlite3", "/etc/owlh/databases/node.db")
     Db, err = sql.Open(cmd, path)
     if err != nil {
-        panic("DB Open Failed ")
+        panic("ndb -> DB Open Failed ")
     }
-    logs.Info("DB -> sql.Open, DB Ready") 
+    logs.Info("ndb -> DB -> sql.Open, DB Ready") 
 }
 
 
