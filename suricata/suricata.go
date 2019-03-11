@@ -82,8 +82,8 @@ func Installed() (isIt map[string]bool){
     suricata["bin"] = suriBin()
     suricata["running"] = suriRunning()
     
-    logs.Warn("SURICATA --> ")
-    logs.Warn(suricata)
+    logs.Info("SURICATA --> ")
+    logs.Info(suricata)
 
     if suricata["Path"] || suricata["Bin"] || suricata["Running"] {
         logs.Info("Suricata installed and running")

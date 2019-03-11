@@ -93,8 +93,8 @@ func Installed() (isIt map[string]bool){
     zeek["path"] = ZeekPath()
     zeek["bin"] = ZeekBin()
     zeek["running"] = ZeekRunning()
-    logs.Warn("ZEEK --> ")
-    logs.Warn(zeek)
+    logs.Info("ZEEK --> ")
+    logs.Info(zeek)
     if zeek["Path"] || zeek["Bin"] || zeek["Running"]  {
         logs.Info("Zeek installed and running")
         return zeek

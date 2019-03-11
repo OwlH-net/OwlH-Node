@@ -131,7 +131,7 @@ func (n *StapController) RunStapServer() {
     serveruuid := n.GetString(":serveruuid")
     data,err := models.RunStapServer(serveruuid)
     n.Data["json"] = data
-    logs.Warn("data RunStapServer -->"+data)
+    //logs.Warn("data RunStapServer -->"+data)
     if err != nil {
         logs.Info("RunStapServer OUT -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

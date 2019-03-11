@@ -10,8 +10,16 @@ import (
 	"owlhnode/database"
 	// "io/ioutil"
 	"errors"
-	"encoding/json"
+    "encoding/json"
+    "sync"
+    "time"
+    // "strconv"
 )
+
+var waitGroup sync.WaitGroup
+var status bool
+// var data chan string
+
 
 func AddServer(elem map[string]string) (err error){
 	nodeName:= elem["nodeName"]
@@ -49,7 +57,7 @@ func AddServer(elem map[string]string) (err error){
 	if err != nil {return err}	
 	//insert default data into server database
 	for z,v := range jsonData{
-		logs.Warn("Key--> "+z+" Value..> "+v)
+		//logs.Warn("Key--> "+z+" Value..> "+v)
 		insertServerName, err := ndb.Sdb.Prepare("insert into servers (server_uniqueid, server_param, server_value) values (?,?,?);")
 		_, err = insertServerName.Exec(&uuidServer, &z, &v)  
 		defer insertServerName.Close()
@@ -153,8 +161,8 @@ func PingStap(uuid string) (isIt map[string]bool){
         }
         logs.Info("Stap status exists on stap DB --> Value: "+res)
         if res=="true"{stap["stapStatus"]=true}else{stap["stapStatus"]=false}
-        logs.Warn("Stap status-->")
-        logs.Warn(stap)
+        logs.Info("Stap status-->")
+        logs.Info(stap)
     }else if uuid != "" {
         logs.Info("Put Stap status INSERT")
         insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
@@ -184,6 +192,26 @@ func RunStap(uuid string)(data string, err error){
     if (err != nil){
         return "", err
     }
+
+    //Start concurrency for stap servers.
+    status = true
+    var serverOnUUID string
+    for{
+        rows, _ := ndb.Sdb.Query("select server_uniqueid from servers where server_param = \"status\" and server_value = \"true\";")
+        for rows.Next(){
+            rows.Scan(&serverOnUUID)
+            waitGroup.Add(1)
+            logs.Info("Worker added No:"+serverOnUUID)
+            //data <- ("Worker "+serverOnUUID)
+            go worker(serverOnUUID)
+        }
+        defer rows.Close()
+        waitGroup.Wait()
+        if (!status) {
+            logs.Info("Close Concurrency cLoop")
+            break
+        }
+    }
     return "Stap is Running!", err
 }
 
@@ -201,6 +229,7 @@ func StopStap(uuid string)(data string, err error){
     if (err != nil){
         return "", err
     }
+    status = false
     return "Stap is stoped", err
 }
 
@@ -272,9 +301,25 @@ func PingServerStap(server string) (isIt map[string]bool){
         }
         logs.Info("Stap status exists on stap DB --> Value: "+res)
         if res=="true"{stap["stapStatus"]=true}else{stap["stapStatus"]=false}
-        logs.Warn("PingServerStap status-->")
-        logs.Warn(stap)
+        logs.Info("PingServerStap status-->")
+        logs.Info(stap)
         return stap
     }
     return stap
+}
+
+//Goroutine for concurrency with Stap servers
+func worker(uuid string){
+    logs.Info("Starting Worker")
+    defer func() {
+		logs.Info("Destroying worker "+uuid)
+		waitGroup.Done()
+    }()
+    for {
+        // value, err := <-data
+        logs.Warn("UUID: "+uuid+" --- Sleep for 1 second")
+        time.Sleep(time.Second * 1)
+        break
+    }    
+    
 }
