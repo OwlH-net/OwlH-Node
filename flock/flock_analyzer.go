@@ -1,27 +1,27 @@
-package flock
+// package flock
 
-func DisposalPcap()(){
+// func DisposalPcap()(){
 
-}
+// }
 
-func PcapReady(pcap)(ready bool){
-	ready = false;
-	return ready
-}
+// func PcapReady(pcap)(ready bool){
+// 	ready = false;
+// 	return ready
+// }
 
-func putInProgress(pcap)(){
+// func putInProgress(pcap)(){
 	
-}
+// }
 
-func ManagePcap(pcap)(){
+// func ManagePcap(pcap)(){
 	
-}
+// }
 
-func ReadPcaps(pcap)(pcaps map[string]string){
-	pcaps make(map[string]string)
-	return pcaps
-}
+// func ReadPcaps(pcap)(pcaps map[string]string){
+// 	pcaps make(map[string]string)
+// 	return pcaps
+// }
 
-func Main(pcap)(){
+// func Main(pcap)(){
 	
-}
+// }

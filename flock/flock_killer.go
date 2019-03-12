@@ -1,9 +1,14 @@
-package flock
+// package flock
 
-func Init(self)(){
 
-}
+// var killme = false
 
-func exitGracefully(self, signum, frame)(){
 
-}
+// func Init(self)(){
+//     signal.signal(signal.SIGINT, self.exit_gracefully)
+// 	signal.signal(signal.SIGTERM, self.exit_gracefully)
+// }
+
+// func ExitGracefully(self, signum, frame)(){
+// 	self.killme = true
+// }

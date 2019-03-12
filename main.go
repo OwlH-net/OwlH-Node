@@ -2,11 +2,13 @@ package main
 
 import (
 
-    // "github.com/astaxie/beego/logs"
+    "github.com/astaxie/beego/logs"
     _ "owlhnode/routers"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
     "owlhnode/database"
+    "owlhnode/stap"
+    // "sync"
     // "owlhnode/suricata"
     // "owlhnode/wazuh"
     //"owlhnode/zeek"
@@ -17,10 +19,20 @@ func main() {
     ndb.SConn()
     ndb.Conn()
 
+    //lanzar controller primera vez
+    uuid := stap.GetStapUUID()
+    logs.Warn("Out of controller --> "+uuid)
+
+    stap.Init(uuid)
+    // go worker(serverOnUUID)
+    
+
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
         beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
     }
+    
+    logs.Error("Out of controller")
 
     beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
         AllowOrigins:     []string{"*"},

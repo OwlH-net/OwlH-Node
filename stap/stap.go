@@ -12,7 +12,7 @@ import (
 	"errors"
     "encoding/json"
     "sync"
-    "time"
+    // "time"
     // "strconv"
 )
 
@@ -84,12 +84,12 @@ func GetAllServers()(data *map[string]map[string]string, err error){
 	sql := "select server_uniqueid, server_param, server_value from servers;"
     rows, err := ndb.Sdb.Query(sql)
     if err != nil {
-        logs.Error("GetAllServers stap Error al ejecutar la query: %s", err.Error())
+        logs.Error("GetAllServers stap Error executing query: %s", err.Error())
         return nil, err
     }
 	for rows.Next() {
         if err = rows.Scan(&uniqueid, &param, &value); err != nil {
-            logs.Error("GetAllServers stap -- No hemos podido leer del resultado de la query: %s", err.Error())
+            logs.Error("GetAllServers stap -- Can't read query result: %s", err.Error())
             return nil, err
         }
         if allservers[uniqueid] == nil { allservers[uniqueid] = map[string]string{}}
@@ -139,19 +139,15 @@ func PingStap(uuid string) (isIt map[string]bool){
     } 
     var res string
     stap := make(map[string]bool)
-    //stap = false
 	stap["stapStatus"] = false
 	
-	//sql := "select stap_value from stap where stap_uniqueid = \""+uuid+"\" and stap_param = \"status\";"
 	sql := "select stap_value from stap where stap_param = \"status\";"
-    logs.Info("Stap select for check if exist query sql %s",sql)
     rows, err := ndb.Sdb.Query(sql)
 
     if err != nil {
         logs.Info("Query Error immediately after retrieve data %s",err.Error())
         return stap
     }
-    logs.Info("After rows Query")
 	defer rows.Close()
     if rows.Next() {
         err := rows.Scan(&res)
@@ -159,8 +155,12 @@ func PingStap(uuid string) (isIt map[string]bool){
             logs.Info("Stap query error %s",err.Error())
             return stap
         }
-        logs.Info("Stap status exists on stap DB --> Value: "+res)
-        if res=="true"{stap["stapStatus"]=true}else{stap["stapStatus"]=false}
+        if res=="true"{
+            stap["stapStatus"]=true
+        }else{
+            stap["stapStatus"]=false
+        }
+
         logs.Info("Stap status-->")
         logs.Info(stap)
     }else if uuid != "" {
@@ -177,7 +177,7 @@ func PingStap(uuid string) (isIt map[string]bool){
 }
 
 
-//Run stap
+//Run stap main server on node
 func RunStap(uuid string)(data string, err error){
     //database connection
 	if ndb.Sdb == nil {
@@ -307,6 +307,33 @@ func PingServerStap(server string) (isIt map[string]bool){
     }
     return stap
 }
+
+func GetStapUUID()(uuid string){
+    //database connection
+	if ndb.Sdb == nil {
+        logs.Error("UUID stap -- Can't access to database")
+        return ""
+    } 
+    
+    var res string
+	sql := "select stap_uniqueid from stap;"
+    rows, err := ndb.Sdb.Query(sql)
+    if err != nil {
+        logs.Info("GetStapUUID Error immediately after retrieve data %s",err.Error())
+        return ""
+    }
+    defer rows.Close()
+    if rows.Next() {
+        err := rows.Scan(&res)
+        if err != nil {
+            logs.Info("Stap query error %s",err.Error())
+            return ""
+        }
+        return res
+    }
+    return ""
+}
+
 
 //Goroutine for concurrency with Stap servers
 func worker(uuid string){
