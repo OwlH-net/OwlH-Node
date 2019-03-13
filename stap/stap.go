@@ -193,25 +193,29 @@ func RunStap(uuid string)(data string, err error){
         return "", err
     }
 
-    //Start concurrency for stap servers.
-    status = true
-    var serverOnUUID string
-    for{
-        rows, _ := ndb.Sdb.Query("select server_uniqueid from servers where server_param = \"status\" and server_value = \"true\";")
-        for rows.Next(){
-            rows.Scan(&serverOnUUID)
-            waitGroup.Add(1)
-            logs.Info("Worker added No:"+serverOnUUID)
-            //data <- ("Worker "+serverOnUUID)
-            go worker(serverOnUUID)
-        }
-        defer rows.Close()
-        waitGroup.Wait()
-        if (!status) {
-            logs.Info("Close Concurrency cLoop")
-            break
-        }
-    }
+    //call Concurrency StapInit
+    StapInit()
+
+
+    // //Start concurrency for stap servers.
+    // status = true
+    // var serverOnUUID string
+    // for{
+    //     rows, _ := ndb.Sdb.Query("select server_uniqueid from servers where server_param = \"status\" and server_value = \"true\";")
+    //     for rows.Next(){
+    //         rows.Scan(&serverOnUUID)
+    //         waitGroup.Add(1)
+    //         logs.Info("Worker added No:"+serverOnUUID)
+    //         //data <- ("Worker "+serverOnUUID)
+    //         go worker(serverOnUUID)
+    //     }
+    //     defer rows.Close()
+    //     waitGroup.Wait()
+    //     if (!status) {
+    //         logs.Info("Close Concurrency cLoop")
+    //         break
+    //     }
+    // }
     return "Stap is Running!", err
 }
 
@@ -253,6 +257,7 @@ func RunStapServer(serveruuid string)(data string, err error){
         return "", err
     }
     logs.Error("RunStapServer finishing function at Node")
+
     return "Stap specific server is Running!", err
 }
 
@@ -335,18 +340,18 @@ func GetStapUUID()(uuid string){
 }
 
 
-//Goroutine for concurrency with Stap servers
-func worker(uuid string){
-    logs.Info("Starting Worker")
-    defer func() {
-		logs.Info("Destroying worker "+uuid)
-		waitGroup.Done()
-    }()
-    for {
-        // value, err := <-data
-        logs.Warn("UUID: "+uuid+" --- Sleep for 1 second")
-        time.Sleep(time.Second * 1)
-        break
-    }    
+// //Goroutine for concurrency with Stap servers
+// func worker(uuid string){
+//     logs.Info("Starting Worker")
+//     defer func() {
+// 		logs.Info("Destroying worker "+uuid)
+// 		waitGroup.Done()
+//     }()
+//     for {
+//         // value, err := <-data
+//         logs.Warn("UUID: "+uuid+" --- Sleep for 1 second")
+//         time.Sleep(time.Second * 3)
+//         break
+//     }    
     
-}
+// }
