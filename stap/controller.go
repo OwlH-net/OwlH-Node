@@ -82,7 +82,7 @@ func Controller()() {
     stapStatus := make(map[string]bool)
     stapStatus = PingStap("")
     jobs := make(chan string, 100)
-    results := make(chan string, 100)
+    //results := make(chan string, 100)
     //results := make(chan string, 100)
     var serverOnUUID string
     
@@ -117,7 +117,7 @@ func Controller()() {
     for stapStatus["stapStatus"]{
         for w := 1; w <= MaxWorkers; w++ { //Number of workers
             logs.Info("loop workers ",w)
-            go serverTask(w, jobs, results)
+            go serverTask(w, jobs)
         }
         logs.Error("Inside the infinite loop")
         rows, _ := ndb.Sdb.Query("select server_uniqueid from servers where server_param = \"status\" and server_value = \"true\";")
@@ -135,19 +135,24 @@ func Controller()() {
         time.Sleep(time.Second * 2)
     }
         
-        for a := 1; a <= 5; a++ {
-            <-results
-        }
+        // for a := 1; a <= 5; a++ {
+        //     <-results
+        // }
         close(jobs)
     }
 
-func serverTask(id int, jobs <-chan string, results <-chan string) {
+func serverTask(id int, jobs <-chan string) {
 
     //do all things
-    for j := range jobs {
+    // for j := range jobs {
         logs.Warn("Doing something ",id)
-        results <- j
-    }
+    //     results <- j
+    // }
+
+
+
+
+
     // alive, ssh = CheckOwlhAlive(owlh)
     // if alive{
     //     //FlockLogger(">>> as owlh name -> "+owlh["name"]+" is alive with check status")
