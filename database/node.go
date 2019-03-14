@@ -48,7 +48,7 @@ func GetNode(nid string) (n *Node, err error) {
         err = row.Scan(&node.NId, &node.NName, &node.NIp, &node.NPort, &node.NType, &node.NUUID)
         if err == sql.ErrNoRows {
             logs.Warn("DB NODE -> Can't find %s",nid)
-            return nil, errors.New("DB NODE -> Can't find %s",nid)
+            return nil, errors.New("DB NODE -> Can't find "+nid)
         }
         if err != nil {
             logs.Warn("DB NODE -> Error reading data GetNode")
