@@ -7,12 +7,12 @@ import (
     // "strings"
     // "regexp"
   	// "owlhnode/stap"
-  	"owlhnode/database"
+  	//"owlhnode/database"
 	  // "io/ioutil"
 	  //"errors"
-      //"encoding/json"
-      "time"
-      "strconv"
+      //"encoding/json
+    //"time"
+    //"strconv"
     //   "sync"
     // "runtime"
     // "math/rand"
@@ -153,4 +153,5 @@ func CheckOwlhAlive(owlh map[string]string)(data bool, ssh string){
 func owl_connect(owlh map[string]string)(data bool, ssh string){
     //connect by ssh to server
     */
+    return false, "ssh"
 }

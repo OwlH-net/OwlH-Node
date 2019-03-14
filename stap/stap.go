@@ -180,7 +180,7 @@ func PingStap(uuid string) (isIt map[string]bool){
 //Run stap main server on node
 func RunStap(uuid string)(data string, err error){
     // avoid RunSTAP in 0.2
-    return "", err
+    return "", nil
     //database connection
 	if ndb.Sdb == nil {
         logs.Error("RunStap stap -- Can't access to database")
@@ -219,6 +219,7 @@ func RunStap(uuid string)(data string, err error){
     //     }
     // }
     return "Stap is Running!", err
+    
 }
 
 //Stop Stap
