@@ -77,7 +77,7 @@ func (n *StapController) GetServer() {
 // @Success 200 {object} models.stap
 // @router /ping/:uuid [get]
 func (n *StapController) PingStap() {
-    logs.Info ("stap controller -> PingStap")
+    logs.Info ("Stap controller -> PingStap")
     uuid := n.GetString(":uuid")
     logs.Info("Ping Stap uuid = "+uuid)
 	server:= models.PingStap(uuid)

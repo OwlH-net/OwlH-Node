@@ -19,7 +19,7 @@ func ZeekPath() (exists bool) {
 
     //if _, err := os.Stat("/etc/zeek"); os.IsNotExist(err) {
     if _, err := os.Stat(path); os.IsNotExist(err) {
-        logs.Error("Zeek no esta instalado, al menos la carpeta /etc/zeek no existe")
+        logs.Error("Zeek is not installed on /etc/zeek.")
         return false
     }
     return true
@@ -117,15 +117,6 @@ func RunZeek()(data string, err error){
     cmd := StartZeek["zeekStart"]["start"]
     param := StartZeek["zeekStart"]["param"]
     command := StartZeek["zeekStart"]["command"]
-
-    logs.Info("Loading parameters Node GetConf")
-    logs.Info("Loading parameters Node GetConf")
-    logs.Info("Loading parameters Node GetConf")
-    logs.Info("Loading parameters Node GetConf")
-    logs.Info("Loading parameters Node GetConf")
-    logs.Info(cmd)
-    logs.Info(param)
-    logs.Info(command)
 
     out,err := exec.Command(command, param, cmd).Output()
     logs.Info(string(out))

@@ -26,7 +26,7 @@ func SendFile(file string)(data map[string]string, err error){
     fileConfPath := loadData["files"][file]
 	fileReaded, err := ioutil.ReadFile(fileConfPath) // just pass the file name
     if err != nil {
-		logs.Info("eRROR")
+		logs.Info("Error")
         return voidArray,err
     }
 	
@@ -38,8 +38,6 @@ func SendFile(file string)(data map[string]string, err error){
 
 //read changed file, make a backup and save into file
 func SaveFile(file map[string]string)(err error){
-
-    logs.Info("entro SaveFile->__   ")
     //Get full path
     loadData := map[string]map[string]string{}
     loadData["files"] = map[string]string{}

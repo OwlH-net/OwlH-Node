@@ -29,12 +29,12 @@ func AddNode(node Node) (err error){
         _, err = stmt.Exec(node.NName, node.NIp, node.NPort, node.NType, node.NUUID )
         if err != nil {
             logs.Error("DB NODE -> ADD NODE : %s", err.Error())
-            return errors.New("DB NODE -> La Query no ha funcionado bien: " + err.Error())
+            return errors.New("DB NODE -> Query is not working: " + err.Error())
         }
         return nil
     } else {
-        logs.Error("DB NODE -> No tenemos acceso a la base de datos")
-        return errors.New("DB NODE -> No tenemos acceso a la base de datos")
+        logs.Error("DB NODE ->Can't acces to database")
+        return errors.New("DB NODE -> Can't acces to database")
     }
 }
 
@@ -47,16 +47,16 @@ func GetNode(nid string) (n *Node, err error) {
         logs.Info ("DB -> Row %s", row)
         err = row.Scan(&node.NId, &node.NName, &node.NIp, &node.NPort, &node.NType, &node.NUUID)
         if err == sql.ErrNoRows {
-            logs.Warn("DB NODE -> No encuentro na, ese id %s parece no existir",nid)
-            return nil, errors.New("DB NODE -> No encuentro na, ese id "+nid+" parece no existir")
+            logs.Warn("DB NODE -> Can't find %s",nid)
+            return nil, errors.New("DB NODE -> Can't find %s",nid)
         }
         if err != nil {
-            logs.Warn("DB NODE -> no hemos leido bien los campos de scan")
-            return nil, errors.New("DB NODE -> no hemos leido bien los campos de scan")
+            logs.Warn("DB NODE -> Error reading data GetNode")
+            return nil, errors.New("DB NODE -> Error reading data GetNode")
         }
         return &node, nil
     } else {
-        logs.Info("DB NODE -> no hay base de datos")
-        return nil, errors.New("DB NODE -> no hay base de datos")
+        logs.Info("DB NODE -> Database not exist")
+        return nil, errors.New("DB NODE -> Database not exist")
     }
 }
