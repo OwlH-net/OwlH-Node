@@ -7,7 +7,7 @@ import (
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
     "owlhnode/database"
-    "owlhnode/stap"
+    // "owlhnode/stap"
     // "sync"
     // "owlhnode/suricata"
     // "owlhnode/wazuh"
