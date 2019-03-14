@@ -81,6 +81,7 @@ func Controller()() {
                     //3.1 Crear worker
                         //3.1.1 Verificaciones
                         
+/*
     var serverOnUUID string
     var countServers string
     stapStatus := make(map[string]bool)
@@ -114,10 +115,11 @@ func Controller()() {
         //time.Sleep(time.Second * 5)
     }
         close(jobs)
+        */
 }
 
 func serverTask(id int, jobs <-chan string) {
-    //var jobServer map[string]string
+/*    //var jobServer map[string]string
     for job := range jobs {
         var jobServer string
         uuid := job
@@ -134,10 +136,11 @@ func serverTask(id int, jobs <-chan string) {
         <-jobs
         //alive, ssh := CheckOwlhAlive(job)
     }
+    */
 }
 
 func CheckOwlhAlive(owlh map[string]string)(data bool, ssh string){
-    logs.Info("Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
+/*    logs.Info("Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
     alive, ssh = owl_connect(owlh)
     if alive{
 		logs.Info("ALIVE Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
@@ -149,5 +152,5 @@ func CheckOwlhAlive(owlh map[string]string)(data bool, ssh string){
 
 func owl_connect(owlh map[string]string)(data bool, ssh string){
     //connect by ssh to server
-    
+    */
 }
