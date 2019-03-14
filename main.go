@@ -20,7 +20,7 @@ func main() {
     ndb.Conn()
 
     //Launch StapInit for 1st time for check status and go concurrency if status==true
-    stap.StapInit()
+    //stap.StapInit()
     
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
