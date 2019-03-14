@@ -49,7 +49,7 @@ func StapInit()(){
 
 
         //waitGroup.Add(1)
-        go Controller()
+        //go Controller()
         // waitGroup.Add(1)
         // go Controller(uuid, stapStatus)
         // stapStatus = PingStap(uuid)
