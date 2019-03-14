@@ -12,8 +12,10 @@ import (
 	  //"errors"
       //"encoding/json"
       "time"
+      "strconv"
     //   "sync"
     // "runtime"
+    // "math/rand"
 )
 
 const MaxWorkers = 4
@@ -49,7 +51,7 @@ func StapInit()(){
 
 
         //waitGroup.Add(1)
-        //go Controller()
+        go Controller()
         // waitGroup.Add(1)
         // go Controller(uuid, stapStatus)
         // stapStatus = PingStap(uuid)
@@ -78,94 +80,74 @@ func Controller()() {
                 //3 Por cada SV
                     //3.1 Crear worker
                         //3.1.1 Verificaciones
-
+                        
+    var serverOnUUID string
+    var countServers string
     stapStatus := make(map[string]bool)
     stapStatus = PingStap("")
-    jobs := make(chan string, 100)
-    //results := make(chan string, 100)
-    //results := make(chan string, 100)
-    var serverOnUUID string
+    numServers, _ := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
+    for numServers.Next(){
+        numServers.Scan(&countServers) 
+    }
+    logs.Info("Number of servers ON --> "+countServers)
+    i, _ := strconv.Atoi(countServers)
+    jobs := make(chan string, i)
     
-    // for w := 1; w <= MaxWorkers; w++ { //Number of workers
-    //     logs.Info("loop workers ",w)
-    //     go serverTask(w, jobs)
-    // }
+    
+    
+    //crear workers 
+    for w := 1; w <= MaxWorkers; w++ {             
+        logs.Info("loop workers ",w)
+        go serverTask(w, jobs)
+    }
 
-    // currentWorkers := 0
-    // for i:=0 ; i< MaxWorkers ; i++{
-    //     for rows.Next(){
-    //         rows.Scan(&serverOnUUID)
-    //         server = true
-    //         for server {
-    //             if currentWorkers < MaxWorkers {
-    //                 waitGroup.Add(1)
-    //                 logs.Error("Worker added No:"+serverOnUUID)
-    //                 //data <- ("Worker "+serverOnUUID)
-    //                 go Worker(serverOnUUID)
-    //                 currentWorkers ++
-    //                 server = false
-    //             }else{
-    //                 //¿?
-    //             }
-    //             currentWorkers --
-                
-    //         }
-            
-    //     }
-    // }
-
+    //loop
     for stapStatus["stapStatus"]{
-        for w := 1; w <= MaxWorkers; w++ { //Number of workers
-            logs.Info("loop workers ",w)
-            go serverTask(w, jobs)
-        }
-        logs.Error("Inside the infinite loop")
+        //query
         rows, _ := ndb.Sdb.Query("select server_uniqueid from servers where server_param = \"status\" and server_value = \"true\";")
         for rows.Next(){
             rows.Scan(&serverOnUUID)
-            logs.Warn(serverOnUUID)
+            logs.Warn("Reading query UUID --> "+serverOnUUID)
             jobs <- serverOnUUID
         }
-        //collect all severs with ON status
-        // for server := range servers{
-            //     jobs <- uuid
-            // }
-            
         stapStatus = PingStap("")
-        time.Sleep(time.Second * 2)
+        //time.Sleep(time.Second * 5)
     }
-        
-        // for a := 1; a <= 5; a++ {
-        //     <-results
-        // }
         close(jobs)
-    }
+}
 
 func serverTask(id int, jobs <-chan string) {
+    //var jobServer map[string]string
+    for job := range jobs {
+        var jobServer string
+        uuid := job
+        logs.Info(" ---- Stap Server Task - looking for servers ---- "+uuid)
 
-    //do all things
-    // for j := range jobs {
-        logs.Warn("Doing something ",id)
-    //     results <- j
-    // }
+        ip, _ := ndb.Sdb.Query("select server_value from servers where server_param = \"ip\" and server_uniqueid = \""+uuid+"\";")
+        for ip.Next(){
+            ip.Scan(&jobServer)
+        }
+    
+        //delay := rand.Intn(15)
+        time.Sleep(time.Second * 5)
+        logs.Info("--------------"+string(jobServer))
+        <-jobs
+        //alive, ssh := CheckOwlhAlive(job)
+    }
+}
 
+func CheckOwlhAlive(owlh map[string]string)(data bool, ssh string){
+    logs.Info("Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
+    alive, ssh = owl_connect(owlh)
+    if alive{
+		logs.Info("ALIVE Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
+        return true, ssh
+	}
+	logs.Error("NOT ALIVE Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
+	return false, ""
+}
 
-
-
-
-    // alive, ssh = CheckOwlhAlive(owlh)
-    // if alive{
-    //     //FlockLogger(">>> as owlh name -> "+owlh["name"]+" is alive with check status")
-    //     running, status_ok := GetStatusSniffer(owlh, ssh)
-    //     //FlockLogger(">>> Running "+running+", Status "+status_ok)
-    //     if running {
-    //         if !status_ok{
-    //             StopSniffer(owlh, ssh)
-    //         }
-    //     } else if status_ok {
-    //         RunSniffer(owlh, ssh)
-    //     }
-    //     GetFileList(owlh, ssh)
-    //     ssh.Close()
-    // }
+func owl_connect(owlh map[string]string)(data bool, ssh string){
+    //connect by ssh to server
+    
 }
