@@ -145,7 +145,7 @@ func PingStap(uuid string) (isIt map[string]bool){
     rows, err := ndb.Sdb.Query(sql)
 
     if err != nil {
-        logs.Info("Query Error immediately after retrieve data %s",err.Error())
+        logs.Info("PingStap Query Error immediately after retrieve data %s",err.Error())
         return stap
     }
 	defer rows.Close()
@@ -293,7 +293,7 @@ func PingServerStap(server string) (isIt map[string]bool){
     logs.Info("PingServerStap select for check if exist query sql %s",sql)
     rows, err := ndb.Sdb.Query(sql)
     if err != nil {
-        logs.Info("Query Error immediately after retrieve data %s",err.Error())
+        logs.Info("PingServerStap Query Error immediately after retrieve data %s",err.Error())
         return stap
     }
     logs.Info("After rows Query")

@@ -26,7 +26,6 @@ func init() {
 }
 
 func Conn() {
-    logs.Info("ndb -> DB -> sql.Open, let's try to be Ready")
     var err error
 
     //Retrieve path and command for open sql.
