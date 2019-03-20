@@ -293,7 +293,7 @@ func PingServerStap(server string) (isIt map[string]bool){
     logs.Info("PingServerStap select for check if exist query sql %s",sql)
     rows, err := ndb.Sdb.Query(sql)
     if err != nil {
-        logs.Info("PingServerStap Query Error immediately after retrieve data %s",err.Error())
+        logs.Error("PingServerStap Query Error immediately after retrieve data %s",err.Error())
         return stap
     }
     logs.Info("After rows Query")
@@ -301,7 +301,7 @@ func PingServerStap(server string) (isIt map[string]bool){
     if rows.Next() {
         err := rows.Scan(&res)
         if err != nil {
-            logs.Info("Stap query error %s",err.Error())
+            logs.Error("Stap query error %s",err.Error())
             return stap
         }
         logs.Info("Stap status exists on stap DB --> Value: "+res)

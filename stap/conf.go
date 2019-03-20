@@ -1,12 +1,12 @@
 package stap
-import (
-    "github.com/astaxie/beego/logs"
+// import (
+//     "github.com/astaxie/beego/logs"
     // "os"
     // "os/exec"
     // "strings"
-	"regexp"
-  	"owlhnode/utils"
-  	"owlhnode/database"
+	// "regexp"
+  // 	"owlhnode/utils"
+  // 	"owlhnode/database"
 	//   "io/ioutil"
 	  //"errors"
       //"encoding/json"
@@ -18,7 +18,7 @@ import (
     //   "sync"
     // "runtime"
     // "math/rand"
-)
+// )
 
 //read json for take path, ip and all that things
 //read json for take path, ip and all that things
