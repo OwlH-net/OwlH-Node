@@ -148,7 +148,7 @@ func serverTask(id int, jobs <-chan string) {
                 logs.Error(uuid+" --> Error putting isUsed value to True into servers DB")
                 <-jobs
             }
-            //defer putToTrue.Close()
+            putToTrue.Close()
             //Check SSH status
             alive, _ := CheckOwlhAlive(uuid)
             if alive {
@@ -171,7 +171,7 @@ func serverTask(id int, jobs <-chan string) {
                 logs.Error(uuid+" --> Error on setting isUsed to False")
                 <-jobs
             }
-            //defer putToFalse.Close()
+            putToFalse.Close()
         }else{
             logs.Alert("This Server is used. Can't be used until SSH connection ends")
         }        
