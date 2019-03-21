@@ -161,8 +161,8 @@ func PingStap(uuid string) (isIt map[string]bool){
             stap["stapStatus"]=false
         }
 
-        logs.Info("Stap status-->")
-        logs.Info(stap)
+        //logs.Info("Stap status-->")
+        //logs.Info(stap)
     }else if uuid != "" {
         logs.Info("Put Stap status INSERT")
         insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
