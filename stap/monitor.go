@@ -4,14 +4,14 @@ import (
     // "os"
     // "os/exec"
     // "strings"
-	// "regexp"
+	"regexp"
   	// "owlhnode/utils"
   	"owlhnode/database"
 	//   "io/ioutil"
 	  //"errors"
       //"encoding/json"
     //   "time"
-    //   "strconv"
+      "strconv"
     //   "errors"
       //"ssh.CleintConfig"
     //   "code.google.com/p/go.crypto/ssh"
@@ -23,56 +23,77 @@ import (
 
 
 func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
-    var param string
-    var value string
-    stapServer := make(map[string]string)
-    logs.Info("CheckOwlhAlive, creating data map for uuid: "+uuid)
-
-    ip, err := ndb.Sdb.Query("select server_param,server_value from servers where server_param = \"ip\" and server_uniqueid = \""+uuid+"\";")
-    for ip.Next(){
-        if err = ip.Scan(&param, &value); err!=nil {
-            logs.Error("Worker Concurrency. Error creating data Map: "+err.Error())
-            return false, nil
-        }
-		stapServer[param]=value
-    } 
-    logs.Info("Stap Server Task "+stapServer["name"]+" -- "+stapServer["ip"])
-    alive, sshSession = owl_connect(stapServer)
-    if alive{
-		logs.Info("ALIVE Stap Server Task "+stapServer["name"]+" -- "+stapServer["ip"])
-        return true, sshSession
+  	stapServer := GetStapServerInformation(uuid)
+  	logs.Info("Stap Server Task "+stapServer["name"]+" -- "+stapServer["ip"])
+  	alive, sshSession = owl_connect(stapServer)
+  	if alive{
+	    logs.Info("ALIVE Stap Server Task "+stapServer["name"]+" -- "+stapServer["ip"])
+	    return true, sshSession
+  	}
+  	logs.Error("NOT ALIVE Stap Server Task "+stapServer["name"]+" -- "+stapServer["ip"])
+  	return false, nil
+}
+      
+func GetStatusSniffer(uuid string, sshSession *ssh.Session)(running string, status bool){
+	owlh := GetStapServerInformation(uuid)
+	logs.Info("Checking "+owlh["name"]+" - "+owlh["ip"]+" Sniffer status")
+	  
+	status, pid, cpu, mem := GetStatusSnifferSSH(owlh, sshSession)
+	cpuStatus := GetStatusCPU(owlh,cpu)
+  	memStatus := GetStatusMEM(owlh,mem)
+	storageStatus := GetStatusStorage(owlh,ssh)
+	
+	logs.Error("Checking "+owlh["name"]+" - "+owlh["ip"]+" CPU: "+cpuStatus+" MEM: "+memStatus+" STORAGE: "+storageStatus)
+  	if cpuStatus && memStatus && storageStatus {
+  	    return "IS RUNNING", true
 	}
-	logs.Error("NOT ALIVE Stap Server Task "+stapServer["name"]+" -- "+stapServer["ip"])
-	return false, nil
+	return "NOT running", false
 }
 
-// func GetStatusCPU(owlh map[string]string, cpu string)(status bool){
-// 	var validCPU = regexp.MustCompile(`(\d+)`+cpu+`;`)
-// 	if validCPU == nil{
-// 		return true
-// 	}
-// 	logs.Error("Check CPU for "+owlh["name"]+" - "+owlh["ip"])
-// 	max_cpu := conf("max_cpu")//Get max_cpu data from json
-// 	if strconv.ParseFloat(cpu, 32)>strconv.ParseFloat(max_cpu, 32){
-// 		logs.Error("SNIFFER -> Too much CPU on "+owlh["name"]+" - "+owlh["ip"])
-// 		return false
-// 	}
-// 	return true
-// }
+func GetStatusCPU(owlh map[string]string, cpu string)(status bool){
+	var validCPU = regexp.MustCompile(`(\d+)`+cpu+`;`)
+	if validCPU == nil{
+		return false
+	}
+	localCPU, _ := strconv.ParseFloat(cpu, 64)
+	ddbbCPU, _ := strconv.ParseFloat(owlh["max_cpu"], 64)
+	logs.Error("Check CPU for "+owlh["name"]+" - "+owlh["ip"])
+	if localCPU>ddbbCPU{
+		logs.Error("SNIFFER -> Too much CPU on "+owlh["name"]+" - "+owlh["ip"])
+		return false
+	}
+	return true
+}
+func GetStatusMEM(owlh map[string]string, mem string)(status bool){
+	var validMEM = regexp.MustCompile(`(\d+)`+mem+`;`)
+	if validMEM == nil{
+		return false
+	}
+	localMEM, _ := strconv.ParseFloat(mem, 64)
+	ddbbMEM, _ := strconv.ParseFloat(owlh["max_mem"], 64)
+	logs.Error("Check MEM for "+owlh["name"]+" - "+owlh["ip"])
+	if localMEM>ddbbMEM{
+		logs.Error("SNIFFER -> Too much MEM on "+owlh["name"]+" - "+owlh["ip"])
+		return false
+	}
+	return true
+}	
+func GetStatusStorage(owlh map[string]string, sshSession *ssh.Session)(status bool){
+	var pcapPath = owlh["pcap_path"]
+	logs.Info("SNIFFER -> Too much MEM on "+owlh["name"]+" - "+owlh["ip"])
+	status, storage, path := GetStatusStorageSSh(owlh,sshSession, pcapPath)
+	if status {
+		localStorage, _ := strconv.ParseFloat(storage, 64)
+		ddbbStorage, _ := strconv.ParseFloat(owlh["max_storage"], 64)
+		if localStorage > ddbbStorage {
+			logs.Error("SNIFFER -> Too much STORAGE on "+owlh["name"]+" - "+owlh["ip"])
+			return false
+		}
+		return true
+	}
+	return false
+}	
 
-// func GetStatusMEM(owlh map[string]string, mem string)(status bool){
-// 	var validCPU = regexp.MustCompile(`(\d+)`+mem+`;`)
-// 	if validCPU == nil{
-// 		return true
-// 	}
-// 	logs.Error("Check CPU for "+owlh["name"]+" - "+owlh["ip"])
-// 	max_mem :=  conf("max_mem")//Get max_cpu data from json
-// 	if strconv.ParseFloat(cpu, 32)>strconv.ParseFloat(max_mem, 32){
-// 		logs.Error("SNIFFER -> Too much MEM on "+owlh["name"]+" - "+owlh["ip"])
-// 		return false
-// 	}
-// 	return true
-// }
 
 // func GetStatusStorage(owlh map[string]string, ssh string)(status bool){
 // 	pcapPath := conf("pcap_path") //Get pcapPath data from json
@@ -87,19 +108,7 @@ func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
 // 	}
 // 	return false
 // }
-
-// func GetStatusSniffer(owlh map[string]string, ssh string)(running string, status bool){
-// 	logs.Error("Checking "+owlh["name"]+" - "+owlh["ip"]+" Sniffer status")
-// 	running, pid, cpu, mem := GetStatusSnifferSSH(owlh, ssh)
-// 	cpuStatus := GetStatusCPU(owlh,cpu)
-// 	memStatus := GetStatusMEM(owlh,mem)
-// 	storageStatus := GetStatusStorage(owlh,ssh)
-// 	logs.Error("Checking "+owlh["name"]+" - "+owlh["ip"]+" CPU: "+cpuStatus+" MEM: "+memStatus+" STORAGE: "+storageStatus)
-// 	if cpuStatus && memStatus && storageStatus {
-// 		return running, true
-// 	}
-// 	return running, false
-// }
+			
 
 // func RunSniffer(owlh map[string]string, ssh string)(){
 // 	logs.Error("Running Sniffer on "+owlh["name"]+" - "+owlh["ip"])
@@ -138,3 +147,26 @@ func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
 // 	logs.Error("Remove file "+local_path+" from "+owlh["name"]+" - "+owlh["ip"])
 // 	RemoveFileSSH(owlh, ssh, file)
 // }
+
+
+
+
+
+
+
+func GetStapServerInformation(uuid string)(serverData map[string]string){
+	var param string
+	var value string
+	stapServer := make(map[string]string)
+	logs.Info("CheckOwlhAlive, creating data map for uuid: "+uuid)
+	// ip, err := ndb.Sdb.Query("select server_param,server_value from servers where server_param = \"ip\" and server_uniqueid = \""+uuid+"\";")
+	ip, err := ndb.Sdb.Query("select server_param,server_value from servers where server_uniqueid = \""+uuid+"\";")
+	for ip.Next(){
+		if err = ip.Scan(&param, &value); err!=nil {
+			logs.Error("Worker Concurrency. Error creating data Map: "+err.Error())
+			return nil
+		}
+		stapServer[param]=value
+	}
+	return stapServer
+}

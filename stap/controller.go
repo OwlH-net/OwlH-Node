@@ -73,13 +73,18 @@ func Controller()() {
 
 func serverTask(id int, jobs <-chan string, res chan<- string) {
     for uuid:=range jobs{
-        alive, _ := CheckOwlhAlive(uuid)
+        alive,sshStat := CheckOwlhAlive(uuid)
         if alive {
             logs.Info("Status SSH Session: True")
+			running, status := GetStatusSniffer(uuid, sshStat)
+			if status {
+				logs.Info(running)
+			}
         }else{
             logs.Info("Status SSH Session: False")
         }
         time.Sleep(time.Second * 5)
-        res <- uuid
+		res <- uuid
+		defer sshStat.Close()
     }
 }
