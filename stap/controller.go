@@ -19,7 +19,8 @@ import (
     //   "code.google.com/p/go.crypto/ssh"
     //   "sync"
     // "runtime"
-    // "math/rand"  
+	// "math/rand"
+	"golang.org/x/crypto/ssh"  
 )
 
 const MaxWorkers = 4
@@ -44,12 +45,13 @@ func Controller()() {
     logs.Info("Number of servers ON --> "+countServers)
     i, _ := strconv.Atoi(countServers)
     jobs := make(chan string, i)  
-    res := make(chan string,i)  
+	res := make(chan string,i)  
+	activeSessions := make(chan *ssh.Session,500)
     
     //create workers 
     for w := 1; w <= MaxWorkers; w++ {             
         logs.Info("loop workers ",w)
-        go serverTask(w, jobs, res)
+        go serverTask(w, jobs, res, activeSessions)
     }
     
     //add UUID servers to jobs channel
@@ -67,13 +69,15 @@ func Controller()() {
         uuid := <-res
         jobs <- uuid 
         stapStatus = PingStap("")
-    }
+	}
+	killTcpdumpSessions(activeSessions)
     logs.Info("Closing workers")
 }
 
-func serverTask(id int, jobs <-chan string, res chan<- string) {
+func serverTask(id int, jobs <-chan string, res chan<- string, activeSessions chan<- *ssh.Session) {
     for uuid:=range jobs{
-        alive,sshStat := CheckOwlhAlive(uuid)
+		alive,sshStat := CheckOwlhAlive(uuid)
+		activeSessions <- sshStat
         if alive {
             logs.Info("Status SSH Session: True")
 			running, status := GetStatusSniffer(uuid, sshStat)
@@ -87,4 +91,10 @@ func serverTask(id int, jobs <-chan string, res chan<- string) {
 		res <- uuid
 		defer sshStat.Close()
     }
+}
+
+func killTcpdumpSessions(activeSessions <-chan *ssh.Session)(){
+	for sessions := range activeSessions{
+		StopSniffer(sessions)
+	}
 }

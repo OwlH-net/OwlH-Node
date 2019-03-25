@@ -3,7 +3,7 @@ import (
     "github.com/astaxie/beego/logs"
     // "os"
     // "os/exec"
-    // "strings"
+    "strings"
 	"regexp"
   	// "owlhnode/utils"
   	"owlhnode/database"
@@ -23,14 +23,14 @@ import (
 
 
 func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
-  	stapServer := GetStapServerInformation(uuid)
-  	logs.Info("Stap Server Task "+stapServer["name"]+" -- "+stapServer["ip"])
-  	alive, sshSession = owl_connect(stapServer)
+	owlh := GetStapServerInformation(uuid)
+  	alive, sshSession = owlh_connect(owlh)
+  	logs.Info("Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
   	if alive{
-	    logs.Info("ALIVE Stap Server Task "+stapServer["name"]+" -- "+stapServer["ip"])
+	    logs.Info("ALIVE Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
 	    return true, sshSession
   	}
-  	logs.Error("NOT ALIVE Stap Server Task "+stapServer["name"]+" -- "+stapServer["ip"])
+  	logs.Error("NOT ALIVE Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
   	return false, nil
 }
       
@@ -39,18 +39,24 @@ func GetStatusSniffer(uuid string, sshSession *ssh.Session)(running string, stat
 	logs.Info("Checking "+owlh["name"]+" - "+owlh["ip"]+" Sniffer status")
 	  
 	status, pid, cpu, mem := GetStatusSnifferSSH(owlh, sshSession)
-	cpuStatus := GetStatusCPU(owlh,cpu)
-  	memStatus := GetStatusMEM(owlh,mem)
-	storageStatus := GetStatusStorage(owlh,ssh)
-	
-	logs.Error("Checking "+owlh["name"]+" - "+owlh["ip"]+" CPU: "+cpuStatus+" MEM: "+memStatus+" STORAGE: "+storageStatus)
+	cpuStatus := GetStatusCPU(owlh,cpu,sshSession)
+	memStatus := GetStatusMEM(owlh,mem,sshSession)
+
+	logs.Info("Closing SSH Session for open again")
+	sshSession.Close()
+
+	_, sshSession = owlh_connect(owlh)
+	storageStatus := GetStatusStorage(owlh,sshSession)
+	sshSession.Close()
+
+	logs.Alert("Checking "+owlh["name"]+" - "+owlh["ip"]+" - PID:"+pid+" CPU: "+strconv.FormatBool(cpuStatus)+" MEM: "+strconv.FormatBool(memStatus)+" STORAGE: "+strconv.FormatBool(storageStatus))
   	if cpuStatus && memStatus && storageStatus {
   	    return "IS RUNNING", true
 	}
 	return "NOT running", false
 }
 
-func GetStatusCPU(owlh map[string]string, cpu string)(status bool){
+func GetStatusCPU(owlh map[string]string, cpu string, sshSession *ssh.Session)(status bool){
 	var validCPU = regexp.MustCompile(`(\d+)`+cpu+`;`)
 	if validCPU == nil{
 		return false
@@ -60,11 +66,13 @@ func GetStatusCPU(owlh map[string]string, cpu string)(status bool){
 	logs.Error("Check CPU for "+owlh["name"]+" - "+owlh["ip"])
 	if localCPU>ddbbCPU{
 		logs.Error("SNIFFER -> Too much CPU on "+owlh["name"]+" - "+owlh["ip"])
+		StopSniffer(sshSession)
 		return false
 	}
 	return true
 }
-func GetStatusMEM(owlh map[string]string, mem string)(status bool){
+
+func GetStatusMEM(owlh map[string]string, mem string, sshSession *ssh.Session)(status bool){
 	var validMEM = regexp.MustCompile(`(\d+)`+mem+`;`)
 	if validMEM == nil{
 		return false
@@ -74,51 +82,38 @@ func GetStatusMEM(owlh map[string]string, mem string)(status bool){
 	logs.Error("Check MEM for "+owlh["name"]+" - "+owlh["ip"])
 	if localMEM>ddbbMEM{
 		logs.Error("SNIFFER -> Too much MEM on "+owlh["name"]+" - "+owlh["ip"])
+		StopSniffer(sshSession)
 		return false
 	}
 	return true
 }	
+
 func GetStatusStorage(owlh map[string]string, sshSession *ssh.Session)(status bool){
 	var pcapPath = owlh["pcap_path"]
-	logs.Info("SNIFFER -> Too much MEM on "+owlh["name"]+" - "+owlh["ip"])
-	status, storage, path := GetStatusStorageSSh(owlh,sshSession, pcapPath)
+	status, path, storage := GetStatusStorageSSh(owlh, sshSession, pcapPath)
 	if status {
-		localStorage, _ := strconv.ParseFloat(storage, 64)
+		localFunc := strings.Replace(storage, "%", "", -1)
+		localStorage, _ := strconv.ParseFloat(localFunc, 64)
 		ddbbStorage, _ := strconv.ParseFloat(owlh["max_storage"], 64)
 		if localStorage > ddbbStorage {
-			logs.Error("SNIFFER -> Too much STORAGE on "+owlh["name"]+" - "+owlh["ip"])
+			logs.Error("SNIFFER -> Too much STORAGE on "+owlh["name"]+" - "+owlh["ip"]+" on path: "+path)
+			StopSniffer(sshSession)
 			return false
 		}
+		logs.Error("SNIFFER -> STORAGE status is correct!!")
 		return true
 	}
 	return false
 }	
 
+func RunSniffer(owlh map[string]string, ssh *ssh.Session)(){
+	// RunSnifferSSH(owlh, ssh, conf("default"), conf("capture_time"), conf("pcap_path"), conf("filter_path"), conf("owlh_user"))
+	RunSnifferSSH(owlh, ssh)
+}
 
-// func GetStatusStorage(owlh map[string]string, ssh string)(status bool){
-// 	pcapPath := conf("pcap_path") //Get pcapPath data from json
-// 	logs.Error("Check STORAGE for "+owlh["name"]+" - "+owlh["ip"]+" at pcap path: "+pcapPath)
-// 	data, storage, path := GetStatusStorageSSH(owlh, ssh, pcapPath)
-// 	if status {
-// 		if strconv.ParseInt(storage, 32) > strconv.ParseInt("Conf.Get_Item", 32) {
-// 			logs.Error("Too much STORAGE used on "+owlh["name"]+" - "+owlh["ip"]+"  ---  size: "+storage+" path: "+path)
-// 			return false
-// 		}
-// 		return true
-// 	}
-// 	return false
-// }
-			
-
-// func RunSniffer(owlh map[string]string, ssh string)(){
-// 	logs.Error("Running Sniffer on "+owlh["name"]+" - "+owlh["ip"])
-// 	RunSnifferSSH(owlh, ssh, conf("default"), conf("capture_time"), conf("pcap_path"), conf("filter_path"), conf("owlh_user"))
-// }
-
-// func StopSniffer(owlh map[string]string, ssh string)(){
-// 	logs.Error("Stop Sniffer on "+owlh["name"]+" - "+owlh["ip"])
-// 	StopSnifferSSH(owlh, ssh)
-// }
+func StopSniffer(ssh *ssh.Session)(){
+	StopSnifferSSH(ssh)
+}
 
 // func GetFileList(owlh map[string]string, ssh string)(){
 // 	logs.Error("Get file list "+owlh["name"]+" - "+owlh["ip"])

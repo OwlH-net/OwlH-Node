@@ -10,8 +10,9 @@ import (
 	  "io/ioutil"
 	  //"errors"
       //"encoding/json"
-      "time"
-      "strconv"
+	  "time"
+	//   "bytes"
+    //   "strconv"
     //   "errors"
       //"ssh.CleintConfig"
     //   "code.google.com/p/go.crypto/ssh"
@@ -22,9 +23,21 @@ import (
 )
 
 func RunCMD(cmd string, sshValue *ssh.Session)(status bool, data string){
-	// err := sshValue.Run(cmd)
+	logs.Info(cmd)
 	var outputSSH []byte
-	outputSSH, err := sshValue.CombinedOutput(cmd)
+	var err error
+	outputSSH, err = sshValue.Output(cmd)
+
+	// var stdoutBuf bytes.Buffer
+	// var stdinBuf bytes.Buffer
+	// sshValue.Stdout = &stdoutBuf
+	// sshValue.Stdin = &stdinBuf
+	// err := sshValue.Run(cmd)
+	// logs.Info("Std in --> "+stdinBuf.String())    
+
+	// stdin, _ := sshValue.StdinPipe()
+	// stdout, _ := sshValue.StdoutPipe()
+	// stdout, err := sshValue.Run(cmd)
 	if err!=nil{
 		logs.Error("Error executing SSH commands: "+err.Error())    
 		return false, ""
@@ -34,7 +47,7 @@ func RunCMD(cmd string, sshValue *ssh.Session)(status bool, data string){
 	}
 }
 
-func owl_connect(stapServer map[string]string)(alive bool, sshValue *ssh.Session){
+func owlh_connect(stapServer map[string]string)(alive bool, sshValue *ssh.Session){
     loadData := map[string]map[string]string{}
 	loadData["stapPubKey"] = map[string]string{}
     loadData["stapPubKey"]["user"] = ""
@@ -64,7 +77,7 @@ func owl_connect(stapServer map[string]string)(alive bool, sshValue *ssh.Session
 
     logs.Warn("SSH starting session")    
 
-    // //Launch new session
+    //Launch new session
     session, err := client.NewSession()
 	if err != nil {
         logs.Info("New Session Error: "+err.Error())
@@ -109,23 +122,48 @@ func GetStatusSnifferSSH(owlh map[string]string, sshSession *ssh.Session)(status
 	return false, "","",""
 }
 
-func GetStatusStorageSSh(owlh map[string]string, sshSession *ssh.Session, folder string)(status bool, storage string, path string){
+func GetStatusStorageSSh(owlh map[string]string, sshSession *ssh.Session, folder string)(status bool, path string, storage string){
 	logs.Info("Checking if storage is OK in "+owlh["name"]+" - "+owlh["ip"])
-	//COMPLETE
+	cmd:="df -h "+folder+" --output=source,pcent | grep -v Filesystem | awk '{print $1 \",\" $2}'"
+	output := ""
+	status, output = RunCMD(cmd, sshSession)
+	logs.Info("Output Run CMD -->"+output)
+	if regexp.MustCompile(`[^,]+,\d+%`+output+`;`) != nil{
+		splitValue := strings.Split(output,",")
+		// // // //splitValue := strings.Fields(output)
+		logs.Info("sPLITvALUE: "+splitValue[0]+" ///// "+splitValue[1])
+		// path = splitValue[0]
+		// storage = splitValue[1]
+		// logs.Info("Device: "+path+" Percentage: "+storage)
+		return true, splitValue[0], splitValue[1]
+	}
+	return false, "", ""
+	// return true, "/etc/","18%"
 }
 
-// func CheckOwlhAliveSSh()(){
-	
-// }
+func RunSnifferSSH(owlh map[string]string, sshSession *ssh.Session)(){
+	logs.Info("Launching Sniffer...")
+	cmd := "nohup sudo tcpdump -i "+owlh["interface"]+" -G "+owlh["capture"]+" -w "+owlh["pcap_path"]+"`hostname`-%%y%%m%%d%%H%%M%%S.pcap -F "+owlh["filter_path"]+" -z "+owlh["user"]+" >/dev/null 2>&1 &"
+	status, output := RunCMD(cmd, sshSession)
+	if status {
+		logs.Info("Sniffer is Running for server "+owlh["name"]+" - "+owlh["ip"]+". Output--> "+output)	
+	}
+}
 
+func StopSnifferSSH(sshSession *ssh.Session)(){
+	logs.Info("Stopping Sniffer...")
+	cmd := "ps -ef | grep -v grep | grep tcpdump | awk '{printf $2}'"
+    output := ""
+	_, output = RunCMD(cmd,sshSession)
+	if regexp.MustCompile(`^\d+$,`+output) != nil {
+		cmd := "sudo kill -9 "+output
+		_, _ = RunCMD(cmd,sshSession)
+		logs.Info("Sniffer has been stopped succesfully")
 
-// func RunSnifferSSh()(){
-	
-// }
-
-// func StopSnifferSSh()(){
-	
-// }
+	}else{
+		logs.Info("Sniffer is still running...")
+	}
+}
 
 // func GetFileListSSH()(){
 	
