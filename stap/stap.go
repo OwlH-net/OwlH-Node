@@ -82,7 +82,8 @@ func GetAllServers()(data *map[string]map[string]string, err error){
 	} 
 	//query and make map[]map[]
 	sql := "select server_uniqueid, server_param, server_value from servers;"
-    rows, err := ndb.Sdb.Query(sql)
+	rows, err := ndb.Sdb.Query(sql)
+	defer rows.Close()
     if err != nil {
         logs.Error("GetAllServers stap Error executing query: %s", err.Error())
         return nil, err
@@ -111,7 +112,8 @@ func GetServer(serveruuid string)(data *map[string]map[string]string, err error)
 	} 
 	//query and make map[]map[]
 	sql := "select server_uniqueid, server_param, server_value from servers where server_uniqueid = '"+serveruuid+"';"
-    rows, err := ndb.Sdb.Query(sql)
+	rows, err := ndb.Sdb.Query(sql)
+	defer rows.Close()
     if err != nil {
         logs.Error("GetAllServers stap Error query execution: %s", err.Error())
         return nil, err
@@ -142,13 +144,14 @@ func PingStap(uuid string) (isIt map[string]bool){
 	stap["stapStatus"] = false
 	
 	sql := "select stap_value from stap where stap_param = \"status\";"
-    rows, err := ndb.Sdb.Query(sql)
+	rows, err := ndb.Sdb.Query(sql)
+	defer rows.Close()
 
     if err != nil {
         logs.Info("PingStap Query Error immediately after retrieve data %s",err.Error())
         return stap
     }
-	defer rows.Close()
+	//defer rows.Close()
     if rows.Next() {
         err := rows.Scan(&res)
         if err != nil {
@@ -292,12 +295,13 @@ func PingServerStap(server string) (isIt map[string]bool){
 	sql := "select server_value from servers where server_uniqueid = \""+server+"\" and server_param = \"status\";"
     logs.Info("PingServerStap select for check if exist query sql %s",sql)
     rows, err := ndb.Sdb.Query(sql)
+	defer rows.Close()
+
     if err != nil {
         logs.Error("PingServerStap Query Error immediately after retrieve data %s",err.Error())
         return stap
     }
     logs.Info("After rows Query")
-	defer rows.Close()
     if rows.Next() {
         err := rows.Scan(&res)
         if err != nil {
@@ -323,11 +327,12 @@ func GetStapUUID()(uuid string){
     var res string
 	sql := "select stap_uniqueid from stap;"
     rows, err := ndb.Sdb.Query(sql)
+	defer rows.Close()
+	
     if err != nil {
         logs.Info("GetStapUUID Error immediately after retrieve data %s",err.Error())
         return ""
     }
-    defer rows.Close()
     if rows.Next() {
         err := rows.Scan(&res)
         if err != nil {

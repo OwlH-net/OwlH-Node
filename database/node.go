@@ -20,7 +20,8 @@ type Node struct {
 func AddNode(node Node) (err error){
     logs.Info("DB -> Add Node")
     if Db != nil {
-        stmt, err := Db.Prepare("INSERT INTO node(node_name, node_ip, node_port, node_type, node_UUID) values(?,?,?,?,?)")
+		stmt, err := Db.Prepare("INSERT INTO node(node_name, node_ip, node_port, node_type, node_UUID) values(?,?,?,?,?)")
+		defer stmt.Close()
         if err != nil {
             logs.Error("DB NODE -> Add NODE -> Error db.prepare -> maybe db conn lost? ")
             return errors.New("DB NODE -> Add NODE -> Error db.prepare -> maybe db conn lost? ")
@@ -43,7 +44,8 @@ func GetNode(nid string) (n *Node, err error) {
     var node Node
     if Db != nil {
 //        rows, err := Db.Query("SELECT * FROM master WHERE master_id=1;")
-        row := Db.QueryRow("SELECT * FROM node WHERE node_id=%s;",nid)
+		row := Db.QueryRow("SELECT * FROM node WHERE node_id=%s;",nid)
+		// defer row.Close()
         logs.Info ("DB -> Row %s", row)
         err = row.Scan(&node.NId, &node.NName, &node.NIp, &node.NPort, &node.NType, &node.NUUID)
         if err == sql.ErrNoRows {

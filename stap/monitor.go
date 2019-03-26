@@ -5,7 +5,6 @@ import (
     // "os/exec"
     "strings"
 	"regexp"
-  	// "owlhnode/utils"
   	"owlhnode/database"
 	//   "io/ioutil"
 	  //"errors"
@@ -23,31 +22,31 @@ import (
 
 
 func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
-	owlh := GetStapServerInformation(uuid)
-  	alive, sshSession = owlh_connect(owlh)
-  	logs.Info("Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
+	// owlh := ndb.GetStapServerInformation(uuid)
+  	alive, sshSession = owlh_connect(uuid)
+  	logs.Info("Stap Server Task with uuid: "+uuid)
   	if alive{
-	    logs.Info("ALIVE Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
+	    logs.Info("ALIVE Stap Server "+uuid)
 	    return true, sshSession
   	}
-  	logs.Error("NOT ALIVE Stap Server Task "+owlh["name"]+" -- "+owlh["ip"])
+  	logs.Error("NOT ALIVE Stap Server "+uuid)
   	return false, nil
 }
       
-func GetStatusSniffer(uuid string, sshSession *ssh.Session)(running string, status bool){
-	owlh := GetStapServerInformation(uuid)
-	logs.Info("Checking "+owlh["name"]+" - "+owlh["ip"]+" Sniffer status")
+func GetStatusSniffer(uuid string)(running string, status bool){
+	owlh := ndb.GetStapServerInformation(uuid)
+	logs.Info("Checking Sniffer status for uuid: "+uuid)
 	  
-	status, pid, cpu, mem := GetStatusSnifferSSH(owlh, sshSession)
-	cpuStatus := GetStatusCPU(owlh,cpu,sshSession)
-	memStatus := GetStatusMEM(owlh,mem,sshSession)
+	status, pid, cpu, mem := GetStatusSnifferSSH(uuid)
+	cpuStatus := GetStatusCPU(owlh,cpu,uuid)
+	memStatus := GetStatusMEM(owlh,mem,uuid)
 
-	logs.Info("Closing SSH Session for open again")
-	sshSession.Close()
+	// logs.Info("Closing SSH Session for open again")
+	// sshSession.Close()
 
-	_, sshSession = owlh_connect(owlh)
-	storageStatus := GetStatusStorage(owlh,sshSession)
-	sshSession.Close()
+	// _, sshSession = owlh_connect(owlh)
+	storageStatus := GetStatusStorage(owlh,uuid)
+	// sshSession.Close()
 
 	logs.Alert("Checking "+owlh["name"]+" - "+owlh["ip"]+" - PID:"+pid+" CPU: "+strconv.FormatBool(cpuStatus)+" MEM: "+strconv.FormatBool(memStatus)+" STORAGE: "+strconv.FormatBool(storageStatus))
   	if cpuStatus && memStatus && storageStatus {
@@ -56,7 +55,7 @@ func GetStatusSniffer(uuid string, sshSession *ssh.Session)(running string, stat
 	return "NOT running", false
 }
 
-func GetStatusCPU(owlh map[string]string, cpu string, sshSession *ssh.Session)(status bool){
+func GetStatusCPU(owlh map[string]string, cpu string, uuid string)(status bool){
 	var validCPU = regexp.MustCompile(`(\d+)`+cpu+`;`)
 	if validCPU == nil{
 		return false
@@ -66,13 +65,13 @@ func GetStatusCPU(owlh map[string]string, cpu string, sshSession *ssh.Session)(s
 	logs.Error("Check CPU for "+owlh["name"]+" - "+owlh["ip"])
 	if localCPU>ddbbCPU{
 		logs.Error("SNIFFER -> Too much CPU on "+owlh["name"]+" - "+owlh["ip"])
-		StopSniffer(sshSession)
+		StopSniffer(uuid)
 		return false
 	}
 	return true
 }
 
-func GetStatusMEM(owlh map[string]string, mem string, sshSession *ssh.Session)(status bool){
+func GetStatusMEM(owlh map[string]string, mem string, uuid string)(status bool){
 	var validMEM = regexp.MustCompile(`(\d+)`+mem+`;`)
 	if validMEM == nil{
 		return false
@@ -82,22 +81,22 @@ func GetStatusMEM(owlh map[string]string, mem string, sshSession *ssh.Session)(s
 	logs.Error("Check MEM for "+owlh["name"]+" - "+owlh["ip"])
 	if localMEM>ddbbMEM{
 		logs.Error("SNIFFER -> Too much MEM on "+owlh["name"]+" - "+owlh["ip"])
-		StopSniffer(sshSession)
+		StopSniffer(uuid)
 		return false
 	}
 	return true
 }	
 
-func GetStatusStorage(owlh map[string]string, sshSession *ssh.Session)(status bool){
+func GetStatusStorage(owlh map[string]string, uuid string)(status bool){
 	var pcapPath = owlh["pcap_path"]
-	status, path, storage := GetStatusStorageSSh(owlh, sshSession, pcapPath)
+	status, path, storage := GetStatusStorageSSh(uuid, pcapPath)
 	if status {
 		localFunc := strings.Replace(storage, "%", "", -1)
 		localStorage, _ := strconv.ParseFloat(localFunc, 64)
 		ddbbStorage, _ := strconv.ParseFloat(owlh["max_storage"], 64)
 		if localStorage > ddbbStorage {
 			logs.Error("SNIFFER -> Too much STORAGE on "+owlh["name"]+" - "+owlh["ip"]+" on path: "+path)
-			StopSniffer(sshSession)
+			StopSniffer(uuid)
 			return false
 		}
 		logs.Error("SNIFFER -> STORAGE status is correct!!")
@@ -106,13 +105,13 @@ func GetStatusStorage(owlh map[string]string, sshSession *ssh.Session)(status bo
 	return false
 }	
 
-func RunSniffer(owlh map[string]string, ssh *ssh.Session)(){
+func RunSniffer(uuid string)(){
 	// RunSnifferSSH(owlh, ssh, conf("default"), conf("capture_time"), conf("pcap_path"), conf("filter_path"), conf("owlh_user"))
-	RunSnifferSSH(owlh, ssh)
+	RunSnifferSSH(uuid)
 }
 
-func StopSniffer(ssh *ssh.Session)(){
-	StopSnifferSSH(ssh)
+func StopSniffer(uuid string)(){
+	StopSnifferSSH(uuid)
 }
 
 // func GetFileList(owlh map[string]string, ssh string)(){
@@ -149,19 +148,3 @@ func StopSniffer(ssh *ssh.Session)(){
 
 
 
-func GetStapServerInformation(uuid string)(serverData map[string]string){
-	var param string
-	var value string
-	stapServer := make(map[string]string)
-	logs.Info("CheckOwlhAlive, creating data map for uuid: "+uuid)
-	// ip, err := ndb.Sdb.Query("select server_param,server_value from servers where server_param = \"ip\" and server_uniqueid = \""+uuid+"\";")
-	ip, err := ndb.Sdb.Query("select server_param,server_value from servers where server_uniqueid = \""+uuid+"\";")
-	for ip.Next(){
-		if err = ip.Scan(&param, &value); err!=nil {
-			logs.Error("Worker Concurrency. Error creating data Map: "+err.Error())
-			return nil
-		}
-		stapServer[param]=value
-	}
-	return stapServer
-}

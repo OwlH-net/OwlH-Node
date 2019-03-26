@@ -33,3 +33,21 @@ func SConn() {
     }
     logs.Info("sdb/servers -- DB -> sql.Open, DB Ready") 
 }
+
+func GetStapServerInformation(uuid string)(serverData map[string]string){
+	var param string
+	var value string
+	stapServer := make(map[string]string)
+	logs.Info("Creating data map for uuid: "+uuid)
+	// ip, err := ndb.Sdb.Query("select server_param,server_value from servers where server_param = \"ip\" and server_uniqueid = \""+uuid+"\";")
+	uuidParams, err := Sdb.Query("select server_param,server_value from servers where server_uniqueid = \""+uuid+"\";")
+	defer uuidParams.Close()
+	for uuidParams.Next(){
+		if err = uuidParams.Scan(&param, &value); err!=nil {
+			logs.Error("Error creating data Map: "+err.Error())
+			return nil
+		}
+		stapServer[param]=value
+	}
+	return stapServer
+}
