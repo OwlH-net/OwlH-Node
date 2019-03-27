@@ -10,33 +10,35 @@ import (
 	  "io/ioutil"
 	  //"errors"
       //"encoding/json"
-	  "time"
+	//   "time"
 	//   "bytes"
-    //   "strconv"
+      "strconv"
     //   "errors"
       //"ssh.CleintConfig"
     //   "code.google.com/p/go.crypto/ssh"
     //   "sync"
     // "runtime"
     // "math/rand"
-    "golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh"
+	"github.com/tmc/scp"
 )
 
 func RunCMD(uuid string, cmd string)(status bool, data string){
 	logs.Info("Connect ssh from RunCMD")
+	var CMDoutput []byte
 	alive, sshValue := owlh_connect(uuid)
 	if !alive{
-		sshValue.Close()
+		//sshValue.Close()
 		return false, ""
 	}
 	logs.Info("Command to exec --> "+cmd)
-	var CMDoutput []byte
-	CMDoutput, err := sshValue.CombinedOutput(cmd)
+	CMDoutput, err := sshValue.Output(cmd)
 	sshValue.Close()
 	if err!=nil{
-		logs.Error("Error executing SSH commands: "+err.Error())    
+		logs.Error("Error executing SSH commands: "+err.Error())
 		return false, ""
 	}else{
+		logs.Info("Command output --> "+string(CMDoutput))
 		logs.Info("No error executing command through SSH connection")
 		return true, string(CMDoutput)
 	}
@@ -47,13 +49,12 @@ func owlh_connect(uuid string)(alive bool, sshValue *ssh.Session){
 	loadData["stapPubKey"] = map[string]string{}
     loadData["stapPubKey"]["user"] = ""
     loadData["stapPubKey"]["cert"] = ""
-    loadData = utils.GetConf(loadData)    
+    loadData = utils.GetConf(loadData)
     userSSH := loadData["stapPubKey"]["user"]
     cert := loadData["stapPubKey"]["cert"]
 
-	logs.Warn("Trying to Connect SSH")    
-	
 	owlh := ndb.GetStapServerInformation(uuid)
+	logs.Info("Name: "+owlh["name"]+" IP: "+owlh["ip"])
 
     // //Declare ssh config
     sshConfig := &ssh.ClientConfig{
@@ -63,16 +64,16 @@ func owlh_connect(uuid string)(alive bool, sshValue *ssh.Session){
             // PublicKey(pk),
         },
         HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-        Timeout: time.Duration(10)*time.Second,
+        //Timeout: time.Duration(10)*time.Second,
     }
-    logs.Warn("SSH Config declared!! -->"+owlh["ip"])    
+    logs.Warn("SSH Config declared!! -->"+owlh["ip"])
     client, err := ssh.Dial("tcp", owlh["ip"]+":22", sshConfig)
     if err != nil {
-        logs.Error("SSH Dial Error: "+err.Error())    
+        logs.Error("SSH Dial Error: "+err.Error())
 		return false, nil
     }
 
-    logs.Warn("SSH starting session")    
+    logs.Warn("SSH starting session")
 
     //Launch new session
     session, err := client.NewSession()
@@ -104,8 +105,10 @@ func GetStatusSnifferSSH(uuid string)(status bool, pid string, cpu string, mem s
 	cmd:="top -b -n1 | grep -v sudo | grep tcpdump | awk '{print $1 \",\" $9 \",\" $10}'"
 	output := ""
 	status, output = RunCMD(uuid,cmd)
-	
-	if regexp.MustCompile(`\d+,\d+\.\d+,\d+\.\d+`+output+`;`) != nil{
+	logs.Info("OUTPUT FOR REGEXP: "+output)
+	var validOutput = regexp.MustCompile(`\d+,\d+\.\d+,\d+\.\d+`)
+	if validOutput.MatchString(output){
+		logs.Info("Inside Validation REGEXP")
 		splitValue := strings.Split(output,",")
 		pid = splitValue[0]
 		cpu = splitValue[1]
@@ -142,39 +145,100 @@ func GetStatusStorageSSh(uuid string, folder string)(status bool, path string, s
 func RunSnifferSSH(uuid string)(){
 	logs.Info("Launching Sniffer...")
 	owlh := ndb.GetStapServerInformation(uuid)
-	cmd := "nohup sudo tcpdump -i "+owlh["interface"]+" -G "+owlh["capture"]+" -w "+owlh["pcap_path"]+"`hostname`-%%y%%m%%d%%H%%M%%S.pcap -F "+owlh["filter_path"]+" -z "+owlh["user"]+" >/dev/null 2>&1 &"
+	cmd := "nohup sudo tcpdump -i "+owlh["default_interface"]+" -G "+owlh["capture_time"]+" -w "+owlh["pcap_path"]+"`hostname`-%y%m%d%H%M%S.pcap -F "+owlh["filter_path"]+" -z "+owlh["owlh_user"]+" >/dev/null 2>&1 &"
+	logs.Debug(cmd)
 	status, output := RunCMD(uuid,cmd)
 	if status {
-		logs.Info("Sniffer is Running for server "+owlh["name"]+" - "+owlh["ip"]+". Output--> "+output)	
+		logs.Info("Sniffer is Running for server "+owlh["name"]+" - "+owlh["ip"]+". Output--> "+output)
 	}
 }
 
 func StopSnifferSSH(uuid string)(){
-	logs.Info("Stopping Sniffer...")
-	cmd := "ps -ef | grep -v grep | grep tcpdump | awk '{printf $2}'"
+	logs.Info(uuid+"Stopping Sniffer...")
+	cmd := "ps -ef | grep -v grep | grep tcpdump | awk '{print $2}'"
     output := ""
 	_, output = RunCMD(uuid,cmd)
-	if regexp.MustCompile(`^\d+$`+output) != nil {
-		cmd := "sudo kill -9 "+output
-		_, _ = RunCMD(uuid,cmd)
-		logs.Info("Sniffer has been stopped succesfully")
-	}else{
-		logs.Info("Sniffer is still running...")
+	logs.Info("NUMBER OF PID -->"+output)
+	splitValue := strings.Split(output,"\n")
+	for value := range splitValue{
+		var validOutput = regexp.MustCompile(`^\d+`)
+		if validOutput.MatchString(splitValue[value]) {
+			cmd := "sudo kill -9 "+splitValue[value]
+			_, _ = RunCMD(uuid,cmd)
+			logs.Info("Sniffer has been stopped succesfully")
+		}else{
+			logs.Error("Sniffer is still running...")
+		}
 	}
 }
 
-// func GetFileListSSH()(){
-	
-// }
+func GetFileListSSH(uuid string, owlh map[string]string, path string)(list []string){
+	logs.Info(uuid+" Stopping Sniffer...")
+	cmd := "find "+owlh["pcap_path"]+"*.pcap -maxdepth 0 -type f -mmin +1|sed 's#.*/##'| awk '{printf $1 \",\"}'"
+    output := ""
+	_, output = RunCMD(uuid,cmd)
+	splitValue := strings.Split(output,",")
+	return splitValue
+}
 
-// func OwnerOwlhSSH()(){
-	
-// }
+func OwnerOwlhSSH(uuid string, owlh map[string]string, fileRemote string)(){
+	logs.Info(uuid+" Change remote file owner: "+ fileRemote)
+	var validOutput = regexp.MustCompile(`\.pcap+`)
+	if validOutput.MatchString(fileRemote) {
+		// cmd := "sudo chown "+owlh["owlh_user"]+" "+fileRemote
+		cmd := "sudo chown "+owlh["owlh_user"]+" "+owlh["pcap_path"]+fileRemote
+		logs.Alert("Command for change owner file--> "+cmd)
+		RunCMD(uuid,cmd)
+	}
+}
 
-// func TransportFileSSH()(){
-	
-// }
+func TransportFileSSH(uuid string, owlh map[string]string, file string)(){
+	logs.Info(uuid+" Transport remote file: "+ file+" to local machine")
+	var validOutput = regexp.MustCompile(`\.pcap+`)
+	if validOutput.MatchString(file) {
 
-// func RemoveFileSSH()(){
-	
-// }
+		//exec scp local
+
+		//cmd := "sudo scp -r "+owlh["owlh_user"]+"@"+owlh["pcap_path"]+":"+owlh["pcap_path"]+" "+owlh["local_pcap_path"]+""
+		// status, _ := ScpCMD(uuid, owlh["pcap_path"]+file, owlh["local_pcap_path"]+file)
+		// logs.Info("Output CMD TransportFileSSH: "+file+" - "+strconv.FormatBool(status))
+	}
+}
+
+func RemoveFileSSH(uuid string, owlh map[string]string, file string)(){
+	logs.Info(uuid+" Remove remote files")
+	var validOutput = regexp.MustCompile(`\.pcap+`)
+	if validOutput.MatchString(file) {
+		cmd := "sudo rm "+file+""
+		_, output := RunCMD(uuid,cmd)
+		logs.Info("Output CMD RemoveFileSSH: "+ output)
+	}
+}
+
+
+
+
+
+
+
+
+
+
+func ScpCMD(uuid string, srcFile string, dstFile string)(status bool, data string){
+	logs.Info("Connect scp ScpCMD")
+	var CMDoutput []byte
+	alive, sshValue := owlh_connect(uuid)
+	if !alive{
+		return false, ""
+	}
+	err := scp.CopyPath(srcFile, dstFile, sshValue)
+	sshValue.Close()
+	if err!=nil{
+		logs.Error("SCP Error commands: "+err.Error())
+		return false, ""
+	}else{
+		logs.Info("SCP Command output --> "+string(CMDoutput))
+		logs.Info("No error executing SCP command")
+		return true, string(CMDoutput)
+	}
+}

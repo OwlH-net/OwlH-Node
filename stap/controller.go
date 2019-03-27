@@ -12,7 +12,7 @@ import (
 	//   "io/ioutil"
 	  //"errors"
       //"encoding/json"
-      "time"
+    //   "time"
       "strconv"
     //   "errors"
       //"ssh.CleintConfig"
@@ -82,11 +82,11 @@ func Controller()() {
 		for numServers.Next(){
 			numServers.Scan(&countServers) 
 		}
-		logs.Debug("NEW LOOP WITH---------------------------------->"+countServers)
 		uuid := <-res
         jobs <- uuid 
         stapStatus = PingStap("")
 	}
+	
 	
 	//Kill Servers when STAP stops
 	if isWorking{
@@ -111,13 +111,21 @@ func serverTask(id int, jobs <-chan string, res chan<- string) {
         if alive {
             logs.Info("Status  Session: True")
 			running, status := GetStatusSniffer(uuid)
-			if status {
-				logs.Info(running)
+			if running {
+				logs.Info("TCPDUMP is running!!")
+				if !status {
+					logs.Info("Something is wrong with the system...")
+					StopSniffer(uuid)
+				}
+			}else if status{
+				logs.Info("Start Sniffer!!")
+				RunSniffer(uuid)
 			}
         }else{
             logs.Info("Status SSH Session: False")
-        }
-        time.Sleep(time.Second * 2)
+		}
+		GetFileList(uuid)
+        // time.Sleep(time.Second * 2)
 		res <- uuid
     }
 }

@@ -33,26 +33,20 @@ func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
   	return false, nil
 }
       
-func GetStatusSniffer(uuid string)(running string, status bool){
+func GetStatusSniffer(uuid string)(running bool, status bool){
 	owlh := ndb.GetStapServerInformation(uuid)
 	logs.Info("Checking Sniffer status for uuid: "+uuid)
 	  
-	status, pid, cpu, mem := GetStatusSnifferSSH(uuid)
+	running, pid, cpu, mem := GetStatusSnifferSSH(uuid)
 	cpuStatus := GetStatusCPU(owlh,cpu,uuid)
 	memStatus := GetStatusMEM(owlh,mem,uuid)
-
-	// logs.Info("Closing SSH Session for open again")
-	// sshSession.Close()
-
-	// _, sshSession = owlh_connect(owlh)
 	storageStatus := GetStatusStorage(owlh,uuid)
-	// sshSession.Close()
 
 	logs.Alert("Checking "+owlh["name"]+" - "+owlh["ip"]+" - PID:"+pid+" CPU: "+strconv.FormatBool(cpuStatus)+" MEM: "+strconv.FormatBool(memStatus)+" STORAGE: "+strconv.FormatBool(storageStatus))
   	if cpuStatus && memStatus && storageStatus {
-  	    return "IS RUNNING", true
+  	    return running, true
 	}
-	return "NOT running", false
+	return running, false
 }
 
 func GetStatusCPU(owlh map[string]string, cpu string, uuid string)(status bool){
@@ -114,33 +108,43 @@ func StopSniffer(uuid string)(){
 	StopSnifferSSH(uuid)
 }
 
-// func GetFileList(owlh map[string]string, ssh string)(){
-// 	logs.Error("Get file list "+owlh["name"]+" - "+owlh["ip"])
-// 	file_list := GetFileListSSH(owlh, ssh, conf("pcap_path"))
-// 	sftp := openSftpSSH()
-// 	for file := range file_list {
-// 		if regexp.MustCompile(`\.pcap`+file+`;`){
-// 			OwnerOwlh(owlh, ssh, conf("pcap_path")+file)
-// 			TransportFile(owlh, sftp, conf("pcap_path")+file, conf("local_pcap_path")+file)
-// 			RemoveFile(owlh, sftp, conf("pcap_path")+file)
-// 		}
-// 	}
-// }
+func GetFileList(uuid string)(){
+	owlh := ndb.GetStapServerInformation(uuid)
+	logs.Error("Get file list for "+owlh["name"]+" - "+owlh["ip"])
+	file_list := GetFileListSSH(uuid,owlh, owlh["pcap_path"])
+	// sftp := openSftpSSH()
+	for file := range file_list {
+		var validOutput = regexp.MustCompile(`\.pcap+`)
+		if validOutput.MatchString(file_list[file]) {
+		logs.Debug(file_list[file])
+		logs.Info("Change remote file owned")
+		OwnerOwlh(uuid, owlh, file_list[file])
+		
+		logs.Info("Copy full directory using SCP command")
+		TransportFile(uuid, owlh, file_list[file])
+		
+		// logs.Info("Delete remote files")
+		// RemoveFile(uuid, owlh, file_list[file])
 
-// func OwnerOwlh(owlh map[string]string, ssh string, fileRemote string)(){
-// 	logs.Error("Set "+owlh["name"]+" - "+owlh["ip"]+" as owner of file "+conf("owlh_user"))
-// 	OwnerOwlhSSH(owlh, ssh, fileRemote, conf("owlh_user"))
-// }
+		logs.Warn("File list completed!")
+		}
+	}
+}
 
-// func TransportFile(owlh map[string]string, file string, sftp string, local_path)(){
-// 	logs.Error("Get file "+local_path+" from "+owlh["name"]+" - "+owlh["ip"])
-// 	TransportFileSSH(owlh, sftp, file, local_path)
-// }
+func OwnerOwlh(uuid string, owlh map[string]string, fileRemote string)(){
+	logs.Error("Set "+owlh["name"]+" - "+owlh["ip"]+" as owner of file "+owlh["owlh_user"])
+	OwnerOwlhSSH(uuid, owlh, fileRemote)
+}
 
-// func RemoveFile(owlh map[string]string, sftp string, file string)(){
-// 	logs.Error("Remove file "+local_path+" from "+owlh["name"]+" - "+owlh["ip"])
-// 	RemoveFileSSH(owlh, ssh, file)
-// }
+func TransportFile(uuid string, owlh map[string]string, file string)(){
+	logs.Error("Get file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
+	TransportFileSSH(uuid, owlh, file)
+}
+
+func RemoveFile(uuid string, owlh map[string]string, file string)(){
+	logs.Error("Remove file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
+	RemoveFileSSH(uuid, owlh, file)
+}
 
 
 
