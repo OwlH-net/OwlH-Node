@@ -1,7 +1,7 @@
 package stap
 import (
     "github.com/astaxie/beego/logs"
-    // "os"
+    "os"
     // "os/exec"
     "strings"
     "regexp"
@@ -20,7 +20,8 @@ import (
     // "runtime"
     // "math/rand"
 	"golang.org/x/crypto/ssh"
-	"github.com/tmc/scp"
+	"github.com/pkg/sftp"
+	//"github.com/tmc/scp"
 )
 
 func RunCMD(uuid string, cmd string)(status bool, data string){
@@ -146,7 +147,7 @@ func RunSnifferSSH(uuid string)(){
 	logs.Info("Launching Sniffer...")
 	owlh := ndb.GetStapServerInformation(uuid)
 	cmd := "nohup sudo tcpdump -i "+owlh["default_interface"]+" -G "+owlh["capture_time"]+" -w "+owlh["pcap_path"]+"`hostname`-%y%m%d%H%M%S.pcap -F "+owlh["filter_path"]+" -z "+owlh["owlh_user"]+" >/dev/null 2>&1 &"
-	logs.Debug(cmd)
+	//logs.Debug(cmd)
 	status, output := RunCMD(uuid,cmd)
 	if status {
 		logs.Info("Sniffer is Running for server "+owlh["name"]+" - "+owlh["ip"]+". Output--> "+output)
@@ -173,10 +174,11 @@ func StopSnifferSSH(uuid string)(){
 }
 
 func GetFileListSSH(uuid string, owlh map[string]string, path string)(list []string){
-	logs.Info(uuid+" Stopping Sniffer...")
+	//logs.Debug(uuid+" Getting file list...")
 	cmd := "find "+owlh["pcap_path"]+"*.pcap -maxdepth 0 -type f -mmin +1|sed 's#.*/##'| awk '{printf $1 \",\"}'"
     output := ""
 	_, output = RunCMD(uuid,cmd)
+
 	splitValue := strings.Split(output,",")
 	return splitValue
 }
@@ -200,8 +202,8 @@ func TransportFileSSH(uuid string, owlh map[string]string, file string)(){
 		//exec scp local
 
 		//cmd := "sudo scp -r "+owlh["owlh_user"]+"@"+owlh["pcap_path"]+":"+owlh["pcap_path"]+" "+owlh["local_pcap_path"]+""
-		// status, _ := ScpCMD(uuid, owlh["pcap_path"]+file, owlh["local_pcap_path"]+file)
-		// logs.Info("Output CMD TransportFileSSH: "+file+" - "+strconv.FormatBool(status))
+		status := SftpCMD(uuid, owlh["pcap_path"]+file, owlh["local_pcap_path"]+file)
+		logs.Info("Output CMD TransportFileSSH: "+file+" - "+strconv.FormatBool(status))
 	}
 }
 
@@ -216,29 +218,82 @@ func RemoveFileSSH(uuid string, owlh map[string]string, file string)(){
 }
 
 
-
-
-
-
-
-
-
-
-func ScpCMD(uuid string, srcFile string, dstFile string)(status bool, data string){
-	logs.Info("Connect scp ScpCMD")
-	var CMDoutput []byte
-	alive, sshValue := owlh_connect(uuid)
+func SftpCMD(uuid string, srcFile string, dstFile string)(status bool){
+	logs.Notice("SFTP_CMD")
+	logs.Info("Connect sftp SftpCMD")
+	alive, sshClient:= owlh_connect_client(uuid)
 	if !alive{
-		return false, ""
+		return false
 	}
-	err := scp.CopyPath(srcFile, dstFile, sshValue)
-	sshValue.Close()
-	if err!=nil{
-		logs.Error("SCP Error commands: "+err.Error())
-		return false, ""
-	}else{
-		logs.Info("SCP Command output --> "+string(CMDoutput))
-		logs.Info("No error executing SCP command")
-		return true, string(CMDoutput)
+
+	logs.Notice("NewClient")
+	sftp, err := sftp.NewClient(sshClient)
+	if err != nil {
+		logs.Error(err)
+		return false
 	}
+	defer sftp.Close()
+
+	// Open the source file
+	logs.Notice("Open Remote File")
+	remoteFile, err := sftp.Open(srcFile)
+	if err != nil {
+		logs.Error(err)
+		return false
+	}
+	defer remoteFile.Close()
+
+	// Create the destination file
+	logs.Notice("Create DST file")
+	localFile, err := os.Create(dstFile)
+	if err != nil {
+		logs.Error(err)
+		return false
+	}
+	defer localFile.Close()
+
+	// Copy the file
+	logs.Notice("Copy file")
+	remoteFile.WriteTo(localFile)
+
+	//remove remote file
+	logs.Notice("Delete remote file")
+	err = sftp.Remove(srcFile)
+	if err != nil {
+		logs.Error(err)
+		return false
+	}
+	
+	return true
+}
+
+func owlh_connect_client(uuid string)(alive bool, sshClient *ssh.Client){
+    loadData := map[string]map[string]string{}
+	loadData["stapPubKey"] = map[string]string{}
+    loadData["stapPubKey"]["user"] = ""
+    loadData["stapPubKey"]["cert"] = ""
+    loadData = utils.GetConf(loadData)
+    userSSH := loadData["stapPubKey"]["user"]
+    cert := loadData["stapPubKey"]["cert"]
+
+	owlh := ndb.GetStapServerInformation(uuid)
+	logs.Info("Name: "+owlh["name"]+" IP: "+owlh["ip"])
+
+    // //Declare ssh config
+    sshConfig := &ssh.ClientConfig{
+        User: userSSH,
+        Auth: []ssh.AuthMethod{
+            PublicKeyFile(cert),
+            // PublicKey(pk),
+        },
+        HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+        //Timeout: time.Duration(10)*time.Second,
+    }
+    logs.Warn("SSH Config declared!! -->"+owlh["ip"])
+    client, err := ssh.Dial("tcp", owlh["ip"]+":22", sshConfig)
+    if err != nil {
+        logs.Error("SSH Dial Error: "+err.Error())
+		return false, nil
+    }
+	return true, client
 }

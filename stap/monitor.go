@@ -112,23 +112,23 @@ func GetFileList(uuid string)(){
 	owlh := ndb.GetStapServerInformation(uuid)
 	logs.Error("Get file list for "+owlh["name"]+" - "+owlh["ip"])
 	file_list := GetFileListSSH(uuid,owlh, owlh["pcap_path"])
-	// sftp := openSftpSSH()
 	for file := range file_list {
 		var validOutput = regexp.MustCompile(`\.pcap+`)
 		if validOutput.MatchString(file_list[file]) {
-		logs.Debug(file_list[file])
-		logs.Info("Change remote file owned")
-		OwnerOwlh(uuid, owlh, file_list[file])
-		
-		logs.Info("Copy full directory using SCP command")
-		TransportFile(uuid, owlh, file_list[file])
-		
-		// logs.Info("Delete remote files")
-		// RemoveFile(uuid, owlh, file_list[file])
+			//logs.Debug(file_list[file])
+			logs.Notice("Change remote file owned")
+			OwnerOwlh(uuid, owlh, file_list[file])
+			
+			logs.Notice("Copy files using sftp command and remove it!!")
+			TransportFile(uuid, owlh, file_list[file])
+			
+			// logs.Info("Delete remote files")
+			// RemoveFile(uuid, owlh, file_list[file])
 
-		logs.Warn("File list completed!")
+			logs.Warn("File list completed!")
 		}
 	}
+
 }
 
 func OwnerOwlh(uuid string, owlh map[string]string, fileRemote string)(){
@@ -141,10 +141,10 @@ func TransportFile(uuid string, owlh map[string]string, file string)(){
 	TransportFileSSH(uuid, owlh, file)
 }
 
-func RemoveFile(uuid string, owlh map[string]string, file string)(){
-	logs.Error("Remove file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
-	RemoveFileSSH(uuid, owlh, file)
-}
+// func RemoveFile(uuid string, owlh map[string]string, file string)(){
+// 	logs.Error("Remove file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
+// 	RemoveFileSSH(uuid, owlh, file)
+// }
 
 
 

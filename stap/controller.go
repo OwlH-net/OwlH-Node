@@ -27,8 +27,9 @@ const MaxWorkers = 4
 
 
 func StapInit()(){
-    logs.Info("Init Controller Working")
-    go Controller()
+	logs.Info("Init Controller Working")
+	go Pcap_replay()
+	go Controller()
 }
 
 func Controller()() {                     
@@ -75,13 +76,13 @@ func Controller()() {
 
     //add dinamically to channel the server who had finished their works
     for stapStatus["stapStatus"]{
-		var countServers string
-		numServers, _ := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
-		defer numServers.Close()
-		//load number of servers with status = true
-		for numServers.Next(){
-			numServers.Scan(&countServers) 
-		}
+		// var countServers string
+		// numServers, _ := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
+		// defer numServers.Close()
+		// //load number of servers with status = true
+		// for numServers.Next(){
+		// 	numServers.Scan(&countServers) 
+		// }
 		uuid := <-res
         jobs <- uuid 
         stapStatus = PingStap("")
@@ -100,9 +101,10 @@ func Controller()() {
 		}
 	}
 	
+	logs.Notice("PRE CLOSE CHANNELS")
 	close(jobs)
-	close(res)
-    logs.Info("Workers Closed")
+	// close(res)
+	logs.Info("Workers Closed")
 }
 
 func serverTask(id int, jobs <-chan string, res chan<- string) {
@@ -121,10 +123,10 @@ func serverTask(id int, jobs <-chan string, res chan<- string) {
 				logs.Info("Start Sniffer!!")
 				RunSniffer(uuid)
 			}
+			GetFileList(uuid)
         }else{
             logs.Info("Status SSH Session: False")
 		}
-		GetFileList(uuid)
         // time.Sleep(time.Second * 2)
 		res <- uuid
     }
