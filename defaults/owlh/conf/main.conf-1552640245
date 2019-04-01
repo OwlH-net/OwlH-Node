@@ -1,0 +1,95 @@
+{
+       "MasterName":{
+               "name":"Owlh"
+        },
+	"suricataBPF":{
+		"pathBPF": "/etc/owlh/suricata/bpf/",
+		"fileBPF": "filter.bpf"
+	},
+	"suricataRuleset":{		
+		"path": "/etc/owlh/suricata/ruleset/",
+		"file": "owlh.rules"
+	},
+	"dbsConn":{
+		"path": "/etc/owlh/databases/node.db",
+		"cmd": "sqlite3"
+	},
+	"stapConn":{
+		"path": "/etc/owlh/databases/servers.db",
+		"cmd": "sqlite3"
+	},
+	"suriStop":{
+		"stop":"kill -9 $(pidof suricata)",
+		"param":"-c",
+		"command":"bash"
+	},
+	"suriStart":{
+		"start":"sudo /usr/local/suricata-4.1.2/bin/suricata -c /usr/local/etc/suricata/suricata.yaml -i enp0s3  &",
+		"param":"-c",
+		"command":"bash"
+	},
+	"suriPath":{
+		"path": "/usr/local/suricata-4.1.2"
+	},
+	"files":{
+		 "defaults.json":"/etc/owlh/stap/defaults.json",
+                 "main.conf": "/etc/owlh/conf/main.conf",
+                 "suricata.yml": "/etc/owlh/suricata/conf/suricata.yml",
+                 "password": "/etc/passwd",
+                 "Soft TAP nodes defaults": "/etc/owlh/stap/defaults.json"
+	},
+	"suriBin":{
+		"cmd": "/usr/local/suricata-4.1.2/bin/suricata",
+		"param": "-V"
+	},
+	"suriRunning":{
+		"cmd": "ps -ef | grep suricata | grep -v grep | grep -v sudo | awk '{print $8 \" \" $2}' ",
+		"param": "-c",
+		"command": "bash"
+	},
+	"loadDataWazuhPath":{
+		"path": "/var/ossec"
+	},
+	"loadDataWazuhBin":{
+		"bin": "/var/ossec/bin/ossec-control"
+	},
+	"loadDataWazuhRunning":{
+		"cmd": "/var/ossec/bin/ossec-control status | grep logcollector",
+		"param": "-c",
+		"command": "bash"
+	},
+	"wazuhStop":{
+		"stop":"/var/ossec/bin/ossec-control stop",
+		"param":"-c",
+		"command":"bash"
+	},
+	"wazuhStart":{
+		"start":"/var/ossec/bin/ossec-control start",
+		"param":"-c",
+		"command":"bash"
+	},
+	"loadDataZeekPath":{
+		"path": "/usr/local/bro"
+	},
+	"loadDataZeekBin":{
+		"bin": "/usr/local/bro/bin/broctl"
+	},
+	"loadDataZeekRunning":{
+		"cmd": "broctl status | grep standalone | awk '{print $1 \" \" $4}'",
+		"param": "-c",
+		"command": "bash"
+	},
+	"zeekStop":{
+		"stop":"/usr/local/bro/bin/broctl stop",
+		"param":"-c",
+		"command":"bash"
+	},
+	"zeekStart":{
+		"start":"/usr/local/bro/bin/broctl start",
+		"param":"-c",
+		"command":"bash"
+	},
+	"stapPubKey":{
+		"publicKey":"/etc/owlh/certs/cert.pem"
+	}
+}
