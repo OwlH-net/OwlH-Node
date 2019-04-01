@@ -130,7 +130,9 @@ func GetStatusStorageSSh(uuid string, folder string)(status bool, path string, s
 	output := ""
 	status, output = RunCMD(uuid,cmd)
 	logs.Info("Output Run CMD -->"+output)
-	if regexp.MustCompile(`[^,]+,\d+%`+output+`;`) != nil{
+	var validOutput = regexp.MustCompile(`[^,]+,\d+%`)
+	if validOutput.MatchString(output) {
+	// if regexp.MustCompile(`[^,]+,\d+%`+output+`;`) != nil{
 		splitValue := strings.Split(output,",")
 		// // // //splitValue := strings.Fields(output)
 		logs.Info("sPLITvALUE: "+splitValue[0]+" ///// "+splitValue[1])

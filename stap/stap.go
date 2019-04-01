@@ -145,13 +145,12 @@ func PingStap(uuid string) (isIt map[string]bool){
 	
 	sql := "select stap_value from stap where stap_param = \"status\";"
 	rows, err := ndb.Sdb.Query(sql)
-	defer rows.Close()
-
+	// defer rows.Close()
     if err != nil {
         logs.Info("PingStap Query Error immediately after retrieve data %s",err.Error())
         return stap
     }
-	//defer rows.Close()
+	defer rows.Close()
     if rows.Next() {
         err := rows.Scan(&res)
         if err != nil {
