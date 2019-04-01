@@ -18,21 +18,19 @@ import (
       //"ssh.CleintConfig"
     //   "code.google.com/p/go.crypto/ssh"
     //   "sync"
-    // "runtime"
+    "runtime"
 	// "math/rand"
 	// "golang.org/x/crypto/ssh"  
 )
 
-const MaxWorkers = 4
-
 
 func StapInit()(){
-	logs.Info("Init Controller Working")
 	go Pcap_replay()
 	go Controller()
 }
 
-func Controller()() {                     
+func Controller()() {   
+	logs.Info("Init Controller Working")                
     var serverOnUUID string
     stapStatus := make(map[string]bool)
     stapStatus = PingStap("")
@@ -55,13 +53,23 @@ func Controller()() {
     //     logs.Info("loop workers ",w)
     //     go serverTask(w, jobs, res)
     // }
-    
+
     //add UUID servers to jobs channel
 	//logs.Debug("Checking Stap server Status before launch goroutines-->"+strconv.FormatBool(stapStatus["stapStatus"]))
     if stapStatus["stapStatus"]{
+		//number of cores -1 for concurrency
+		var MaxWorkers int
+		if runtime.GOMAXPROCS(runtime.NumCPU()) == 1 {
+			MaxWorkers := 1
+			logs.Info("CORE FOR CONCURRENCY: "+strconv.Itoa(MaxWorkers))
+		}else{	
+			MaxWorkers := runtime.GOMAXPROCS(runtime.NumCPU())-1
+			logs.Info(strconv.Itoa(MaxWorkers)+" CORE FOR CONCURRENCY")
+		}
+
 		isWorking = true
 		//create workers 
-		for w := 1; w <= MaxWorkers; w++ {             
+		for w := 0; w <= MaxWorkers; w++ {             
 			logs.Info("loop workers ",w)
 			go serverTask(w, jobs, res)
 		}
@@ -74,8 +82,12 @@ func Controller()() {
         }
     }
 
+
+	logs.Critical("Loading channels!!")
+	
     //add dinamically to channel the server who had finished their works
     for stapStatus["stapStatus"]{
+		logs.Critical("Loading channels!!")
 		// var countServers string
 		// numServers, _ := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
 		// defer numServers.Close()
@@ -111,7 +123,7 @@ func serverTask(id int, jobs <-chan string, res chan<- string) {
     for uuid:=range jobs{
 		alive,_ := CheckOwlhAlive(uuid)
         if alive {
-            logs.Info("Status  Session: True")
+            logs.Alert("Status  Session: True")
 			running, status := GetStatusSniffer(uuid)
 			if running {
 				logs.Info("TCPDUMP is running!!")

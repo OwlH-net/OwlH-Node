@@ -7,12 +7,12 @@ import (
     "os/exec"
     // "strings"
     // "regexp"
-  	// "owlhnode/utils"
+  	"owlhnode/utils"
   	// "owlhnode/database"
 	  "io/ioutil"
       //"encoding/json"
       "time"
-      "strconv"
+    //   "strconv"
     //   "errors"
       //"ssh.CleintConfig"
     //   "code.google.com/p/go.crypto/ssh"
@@ -23,9 +23,22 @@ import (
 )
 
 func Pcap_replay()() {
-	logs.Notice("PCAP_REPLAY")
-	inQueue := "/usr/share/owlh/in_queue/"
-	outQueue := "/usr/share/owlh/out_queue/"
+	loadStap := map[string]map[string]string{}
+	loadStap["stap"] = map[string]string{}
+    loadStap["stap"]["in_queue"] = ""
+	loadStap["stap"]["out_queue"] = ""
+	loadStap["stap"]["interface"] = ""
+    loadStap = utils.GetConf(loadStap)
+    inQueue := loadStap["stap"]["in_queue"]
+	outQueue := loadStap["stap"]["out_queue"]
+	stapInterface := loadStap["stap"]["interface"]
+	// inQueue := "/usr/share/owlh/in_queue/"
+	// outQueue := "/usr/share/owlh/out_queue/"
+	// interface := enp0s3
+
+
+
+
 	logs.Debug("Inside the PcapReplay, just before the loop")
 	for{
 		files, _ := ioutil.ReadDir(inQueue)
@@ -35,12 +48,11 @@ func Pcap_replay()() {
 		}
 		x := 0
 		// logs.Info(len(files))
-		for a, f := range files{
+		for _, f := range files{
 			x += 1
-			logs.Info("Reading local count..>"+strconv.Itoa(x))
-			logs.Info("Reading for index 's'-->"+strconv.Itoa(a))
 			logs.Debug("Pcap_Replay-->"+f.Name())
-			cmd := "tcpreplay -i enp0s3 -t -l 1 "+inQueue+f.Name()
+			cmd := "tcpreplay -i "+stapInterface+" -t -l 1 "+inQueue+f.Name()
+			logs.Debug(cmd)
 			output, err := exec.Command("bash", "-c", cmd).Output()
 			logs.Info(string(output))
 			if err != nil{
@@ -53,3 +65,15 @@ func Pcap_replay()() {
 		}
 	}
 }
+
+// func loadQueuePath()(inQueue string, outQueue string){
+// 	uuidParams, err := Sdb.Query("select server_param,server_value from servers where server_uniqueid = \""+uuid+"\";")
+// 	defer uuidParams.Close()
+// 	for uuidParams.Next(){
+// 		if err = uuidParams.Scan(&param, &value); err!=nil {
+// 			logs.Error("Error creating data Map: "+err.Error())
+// 			return nil
+// 		}
+// 		stapServer[param]=value
+// 	}
+// }
