@@ -13,7 +13,7 @@ import (
     "encoding/json"
     "sync"
     // "time"
-    // "strconv"
+    "strconv"
 )
 
 var waitGroup sync.WaitGroup
@@ -174,7 +174,8 @@ func PingStap(uuid string) (isIt map[string]bool){
             logs.Info("Error Insert uuid !=")
             return stap
         }
-    }
+	}
+	logs.Debug("checking stap value "+strconv.FormatBool(stap["stapStatus"]))
     return stap
 }
 
@@ -186,14 +187,17 @@ func RunStap(uuid string)(data string, err error){
         logs.Error("RunStap stap -- Can't access to database")
         return "",errors.New("RunStap stap -- Can't access to database")
 	} 
-    logs.Info("Starting Stap...")
+    logs.Info("Starting Stap...  "+uuid)
     //insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
-    updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_uniqueid = ? and stap_param = ?;")
-    _, err = updateStap.Exec("true", &uuid, "status")  
-    defer updateStap.Close()
+    // updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_uniqueid = ? and stap_param = ?;")
+	// _, err = updateStap.Exec("true", &uuid, "status")  
+	updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_param = ?;")
+    _, err = updateStap.Exec("true", "status")  
     if (err != nil){
-        return "", err
-    }
+		logs.Error("Error updating RunStap: "+err.Error())
+		return "", err
+	}
+	defer updateStap.Close()
 
     //call Concurrency StapInit
     StapInit()
@@ -228,15 +232,21 @@ func StopStap(uuid string)(data string, err error){
         logs.Error("StopStap stap -- Can't access to database")
         return "",errors.New("StopStap stap -- Can't access to database")
 	} 
-    logs.Info("Stopping Stap...")
-    updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_uniqueid = ? and stap_param = ?;")
-    _, err = updateStap.Exec("false", &uuid, "status")  
-    defer updateStap.Close()
-    if (err != nil){
-        return "", err
+    logs.Info("Stopping Stap..."+uuid)
+    updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_param = ?;")
+	if (err != nil){
+		logs.Error ("Stopping Stap Update Prepare Error -> "+ err.Error())
+		return "", err
     }
+	
+	_, err = updateStap.Exec("false", "status")  
+    if (err != nil){
+		logs.Error ("Stopping Stap Update Error -> "+ err.Error())
+		return "", err
+    }
+	defer updateStap.Close()
     status = false
-    return "Stap is stoped", err
+    return "Stap is stopped", err
 }
 
 //Run stap specific server
@@ -300,7 +310,6 @@ func PingServerStap(server string) (isIt map[string]bool){
         logs.Error("PingServerStap Query Error immediately after retrieve data %s",err.Error())
         return stap
     }
-    logs.Info("After rows Query")
     if rows.Next() {
         err := rows.Scan(&res)
         if err != nil {
@@ -309,8 +318,8 @@ func PingServerStap(server string) (isIt map[string]bool){
         }
         logs.Info("Stap status exists on stap DB --> Value: "+res)
         if res=="true"{stap["stapStatus"]=true}else{stap["stapStatus"]=false}
-        logs.Info("PingServerStap status-->")
-        logs.Info(stap)
+        logs.Debug("PingServerStap status-->")
+        logs.Debug(stap)
         return stap
     }
     return stap
