@@ -32,29 +32,22 @@ func Pcap_replay()() {
     inQueue := loadStap["stap"]["in_queue"]
 	outQueue := loadStap["stap"]["out_queue"]
 	stapInterface := loadStap["stap"]["interface"]
-	// inQueue := "/usr/share/owlh/in_queue/"
-	// outQueue := "/usr/share/owlh/out_queue/"
-	// interface := enp0s3
 
-
-
-
+	stapStatus := make(map[string]bool)
+	stapStatus = PingStap("")
+	
 	logs.Debug("Inside the PcapReplay, just before the loop")
-	for{
+	for stapStatus["stapStatus"]{
+		stapStatus = PingStap("")
 		files, _ := ioutil.ReadDir(inQueue)
 		if len(files) == 0 {
 			logs.Error("Error Pcap_replay reading files: No files")
 			time.Sleep(time.Second * 10)
 		}
-		x := 0
-		// logs.Info(len(files))
 		for _, f := range files{
-			x += 1
 			logs.Debug("Pcap_Replay-->"+f.Name())
 			cmd := "tcpreplay -i "+stapInterface+" -t -l 1 "+inQueue+f.Name()
-			logs.Debug(cmd)
-			output, err := exec.Command("bash", "-c", cmd).Output()
-			logs.Info(string(output))
+			_, err := exec.Command("bash", "-c", cmd).Output()
 			if err != nil{
 				logs.Error("Error exec cmd command "+err.Error())
 			}
