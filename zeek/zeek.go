@@ -6,7 +6,8 @@ import (
     "os/exec"
     "strings"
     // "regexp"
-    "owlhnode/utils"
+	"owlhnode/utils"
+	"errors"
 )
 
 func ZeekPath() (exists bool) {
@@ -87,7 +88,7 @@ func ZeekRunning() (running bool) {
     return false
 }
 
-func Installed() (isIt map[string]bool){
+func Installed() (isIt map[string]bool, err error){
     zeek := make(map[string]bool)
     //zeek = false
     zeek["path"] = ZeekPath()
@@ -97,10 +98,10 @@ func Installed() (isIt map[string]bool){
     logs.Info(zeek)
     if zeek["Path"] || zeek["Bin"] || zeek["Running"]  {
         logs.Info("Zeek installed and running")
-        return zeek
+        return zeek, nil
     } else {
         logs.Error("Zeek isn't present or not running")
-        return zeek
+        return zeek, errors.New("Wazuh isn't present or not running")
     }
 }
 

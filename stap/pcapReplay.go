@@ -23,6 +23,7 @@ import (
 )
 
 func Pcap_replay()() {
+	var err error
 	loadStap := map[string]map[string]string{}
 	loadStap["stap"] = map[string]string{}
     loadStap["stap"]["in_queue"] = ""
@@ -34,15 +35,34 @@ func Pcap_replay()() {
 	stapInterface := loadStap["stap"]["interface"]
 
 	stapStatus := make(map[string]bool)
-	stapStatus = PingStap("")
+	stapStatus,err = PingStap("")
+
+	if err != nil {
+		logs.Error("Waiting 60 seconds: Error doing ping to STAP : "+err.Error())
+		time.Sleep(time.Second * 60)
+	}
 	
 	logs.Debug("Inside the PcapReplay, just before the loop")
 	for stapStatus["stapStatus"]{
-		stapStatus = PingStap("")
-		files, _ := ioutil.ReadDir(inQueue)
+		//checking stap
+		stapStatus, err = PingStap("")
+		if err != nil {
+			logs.Error("Waiting 60 seconds: Error doing ping to STAP : "+err.Error())
+			time.Sleep(time.Second * 60)
+			continue
+		}
+
+		//checking in_queue path
+		files, err := ioutil.ReadDir(inQueue)
+		if err != nil {
+			logs.Error("Error reading in_queue path: "+err.Error())
+			time.Sleep(time.Second * 60)
+			continue
+		}
 		if len(files) == 0 {
 			logs.Error("Error Pcap_replay reading files: No files")
 			time.Sleep(time.Second * 10)
+			continue
 		}
 		for _, f := range files{
 			logs.Debug("Pcap_Replay-->"+f.Name())
@@ -58,15 +78,3 @@ func Pcap_replay()() {
 		}
 	}
 }
-
-// func loadQueuePath()(inQueue string, outQueue string){
-// 	uuidParams, err := Sdb.Query("select server_param,server_value from servers where server_uniqueid = \""+uuid+"\";")
-// 	defer uuidParams.Close()
-// 	for uuidParams.Next(){
-// 		if err = uuidParams.Scan(&param, &value); err!=nil {
-// 			logs.Error("Error creating data Map: "+err.Error())
-// 			return nil
-// 		}
-// 		stapServer[param]=value
-// 	}
-// }

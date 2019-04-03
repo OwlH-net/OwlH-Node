@@ -6,7 +6,7 @@ import (
 )
 
 
-func GetZeek() (status map[string]bool) {
+func GetZeek() (status map[string]bool, err error) {
 	return zeek.Installed()
 }
 

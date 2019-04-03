@@ -6,7 +6,7 @@ import (
 )
 
 
-func GetWazuh() (status map[string]bool) {
+func GetWazuh() (status map[string]bool, err error) {
 	return wazuh.Installed()
 }
 

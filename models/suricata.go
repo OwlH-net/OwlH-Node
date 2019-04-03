@@ -6,7 +6,7 @@ import (
 )
 
 
-func GetSuricata() (status map[string]bool) {
+func GetSuricata() (status map[string]bool, err error) {
 	return suricata.Installed()
 }
 /*

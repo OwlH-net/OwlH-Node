@@ -5,7 +5,8 @@ import (
     "os"
     "os/exec"
     "strings"
-    // "regexp"
+	// "regexp"
+	"errors"
     "owlhnode/utils"
 )
 
@@ -68,7 +69,7 @@ func WazuhRunning() (running bool) {
     return false
 }
 
-func Installed() (isIt map[string]bool){
+func Installed() (isIt map[string]bool, err error){
     wazuh := make(map[string]bool)
     //Wazuh = false
     wazuh["path"] = WazuhPath()
@@ -78,10 +79,10 @@ func Installed() (isIt map[string]bool){
     logs.Info(wazuh)
     if wazuh["Path"] || wazuh["Bin"] || wazuh["Running"]  {
         logs.Info("Wazuh installed and running")
-        return wazuh
+        return wazuh, nil
     } else {
         logs.Error("Wazuh isn't present or not running")
-        return wazuh
+        return wazuh, errors.New("Wazuh isn't present or not running")
     }
 }
 

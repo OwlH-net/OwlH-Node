@@ -22,12 +22,14 @@ func GetServer(serveruuid string)(servers *map[string]map[string]string, err err
     return servers,err
 }
 
-func PingStap(uuid string) (status map[string]bool) {
-	return stap.PingStap(uuid)
+func PingStap(uuid string) (status map[string]bool, err error) {
+	status, err = stap.PingStap(uuid)
+	return status, err
 }
 
-func PingServerStap(server string) (status map[string]bool) {
-	return stap.PingServerStap(server)
+func PingServerStap(server string) (status map[string]bool, err error) {
+	status, err = stap.PingServerStap(server)
+	return status, err
 }
 
 func RunStap(uuid string) (data string, err error) {

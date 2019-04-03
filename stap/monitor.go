@@ -22,7 +22,10 @@ import (
 
 
 func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
-	// owlh := ndb.GetStapServerInformation(uuid)
+	// owlh, err := ndb.GetStapServerInformation(uuid)
+	// if err != nil {
+	// 	logs.Error("Error retrieving stap server information")
+	// }
   	alive, sshSession = owlh_connect(uuid)
   	logs.Info("Stap Server Task with uuid: "+uuid)
   	if alive{
@@ -34,7 +37,10 @@ func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
 }
       
 func GetStatusSniffer(uuid string)(running bool, status bool){
-	owlh := ndb.GetStapServerInformation(uuid)
+	owlh, err := ndb.GetStapServerInformation(uuid)
+	if err != nil {
+		logs.Error("Error retrieving stap server information")
+	}
 	logs.Info("Checking Sniffer status for uuid: "+uuid)
 	  
 	running, pid, cpu, mem := GetStatusSnifferSSH(uuid)
@@ -109,7 +115,10 @@ func StopSniffer(uuid string)(){
 }
 
 func GetFileList(uuid string)(){
-	owlh := ndb.GetStapServerInformation(uuid)
+	owlh, err := ndb.GetStapServerInformation(uuid)
+	if err != nil {
+		logs.Error("Error retrieving stap server information")
+	}
 	logs.Error("Get file list for "+owlh["name"]+" - "+owlh["ip"])
 	file_list := GetFileListSSH(uuid,owlh, owlh["pcap_path"])
 	for file := range file_list {

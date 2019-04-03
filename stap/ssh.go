@@ -54,7 +54,10 @@ func owlh_connect(uuid string)(alive bool, sshValue *ssh.Session){
     userSSH := loadData["stapPubKey"]["user"]
     cert := loadData["stapPubKey"]["cert"]
 
-	owlh := ndb.GetStapServerInformation(uuid)
+	owlh,err := ndb.GetStapServerInformation(uuid)
+	if err != nil {
+		logs.Error("Error retrieving stap server information")
+	}
 	logs.Info("Name: "+owlh["name"]+" IP: "+owlh["ip"])
 
     // //Declare ssh config
@@ -147,7 +150,10 @@ func GetStatusStorageSSh(uuid string, folder string)(status bool, path string, s
 
 func RunSnifferSSH(uuid string)(){
 	logs.Info("Launching Sniffer...")
-	owlh := ndb.GetStapServerInformation(uuid)
+	owlh,err := ndb.GetStapServerInformation(uuid)
+	if err != nil {
+		logs.Error("Error retrieving stap server information")
+	}
 	cmd := "nohup sudo tcpdump -i "+owlh["default_interface"]+" -G "+owlh["capture_time"]+" -w "+owlh["pcap_path"]+"`hostname`-%y%m%d%H%M%S.pcap -F "+owlh["filter_path"]+" -z "+owlh["owlh_user"]+" >/dev/null 2>&1 &"
 	//logs.Debug(cmd)
 	status, output := RunCMD(uuid,cmd)
@@ -278,7 +284,10 @@ func owlh_connect_client(uuid string)(alive bool, sshClient *ssh.Client){
     userSSH := loadData["stapPubKey"]["user"]
     cert := loadData["stapPubKey"]["cert"]
 
-	owlh := ndb.GetStapServerInformation(uuid)
+	owlh,err := ndb.GetStapServerInformation(uuid)
+	if err != nil {
+		logs.Error("Error retrieving stap server information")
+	}
 	logs.Info("Name: "+owlh["name"]+" IP: "+owlh["ip"])
 
     // //Declare ssh config

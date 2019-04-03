@@ -30,9 +30,6 @@ func (n *StapController) AddServer() {
         logs.Info("AddServer JSON RECEIVED -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-    
-
-
     n.ServeJSON()
 }
 
@@ -80,8 +77,12 @@ func (n *StapController) PingStap() {
     logs.Info ("Stap controller -> PingStap")
     uuid := n.GetString(":uuid")
     logs.Info("Ping Stap uuid = "+uuid)
-	server:= models.PingStap(uuid)
+	server,err := models.PingStap(uuid)
 	n.Data["json"] = server
+	if err != nil {
+        logs.Info("PingStap ERROR: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
     n.ServeJSON()
 }
 
@@ -166,7 +167,11 @@ func (n *StapController) PingServerStap() {
     logs.Info ("stap controller -> PingServerStap")
     server := n.GetString(":server")
     logs.Info("Ping Stap server = "+server)
-	data := models.PingServerStap(server)
+	data, err := models.PingServerStap(server)
 	n.Data["json"] = data
+	if err != nil {
+        logs.Info("PingServerStap OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     n.ServeJSON()
 }

@@ -133,11 +133,11 @@ func GetServer(serveruuid string)(data *map[string]map[string]string, err error)
 
 
 
-func PingStap(uuid string) (isIt map[string]bool){
+func PingStap(uuid string) (isIt map[string]bool, err error){
     //database connection
 	if ndb.Sdb == nil {
         logs.Error("PingStap stap -- Can't access to database")
-        return nil
+        return nil, errors.New("PingStap stap -- Can't access to database")
     } 
     var res string
     stap := make(map[string]bool)
@@ -148,14 +148,14 @@ func PingStap(uuid string) (isIt map[string]bool){
 	// defer rows.Close()
     if err != nil {
         logs.Info("PingStap Query Error immediately after retrieve data %s",err.Error())
-        return stap
+        return stap,err
     }
 	defer rows.Close()
     if rows.Next() {
         err := rows.Scan(&res)
         if err != nil {
             logs.Info("Stap query error %s",err.Error())
-            return stap
+            return stap, err
         }
         if res=="true"{
             stap["stapStatus"]=true
@@ -170,13 +170,13 @@ func PingStap(uuid string) (isIt map[string]bool){
         insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
         _, err = insertStap.Exec(&uuid, "status", "false")  
         defer insertStap.Close()
-        if (err != nil){
+        if err != nil{
             logs.Info("Error Insert uuid !=")
-            return stap
+            return stap,err
         }
 	}
 	logs.Debug("checking stap value "+strconv.FormatBool(stap["stapStatus"]))
-    return stap
+    return stap,nil
 }
 
 
@@ -278,7 +278,7 @@ func StopStapServer(serveruuid string)(data string, err error){
     //database connection
 	if ndb.Sdb == nil {
         logs.Error("StopStapServer stap -- Can't access to database")
-        return "",errors.New("StopStapServer stap -- Can't access to database")
+        return "", errors.New("StopStapServer stap -- Can't access to database")
 	} 
     logs.Info("Stopping specific Stap server...")
     updateStopStapServer, err := ndb.Sdb.Prepare("update servers set server_value = ? where server_uniqueid = ? and server_param = ?;")
@@ -291,11 +291,11 @@ func StopStapServer(serveruuid string)(data string, err error){
     return "Stap specific server  is stoped", err
 }
 
-func PingServerStap(server string) (isIt map[string]bool){
+func PingServerStap(server string) (isIt map[string]bool, err error){
     //database connection
 	if ndb.Sdb == nil {
         logs.Error("PingServerStap stap -- Can't access to database")
-        return nil
+        return nil, errors.New("PingServerStap stap -- Can't access to database")
     } 
     var res string
     stap := make(map[string]bool)
@@ -308,21 +308,21 @@ func PingServerStap(server string) (isIt map[string]bool){
 
     if err != nil {
         logs.Error("PingServerStap Query Error immediately after retrieve data %s",err.Error())
-        return stap
+        return stap, err
     }
     if rows.Next() {
         err := rows.Scan(&res)
         if err != nil {
             logs.Error("Stap query error %s",err.Error())
-            return stap
+            return stap, err
         }
         logs.Info("Stap status exists on stap DB --> Value: "+res)
         if res=="true"{stap["stapStatus"]=true}else{stap["stapStatus"]=false}
         logs.Debug("PingServerStap status-->")
         logs.Debug(stap)
-        return stap
+        return stap, nil
     }
-    return stap
+    return stap, nil
 }
 
 func GetStapUUID()(uuid string){

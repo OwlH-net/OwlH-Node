@@ -6,7 +6,8 @@ import (
     "os/exec"
     "strings"
     "regexp"
-    "owlhnode/utils"
+	"owlhnode/utils"
+	"errors"
     // "fmt"
     // "io/ioutil"
 )
@@ -75,7 +76,7 @@ func suriRunning() (running bool) {
     return false
 }
 
-func Installed() (isIt map[string]bool){
+func Installed() (isIt map[string]bool, err error){
     suricata := make(map[string]bool)
     //suricata = false
     suricata["path"] = suriPath()
@@ -87,10 +88,10 @@ func Installed() (isIt map[string]bool){
 
     if suricata["Path"] || suricata["Bin"] || suricata["Running"] {
         logs.Info("Suricata installed and running")
-        return suricata
+        return suricata, nil
     } else {
         logs.Error("Suricata isn't present or not running")
-        return suricata
+        return suricata, errors.New("Suricata isn't present or not running")
     }   
 }
 /*

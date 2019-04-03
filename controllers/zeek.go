@@ -18,8 +18,12 @@ type ZeekController struct {
 // @router / [get]
 func (m *ZeekController) Get() {
     logs.Info ("Zeek controller -> GET")
-	mstatus := models.GetZeek()
+	mstatus,err := models.GetZeek()
 	m.Data["json"] = mstatus
+	if err != nil {
+        logs.Info("GetWazuh OUT -- ERROR : %s", err.Error())
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     m.ServeJSON()
 }
 

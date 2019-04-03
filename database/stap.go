@@ -6,7 +6,7 @@ import (
 //    "fmt"
 //   "time"
     _ "github.com/mattn/go-sqlite3"
-    //"errors"
+    // "errors"
     "owlhnode/utils"
 )
 
@@ -34,7 +34,7 @@ func SConn() {
     logs.Info("sdb/servers -- DB -> sql.Open, DB Ready") 
 }
 
-func GetStapServerInformation(uuid string)(serverData map[string]string){
+func GetStapServerInformation(uuid string)(serverData map[string]string, err error){
 	var param string
 	var value string
 	stapServer := make(map[string]string)
@@ -45,9 +45,9 @@ func GetStapServerInformation(uuid string)(serverData map[string]string){
 	for uuidParams.Next(){
 		if err = uuidParams.Scan(&param, &value); err!=nil {
 			logs.Error("Error creating data Map: "+err.Error())
-			return nil
+			return nil, err
 		}
 		stapServer[param]=value
 	}
-	return stapServer
+	return stapServer, nil
 }

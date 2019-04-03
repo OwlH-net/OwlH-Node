@@ -12,7 +12,7 @@ import (
 	//   "io/ioutil"
 	  //"errors"
       //"encoding/json"
-    //   "time"
+      "time"
       "strconv"
     //   "errors"
       //"ssh.CleintConfig"
@@ -31,9 +31,16 @@ func StapInit()(){
 
 func Controller()() {   
 	logs.Info("Init Controller Working")                
-    var serverOnUUID string
+	var serverOnUUID string
+	var err error
     stapStatus := make(map[string]bool)
-    stapStatus = PingStap("")
+	stapStatus, err = PingStap("")
+	if err != nil {
+		logs.Error("Error doing ping to STAP. : "+err.Error())
+		logs.Error("Waiting 60 seconds...")
+		time.Sleep(time.Second * 60)
+	}
+
     var countServers string
     numServers, _ := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
 	defer numServers.Close()
@@ -97,7 +104,7 @@ func Controller()() {
 		// }
 		uuid := <-res
         jobs <- uuid 
-        stapStatus = PingStap("")
+        stapStatus,err = PingStap("")
 	}
 	
 	
@@ -108,7 +115,11 @@ func Controller()() {
 		logs.Info("Killing servers with status == True") 
 		for rowsKillStap.Next(){
 			rowsKillStap.Scan(&serverOnUUID)
-			// owlh := ndb.GetStapServerInformation(serverOnUUID)
+			// owlh, err := ndb.GetStapServerInformation(serverOnUUID)
+			// if err != nil {
+			// 	logs.Error("Error retrieving stap server information")
+			// }
+
 			StopSniffer(serverOnUUID)
 		}
 	}
