@@ -46,13 +46,15 @@ func RunCMD(uuid string, cmd string)(status bool, data string){
 }
 
 func owlh_connect(uuid string)(alive bool, sshValue *ssh.Session){
+	var err error
     loadData := map[string]map[string]string{}
 	loadData["stapPubKey"] = map[string]string{}
     loadData["stapPubKey"]["user"] = ""
     loadData["stapPubKey"]["cert"] = ""
-    loadData = utils.GetConf(loadData)
+	loadData,err = utils.GetConf(loadData)
     userSSH := loadData["stapPubKey"]["user"]
-    cert := loadData["stapPubKey"]["cert"]
+	cert := loadData["stapPubKey"]["cert"]
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
 
 	owlh,err := ndb.GetStapServerInformation(uuid)
 	if err != nil {
@@ -276,13 +278,15 @@ func SftpCMD(uuid string, srcFile string, dstFile string)(status bool){
 }
 
 func owlh_connect_client(uuid string)(alive bool, sshClient *ssh.Client){
+	var err error
     loadData := map[string]map[string]string{}
 	loadData["stapPubKey"] = map[string]string{}
     loadData["stapPubKey"]["user"] = ""
     loadData["stapPubKey"]["cert"] = ""
-    loadData = utils.GetConf(loadData)
+    loadData,err = utils.GetConf(loadData)
     userSSH := loadData["stapPubKey"]["user"]
-    cert := loadData["stapPubKey"]["cert"]
+	cert := loadData["stapPubKey"]["cert"]
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
 
 	owlh,err := ndb.GetStapServerInformation(uuid)
 	if err != nil {

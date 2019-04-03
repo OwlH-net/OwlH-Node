@@ -36,13 +36,16 @@ func Controller()() {
     stapStatus := make(map[string]bool)
 	stapStatus, err = PingStap("")
 	if err != nil {
-		logs.Error("Error doing ping to STAP. : "+err.Error())
+		logs.Error("Error doing ping to STAP : "+err.Error())
 		logs.Error("Waiting 60 seconds...")
 		time.Sleep(time.Second * 60)
 	}
 
     var countServers string
-    numServers, _ := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
+	numServers, err := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
+	if err != nil {
+		logs.Error("Error query counting stap servers : "+err.Error())
+	}
 	defer numServers.Close()
     //load number of servers with status = true
     for numServers.Next(){
@@ -50,7 +53,10 @@ func Controller()() {
 	}
 	
     logs.Info("Number of servers ON --> "+countServers)
-    i, _ := strconv.Atoi(countServers)
+	i, err := strconv.Atoi(countServers)
+	if err != nil {
+		logs.Error("Error converting to int the number of stap servers : "+err.Error())
+	}
     jobs := make(chan string, i)  
 	res := make(chan string,i)  
 	isWorking := false
@@ -80,7 +86,10 @@ func Controller()() {
 			logs.Info("loop workers ",w)
 			go serverTask(w, jobs, res)
 		}
-		rows, _ := ndb.Sdb.Query("select server_uniqueid from servers where server_param = \"status\" and server_value = \"true\";")
+		rows, err := ndb.Sdb.Query("select server_uniqueid from servers where server_param = \"status\" and server_value = \"true\";")
+		if err != nil {
+			logs.Error("Error query counting stap servers : "+err.Error())
+		}
 		defer rows.Close()
         for rows.Next(){
             rows.Scan(&serverOnUUID)
@@ -94,7 +103,6 @@ func Controller()() {
 	
     //add dinamically to channel the server who had finished their works
     for stapStatus["stapStatus"]{
-		logs.Critical("Loading channels!!")
 		// var countServers string
 		// numServers, _ := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
 		// defer numServers.Close()
@@ -110,7 +118,10 @@ func Controller()() {
 	
 	//Kill Servers when STAP stops
 	if isWorking{
-		rowsKillStap, _ := ndb.Sdb.Query("select server_uniqueid from servers where server_param = \"status\" and server_value = \"true\";")
+		rowsKillStap, err := ndb.Sdb.Query("select server_uniqueid from servers where server_param = \"status\" and server_value = \"true\";")
+		if err != nil {
+			logs.Error("Error query status stap servers for stop all servers: "+err.Error())
+		}
 		defer rowsKillStap.Close()
 		logs.Info("Killing servers with status == True") 
 		for rowsKillStap.Next(){
@@ -123,10 +134,7 @@ func Controller()() {
 			StopSniffer(serverOnUUID)
 		}
 	}
-	
-	logs.Notice("PRE CLOSE CHANNELS")
 	close(jobs)
-	// close(res)
 	logs.Info("Workers Closed")
 }
 

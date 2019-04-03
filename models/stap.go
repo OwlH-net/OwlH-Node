@@ -27,7 +27,7 @@ func PingStap(uuid string) (status map[string]bool, err error) {
 	return status, err
 }
 
-func PingServerStap(server string) (status map[string]bool, err error) {
+func PingServerStap(server string) (status map[string]string, err error) {
 	status, err = stap.PingServerStap(server)
 	return status, err
 }

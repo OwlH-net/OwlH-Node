@@ -29,11 +29,12 @@ func Pcap_replay()() {
     loadStap["stap"]["in_queue"] = ""
 	loadStap["stap"]["out_queue"] = ""
 	loadStap["stap"]["interface"] = ""
-    loadStap = utils.GetConf(loadStap)
+	loadStap,err = utils.GetConf(loadStap)
     inQueue := loadStap["stap"]["in_queue"]
 	outQueue := loadStap["stap"]["out_queue"]
 	stapInterface := loadStap["stap"]["interface"]
-
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	
 	stapStatus := make(map[string]bool)
 	stapStatus,err = PingStap("")
 

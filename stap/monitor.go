@@ -62,7 +62,7 @@ func GetStatusCPU(owlh map[string]string, cpu string, uuid string)(status bool){
 	}
 	localCPU, _ := strconv.ParseFloat(cpu, 64)
 	ddbbCPU, _ := strconv.ParseFloat(owlh["max_cpu"], 64)
-	logs.Error("Check CPU for "+owlh["name"]+" - "+owlh["ip"])
+	logs.Info("Check CPU for "+owlh["name"]+" - "+owlh["ip"])
 	if localCPU>ddbbCPU{
 		logs.Error("SNIFFER -> Too much CPU on "+owlh["name"]+" - "+owlh["ip"])
 		StopSniffer(uuid)
@@ -78,7 +78,7 @@ func GetStatusMEM(owlh map[string]string, mem string, uuid string)(status bool){
 	}
 	localMEM, _ := strconv.ParseFloat(mem, 64)
 	ddbbMEM, _ := strconv.ParseFloat(owlh["max_mem"], 64)
-	logs.Error("Check MEM for "+owlh["name"]+" - "+owlh["ip"])
+	logs.Info("Check MEM for "+owlh["name"]+" - "+owlh["ip"])
 	if localMEM>ddbbMEM{
 		logs.Error("SNIFFER -> Too much MEM on "+owlh["name"]+" - "+owlh["ip"])
 		StopSniffer(uuid)
@@ -141,17 +141,17 @@ func GetFileList(uuid string)(){
 }
 
 func OwnerOwlh(uuid string, owlh map[string]string, fileRemote string)(){
-	logs.Error("Set "+owlh["name"]+" - "+owlh["ip"]+" as owner of file "+owlh["owlh_user"])
+	logs.Info("Set "+owlh["name"]+" - "+owlh["ip"]+" as owner of file "+owlh["owlh_user"])
 	OwnerOwlhSSH(uuid, owlh, fileRemote)
 }
 
 func TransportFile(uuid string, owlh map[string]string, file string)(){
-	logs.Error("Get file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
+	logs.Info("Get file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
 	TransportFileSSH(uuid, owlh, file)
 }
 
 // func RemoveFile(uuid string, owlh map[string]string, file string)(){
-// 	logs.Error("Remove file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
+// 	logs.Info("Remove file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
 // 	RemoveFileSSH(uuid, owlh, file)
 // }
 

@@ -37,24 +37,35 @@ func AddServer(elem map[string]string) (err error){
 	insertServerIP, err := ndb.Sdb.Prepare("insert into servers (server_uniqueid, server_param, server_value) values (?,?,?);")
 	_, err = insertServerIP.Exec(&uuidServer, "ip", &nodeIP)  
 	defer insertServerIP.Close()
-	if err != nil {return err}	
+	if err != nil {
+		logs.Error("ERROR stap/AddServer INSERT new server ip: "+err.Error())
+		return err
+	}	
 
 	//insert name into server database
 	logs.Info("stap/AddServer INSERT new server name")
 	insertServerName, err := ndb.Sdb.Prepare("insert into servers (server_uniqueid, server_param, server_value) values (?,?,?);")
 	_, err = insertServerName.Exec(&uuidServer, "name", &nodeName)  
 	defer insertServerName.Close()
-	if err != nil {return err}	
+	if err != nil {
+		logs.Error("ERROR stap/AddServer INSERT new server name: "+err.Error())
+		return err
+	}	
 	
 	//Load default server data from main.conf
 	jsonDefaultData,err := utils.LoadDefaultServerData("defaults.json")
 	logs.Info("File readed !!!")
 	logs.Info(jsonDefaultData)
 	jsonData := make(map[string]string)
+
 	//parse raw data into byte array
 	jsonDataArray := []byte(jsonDefaultData["fileContent"])
 	err = json.Unmarshal(jsonDataArray, &jsonData)
-	if err != nil {return err}	
+	if err != nil {
+		logs.Error("ERROR unmarshal json on AddServer func: "+err.Error())
+		return err
+	}		
+
 	//insert default data into server database
 	for z,v := range jsonData{
 		//logs.Warn("Key--> "+z+" Value..> "+v)
@@ -62,6 +73,7 @@ func AddServer(elem map[string]string) (err error){
 		_, err = insertServerName.Exec(&uuidServer, &z, &v)  
 		defer insertServerName.Close()
 		if err != nil {
+			logs.Error("ERROR INSERT servers: "+err.Error())
 			return err
 		}
 	}
@@ -291,15 +303,15 @@ func StopStapServer(serveruuid string)(data string, err error){
     return "Stap specific server  is stoped", err
 }
 
-func PingServerStap(server string) (isIt map[string]bool, err error){
+func PingServerStap(server string) (isIt map[string]string, err error){
     //database connection
 	if ndb.Sdb == nil {
         logs.Error("PingServerStap stap -- Can't access to database")
         return nil, errors.New("PingServerStap stap -- Can't access to database")
     } 
     var res string
-    stap := make(map[string]bool)
-	stap["stapStatus"] = false
+    stap := make(map[string]string)
+	stap["stapStatus"] = "false"
 	
 	sql := "select server_value from servers where server_uniqueid = \""+server+"\" and server_param = \"status\";"
     logs.Info("PingServerStap select for check if exist query sql %s",sql)
@@ -317,7 +329,14 @@ func PingServerStap(server string) (isIt map[string]bool, err error){
             return stap, err
         }
         logs.Info("Stap status exists on stap DB --> Value: "+res)
-        if res=="true"{stap["stapStatus"]=true}else{stap["stapStatus"]=false}
+        if res=="true"{
+			stap["stapStatus"]="true"
+		}else res=="false"{
+			stap["stapStatus"]="false"
+		}else{
+			stap["stapStatus"]="error"
+		}
+
         logs.Debug("PingServerStap status-->")
         logs.Debug(stap)
         return stap, nil

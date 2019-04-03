@@ -11,13 +11,15 @@ import (
 )
 
 func WazuhPath() (exists bool) {
+	var err error
     //Retrieve path for wazuh.
 	loadDataWazuhPath := map[string]map[string]string{}
 	loadDataWazuhPath["loadDataWazuhPath"] = map[string]string{}
 	loadDataWazuhPath["loadDataWazuhPath"]["path"] = ""
-    loadDataWazuhPath = utils.GetConf(loadDataWazuhPath)    
+    loadDataWazuhPath,err = utils.GetConf(loadDataWazuhPath)    
     path := loadDataWazuhPath["loadDataWazuhPath"]["path"]
-    
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	
     if _, err := os.Stat(path); os.IsNotExist(err) {
         logs.Error("Wazuh is not installed, at least at /var/ossec folder does not exist")
         return false
@@ -26,16 +28,19 @@ func WazuhPath() (exists bool) {
 }
 
 func WazuhBin() (exists bool) {
+	var err error
     //Retrieve bin for wazuh.
 	loadDataWazuhBin := map[string]map[string]string{}
 	loadDataWazuhBin["loadDataWazuhBin"] = map[string]string{}
     // loadDataWazuhBin["loadDataWazuhBin"]["path"] = ""
     // loadDataWazuhBin["loadDataWazuhBin"]["param"] = ""
     loadDataWazuhBin["loadDataWazuhBin"]["bin"] = ""
-    loadDataWazuhBin = utils.GetConf(loadDataWazuhBin)    
+    loadDataWazuhBin,err = utils.GetConf(loadDataWazuhBin)    
     // path := loadDataWazuhBin["loadDataWazuhBin"]["path"]
     // param := loadDataWazuhBin["loadDataWazuhBin"]["param"]
-    bin := loadDataWazuhBin["loadDataWazuhBin"]["bin"]
+	bin := loadDataWazuhBin["loadDataWazuhBin"]["bin"]
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+
     if _, err := os.Stat(bin); os.IsNotExist(err) {
         logs.Error("Wazuh bin does not exist")
         return false
@@ -45,16 +50,18 @@ func WazuhBin() (exists bool) {
 }
 
 func WazuhRunning() (running bool) {
+	var err error
     //Retrieve running for wazuh.
 	loadDataWazuhRunning := map[string]map[string]string{}
 	loadDataWazuhRunning["loadDataWazuhRunning"] = map[string]string{}
     loadDataWazuhRunning["loadDataWazuhRunning"]["cmd"] = ""
     loadDataWazuhRunning["loadDataWazuhRunning"]["param"] = ""
     loadDataWazuhRunning["loadDataWazuhRunning"]["command"] = ""
-    loadDataWazuhRunning = utils.GetConf(loadDataWazuhRunning)    
+    loadDataWazuhRunning,err = utils.GetConf(loadDataWazuhRunning)    
     cmd := loadDataWazuhRunning["loadDataWazuhRunning"]["cmd"]
     param := loadDataWazuhRunning["loadDataWazuhRunning"]["param"]
     command := loadDataWazuhRunning["loadDataWazuhRunning"]["command"]
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
 
     //cmd := "ps -ef | grep ossec | grep -v grep | grep -v sudo | awk '{print $8 \" \" $2}' "
     //out, err := exec.Command("bash", "-c", cmd).Output()
@@ -95,10 +102,11 @@ func RunWazuh()(data string, err error){
     StartWazuh["wazuhStart"]["start"] = ""
     StartWazuh["wazuhStart"]["param"] = ""
     StartWazuh["wazuhStart"]["command"] = ""
-    StartWazuh = utils.GetConf(StartWazuh)    
+    StartWazuh,err = utils.GetConf(StartWazuh)    
     cmd := StartWazuh["wazuhStart"]["start"]
     param := StartWazuh["wazuhStart"]["param"]
     command := StartWazuh["wazuhStart"]["command"]
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
 
     out,err := exec.Command(command, param, cmd).Output()
     logs.Info(string(out))
@@ -118,11 +126,12 @@ func StopWazuh()(data string, err error){
     StopWazuh["wazuhStop"]["stop"] = ""
     StopWazuh["wazuhStop"]["param"] = ""
     StopWazuh["wazuhStop"]["command"] = ""
-    StopWazuh = utils.GetConf(StopWazuh)    
+    StopWazuh,err = utils.GetConf(StopWazuh)    
     cmd := StopWazuh["wazuhStop"]["stop"]
     param := StopWazuh["wazuhStop"]["param"]
     command := StopWazuh["wazuhStop"]["command"]
-
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
         logs.Error("Error stopping Wazuh: "+err.Error())

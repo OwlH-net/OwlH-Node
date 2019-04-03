@@ -21,10 +21,11 @@ func SConn() {
 	loadDataSQL["stapConn"] = map[string]string{}
 	loadDataSQL["stapConn"]["path"] = ""
 	loadDataSQL["stapConn"]["cmd"] = "" 
-    loadDataSQL = utils.GetConf(loadDataSQL)    
+	loadDataSQL,err = utils.GetConf(loadDataSQL)    
     path := loadDataSQL["stapConn"]["path"]
     cmd := loadDataSQL["stapConn"]["cmd"]
-   
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	
     //Sdb, err = sql.Open("sqlite3", "database/servers.db")
     Sdb, err = sql.Open(cmd,path)
     if err != nil {

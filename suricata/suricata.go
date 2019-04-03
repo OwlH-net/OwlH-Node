@@ -13,12 +13,14 @@ import (
 )
 
 func suriPath() (exists bool) {
+	var err error
     //Retrieve path for suricata.
 	loadDatasuriPath := map[string]map[string]string{}
 	loadDatasuriPath["suriPath"] = map[string]string{}
 	loadDatasuriPath["suriPath"]["path"] = ""
-    loadDatasuriPath = utils.GetConf(loadDatasuriPath)    
-    path := loadDatasuriPath["suriPath"]["path"]
+    loadDatasuriPath,err = utils.GetConf(loadDatasuriPath)    
+	path := loadDatasuriPath["suriPath"]["path"]
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
 
     if _, err := os.Stat(path); os.IsNotExist(err) {
         logs.Error("Suricata not installed, at least folder /etc/suricata dosn't exist")
@@ -28,14 +30,16 @@ func suriPath() (exists bool) {
 }
 
 func suriBin() (exists bool) {
+	var err error
     //Retrieve path for suricata.
 	loadDatasuriBin := map[string]map[string]string{}
 	loadDatasuriBin["suriBin"] = map[string]string{}
     loadDatasuriBin["suriBin"]["cmd"] = ""
     loadDatasuriBin["suriBin"]["param"] = ""
-    loadDatasuriBin = utils.GetConf(loadDatasuriBin)    
+    loadDatasuriBin,err = utils.GetConf(loadDatasuriBin)    
     cmd := loadDatasuriBin["suriBin"]["cmd"]
     param := loadDatasuriBin["suriBin"]["param"]
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
 
     out, err := exec.Command(cmd,param).Output()
     if err == nil {
@@ -49,16 +53,18 @@ func suriBin() (exists bool) {
 }
 
 func suriRunning() (running bool) {
+	var err error
     //Retrieve path for suricata.
 	loadDatasuriRunning := map[string]map[string]string{}
 	loadDatasuriRunning["suriRunning"] = map[string]string{}
     loadDatasuriRunning["suriRunning"]["cmd"] = ""
     loadDatasuriRunning["suriRunning"]["param"] = ""
     loadDatasuriRunning["suriRunning"]["command"] = ""
-    loadDatasuriRunning = utils.GetConf(loadDatasuriRunning)    
+    loadDatasuriRunning,err = utils.GetConf(loadDatasuriRunning)    
     cmd := loadDatasuriRunning["suriRunning"]["cmd"]
     param := loadDatasuriRunning["suriRunning"]["param"]
     command := loadDatasuriRunning["suriRunning"]["command"]
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
 
     //cmd := "ps -ef | grep suricata | grep -v grep | grep -v sudo | awk '{print $8 \" \" $2}' "
     //out, err := exec.Command("bash", "-c", cmd).Output()
@@ -108,10 +114,10 @@ func SetBPF(n map[string]string)(bpf string, err error) {
 	loadData["suricataBPF"] = map[string]string{}
 	loadData["suricataBPF"]["pathBPF"] = ""
 	loadData["suricataBPF"]["fileBPF"] = "" 
-    loadData = utils.GetConf(loadData)    
-
+    loadData,err = utils.GetConf(loadData)    
     path := loadData["suricataBPF"]["pathBPF"]
     file := loadData["suricataBPF"]["fileBPF"]
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
 
     //make backup file
     err = utils.BackupFile(path, file)
@@ -150,17 +156,17 @@ func RetrieveFile(file map[string][]byte)(err error){
 
 //Run suricata
 func RunSuricata()(data string, err error){
-
     // //Retrieve path for suricata.
     StartSuricata := map[string]map[string]string{}
     StartSuricata["suriStart"] = map[string]string{}
     StartSuricata["suriStart"]["start"] = ""
     StartSuricata["suriStart"]["param"] = ""
     StartSuricata["suriStart"]["command"] = ""
-    StartSuricata = utils.GetConf(StartSuricata)    
+    StartSuricata,err = utils.GetConf(StartSuricata)    
     cmd := StartSuricata["suriStart"]["start"]
     param := StartSuricata["suriStart"]["param"]
     command := StartSuricata["suriStart"]["command"]
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
 
     out,err := exec.Command(command, param, cmd).Output()
     logs.Info(string(out))
@@ -173,18 +179,18 @@ func RunSuricata()(data string, err error){
 
 //Stop suricata
 func StopSuricata()(data string, err error){
-
     // //Retrieve path for suricata.
     StopSuricata := map[string]map[string]string{}
 	StopSuricata["suriStop"] = map[string]string{}
     StopSuricata["suriStop"]["stop"] = ""
     StopSuricata["suriStop"]["param"] = ""
     StopSuricata["suriStop"]["command"] = ""
-    StopSuricata = utils.GetConf(StopSuricata)    
+    StopSuricata,err = utils.GetConf(StopSuricata)    
     cmd := StopSuricata["suriStop"]["stop"]
     param := StopSuricata["suriStop"]["param"]
     command := StopSuricata["suriStop"]["command"]
-
+	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
         logs.Error("Error stopping suricata: "+err.Error())
