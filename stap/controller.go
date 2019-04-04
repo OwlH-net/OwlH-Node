@@ -5,8 +5,8 @@ import (
     // "godoc.org/golang.org/x/crypto/ssh"
     // "os"
     // "os/exec"
-    // "strings"
-    // "regexp"
+    "strings"
+    "regexp"
   	// "owlhnode/utils"
   	"owlhnode/database"
 	//   "io/ioutil"
@@ -97,11 +97,10 @@ func Controller()() {
             jobs <- serverOnUUID
         }
     }
-
-
 	logs.Critical("Loading channels!!")
 	
     //add dinamically to channel the server who had finished their works
+	var validOutput = regexp.MustCompile(`error:`)
     for stapStatus["stapStatus"]{
 		// var countServers string
 		// numServers, _ := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
@@ -111,8 +110,13 @@ func Controller()() {
 		// 	numServers.Scan(&countServers) 
 		// }
 		uuid := <-res
-        jobs <- uuid 
-        stapStatus,err = PingStap("")
+		if validOutput.MatchString(uuid){
+			splitValue := strings.Split(uuid,":")
+			ErrorStapServer(splitValue[1])
+		}else{
+			jobs <- uuid 
+		}
+		stapStatus,err = PingStap("")
 	}
 	
 	
@@ -155,10 +159,11 @@ func serverTask(id int, jobs <-chan string, res chan<- string) {
 				RunSniffer(uuid)
 			}
 			GetFileList(uuid)
+			res <- uuid
         }else{
-            logs.Info("Status SSH Session: False")
+			logs.Info("Status SSH Session: False")
+			res <- "error:"+uuid
+			
 		}
-        // time.Sleep(time.Second * 2)
-		res <- uuid
     }
 }

@@ -84,7 +84,7 @@ func Installed() (isIt map[string]bool, err error){
     wazuh["running"] = WazuhRunning()
     logs.Info("WAZUH --> ")
     logs.Info(wazuh)
-    if wazuh["Path"] || wazuh["Bin"] || wazuh["Running"]  {
+    if wazuh["path"] || wazuh["bin"] || wazuh["running"]  {
         logs.Info("Wazuh installed and running")
         return wazuh, nil
     } else {

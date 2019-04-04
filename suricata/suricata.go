@@ -92,7 +92,7 @@ func Installed() (isIt map[string]bool, err error){
     logs.Info("SURICATA --> ")
     logs.Info(suricata)
 
-    if suricata["Path"] || suricata["Bin"] || suricata["Running"] {
+    if suricata["path"] || suricata["bin"] || suricata["running"] {
         logs.Info("Suricata installed and running")
         return suricata, nil
     } else {

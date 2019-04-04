@@ -18,11 +18,10 @@ func ZeekPath() (exists bool) {
 	loadDataZeekPath["loadDataZeekPath"]["path"] = ""
     loadDataZeekPath,err = utils.GetConf(loadDataZeekPath)    
     path := loadDataZeekPath["loadDataZeekPath"]["path"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {logs.Error("Error getting Zeek path")}
 
-    //if _, err := os.Stat("/etc/zeek"); os.IsNotExist(err) {
     if _, err := os.Stat(path); os.IsNotExist(err) {
-        logs.Error("Zeek is not installed on /etc/zeek.")
+        logs.Error("Zeek is not installed on "+path+".")
         return false
     }
     return true
@@ -101,13 +100,14 @@ func Installed() (isIt map[string]bool, err error){
     zeek["bin"] = ZeekBin()
     zeek["running"] = ZeekRunning()
     logs.Info("ZEEK --> ")
-    logs.Info(zeek)
-    if zeek["Path"] || zeek["Bin"] || zeek["Running"]  {
+	logs.Info(zeek)
+
+    if zeek["path"] || zeek["bin"] || zeek["running"]  {
         logs.Info("Zeek installed and running")
         return zeek, nil
     } else {
         logs.Error("Zeek isn't present or not running")
-        return zeek, errors.New("Wazuh isn't present or not running")
+        return zeek, errors.New("Zeek isn't present or not running")
     }
 }
 
