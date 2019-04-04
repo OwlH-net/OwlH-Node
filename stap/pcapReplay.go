@@ -24,6 +24,7 @@ import (
 
 func Pcap_replay()() {
 	var err error
+	//load in_, out_queue and interface from main.conf
 	loadStap := map[string]map[string]string{}
 	loadStap["stap"] = map[string]string{}
     loadStap["stap"]["in_queue"] = ""
@@ -33,19 +34,21 @@ func Pcap_replay()() {
     inQueue := loadStap["stap"]["in_queue"]
 	outQueue := loadStap["stap"]["out_queue"]
 	stapInterface := loadStap["stap"]["interface"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("Pcap_replay Error getting data from main.conf")
+	}
 	
+	//check Stap status
 	stapStatus := make(map[string]bool)
 	stapStatus,err = PingStap("")
-
 	if err != nil {
 		logs.Error("Waiting 60 seconds: Error doing ping to STAP : "+err.Error())
 		time.Sleep(time.Second * 60)
 	}
 	
-	logs.Debug("Inside the PcapReplay, just before the loop")
+	//while stap == true, infinite loop will be active
 	for stapStatus["stapStatus"]{
-		//checking stap
+		//checking stap for each loop
 		stapStatus, err = PingStap("")
 		if err != nil {
 			logs.Error("Waiting 60 seconds: Error doing ping to STAP : "+err.Error())
@@ -60,11 +63,15 @@ func Pcap_replay()() {
 			time.Sleep(time.Second * 60)
 			continue
 		}
+		
+		//check files in remote path
 		if len(files) == 0 {
 			logs.Error("Error Pcap_replay reading files: No files")
 			time.Sleep(time.Second * 10)
 			continue
 		}
+		
+		//if there are files in remote path, use tcpreplay
 		for _, f := range files{
 			logs.Debug("Pcap_Replay-->"+f.Name())
 			cmd := "tcpreplay -i "+stapInterface+" -t -l 1 "+inQueue+f.Name()

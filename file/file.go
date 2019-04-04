@@ -22,7 +22,7 @@ func SendFile(file string)(data map[string]string, err error){
 	loadData["files"][file] = ""
 	loadData,err = utils.GetConf(loadData)
 	if err != nil {
-        logs.Error("Error getting path and BPF from main.conf")
+        logs.Error("SendFile Error getting data from main.conf")
     }
 	    
     //save url from file selected and open file
@@ -47,7 +47,7 @@ func SaveFile(file map[string]string)(err error){
     loadData["files"][file["file"]] = ""
 	loadData,err = utils.GetConf(loadData)
 	if err != nil {
-        logs.Error("Error getting path and BPF from main.conf")
+        logs.Error("SaveFile Error getting data from main.conf")
     }
 
     //make file backup before overwrite
@@ -69,19 +69,11 @@ func SaveFile(file map[string]string)(err error){
 
 func GetAllFiles()(data map[string]string, err error){
 
-    // var files []string     
     var returnedData map[string]string
 	returnedData,err = utils.GetConfFiles()
 	if err != nil {
-        logs.Error("Error getting path and BPF from main.conf")
+        logs.Error("Error getting data from main.conf")
     }
-    //var files []string
-    // for k,_ := range returnedData { 
-    //     files = append(files, k)
-    //     //files = append(files,k)
-    // }
-    // result := make(map[string][]string)
-    // result["fileNames"] = files
     logs.Info("GetAllFiles -> returing file names")
     return returnedData, err
 

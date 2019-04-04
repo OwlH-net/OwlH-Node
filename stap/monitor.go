@@ -20,12 +20,8 @@ import (
     "golang.org/x/crypto/ssh"
 )
 
-
+//check whether owlh is alive 
 func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
-	// owlh, err := ndb.GetStapServerInformation(uuid)
-	// if err != nil {
-	// 	logs.Error("Error retrieving stap server information")
-	// }
   	alive, sshSession = owlh_connect(uuid)
   	logs.Info("Stap Server Task with uuid: "+uuid)
   	if alive{
@@ -35,7 +31,8 @@ func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
   	logs.Error("NOT ALIVE Stap Server "+uuid)
   	return false, nil
 }
-      
+	  
+//check sniffer status through CPU, MEM and STORAGE status
 func GetStatusSniffer(uuid string)(running bool, status bool){
 	owlh, err := ndb.GetStapServerInformation(uuid)
 	if err != nil {
@@ -55,6 +52,7 @@ func GetStatusSniffer(uuid string)(running bool, status bool){
 	return running, false
 }
 
+//check CPU status
 func GetStatusCPU(owlh map[string]string, cpu string, uuid string)(status bool){
 	var validCPU = regexp.MustCompile(`(\d+)`+cpu+`;`)
 	if validCPU == nil{
@@ -71,6 +69,7 @@ func GetStatusCPU(owlh map[string]string, cpu string, uuid string)(status bool){
 	return true
 }
 
+//check MEM status
 func GetStatusMEM(owlh map[string]string, mem string, uuid string)(status bool){
 	var validMEM = regexp.MustCompile(`(\d+)`+mem+`;`)
 	if validMEM == nil{
@@ -87,6 +86,7 @@ func GetStatusMEM(owlh map[string]string, mem string, uuid string)(status bool){
 	return true
 }	
 
+//check STORAGE status
 func GetStatusStorage(owlh map[string]string, uuid string)(status bool){
 	var pcapPath = owlh["pcap_path"]
 	status, path, storage := GetStatusStorageSSh(uuid, pcapPath)
@@ -105,15 +105,17 @@ func GetStatusStorage(owlh map[string]string, uuid string)(status bool){
 	return false
 }	
 
+//launch the sniffer
 func RunSniffer(uuid string)(){
-	// RunSnifferSSH(owlh, ssh, conf("default"), conf("capture_time"), conf("pcap_path"), conf("filter_path"), conf("owlh_user"))
 	RunSnifferSSH(uuid)
 }
 
+//stop the sniffer
 func StopSniffer(uuid string)(){
 	StopSnifferSSH(uuid)
 }
 
+//get pcap file list forfrom remote node
 func GetFileList(uuid string)(){
 	owlh, err := ndb.GetStapServerInformation(uuid)
 	if err != nil {
@@ -124,38 +126,29 @@ func GetFileList(uuid string)(){
 	for file := range file_list {
 		var validOutput = regexp.MustCompile(`\.pcap+`)
 		if validOutput.MatchString(file_list[file]) {
-			//logs.Debug(file_list[file])
 			logs.Notice("Change remote file owned")
 			OwnerOwlh(uuid, owlh, file_list[file])
 			
 			logs.Notice("Copy files using sftp command and remove it!!")
 			TransportFile(uuid, owlh, file_list[file])
 			
-			// logs.Info("Delete remote files")
-			// RemoveFile(uuid, owlh, file_list[file])
-
 			logs.Warn("File list completed!")
 		}
 	}
 
 }
 
+//change pcap remote file owner
 func OwnerOwlh(uuid string, owlh map[string]string, fileRemote string)(){
 	logs.Info("Set "+owlh["name"]+" - "+owlh["ip"]+" as owner of file "+owlh["owlh_user"])
 	OwnerOwlhSSH(uuid, owlh, fileRemote)
 }
 
+//send remote file to local machine
 func TransportFile(uuid string, owlh map[string]string, file string)(){
 	logs.Info("Get file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
 	TransportFileSSH(uuid, owlh, file)
 }
-
-// func RemoveFile(uuid string, owlh map[string]string, file string)(){
-// 	logs.Info("Remove file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
-// 	RemoveFileSSH(uuid, owlh, file)
-// }
-
-
 
 
 

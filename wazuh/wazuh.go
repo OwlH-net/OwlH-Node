@@ -18,7 +18,9 @@ func WazuhPath() (exists bool) {
 	loadDataWazuhPath["loadDataWazuhPath"]["path"] = ""
     loadDataWazuhPath,err = utils.GetConf(loadDataWazuhPath)    
     path := loadDataWazuhPath["loadDataWazuhPath"]["path"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("WazuhPath Error getting data from main.conf")
+	}
 	
     if _, err := os.Stat(path); os.IsNotExist(err) {
         logs.Error("Wazuh is not installed, at least at /var/ossec folder does not exist")
@@ -39,7 +41,9 @@ func WazuhBin() (exists bool) {
     // path := loadDataWazuhBin["loadDataWazuhBin"]["path"]
     // param := loadDataWazuhBin["loadDataWazuhBin"]["param"]
 	bin := loadDataWazuhBin["loadDataWazuhBin"]["bin"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("WazuhBin Error getting data from main.conf")
+	}
 
     if _, err := os.Stat(bin); os.IsNotExist(err) {
         logs.Error("Wazuh bin does not exist")
@@ -61,7 +65,9 @@ func WazuhRunning() (running bool) {
     cmd := loadDataWazuhRunning["loadDataWazuhRunning"]["cmd"]
     param := loadDataWazuhRunning["loadDataWazuhRunning"]["param"]
     command := loadDataWazuhRunning["loadDataWazuhRunning"]["command"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("WazuhRunning Error getting data from main.conf")
+	}
 
     //cmd := "ps -ef | grep ossec | grep -v grep | grep -v sudo | awk '{print $8 \" \" $2}' "
     //out, err := exec.Command("bash", "-c", cmd).Output()
@@ -106,7 +112,9 @@ func RunWazuh()(data string, err error){
     cmd := StartWazuh["wazuhStart"]["start"]
     param := StartWazuh["wazuhStart"]["param"]
     command := StartWazuh["wazuhStart"]["command"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("RunWazuh Error getting data from main.conf")
+	}
 
     out,err := exec.Command(command, param, cmd).Output()
     logs.Info(string(out))
@@ -130,7 +138,9 @@ func StopWazuh()(data string, err error){
     cmd := StopWazuh["wazuhStop"]["stop"]
     param := StopWazuh["wazuhStop"]["param"]
     command := StopWazuh["wazuhStop"]["command"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("RunWazuh Error getting data from main.conf")
+	}
 	
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {

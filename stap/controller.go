@@ -23,12 +23,13 @@ import (
 	// "golang.org/x/crypto/ssh"  
 )
 
-
+//init PcapReplay and Controller for concurrency
 func StapInit()(){
 	go Pcap_replay()
 	go Controller()
 }
 
+//concurrency for Software TAP
 func Controller()() {   
 	logs.Info("Init Controller Working")                
 	var serverOnUUID string
@@ -41,13 +42,13 @@ func Controller()() {
 		time.Sleep(time.Second * 60)
 	}
 
+	//load number of servers with status = true
     var countServers string
 	numServers, err := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
 	if err != nil {
 		logs.Error("Error query counting stap servers : "+err.Error())
 	}
 	defer numServers.Close()
-    //load number of servers with status = true
     for numServers.Next(){
         numServers.Scan(&countServers) 
 	}
@@ -61,14 +62,7 @@ func Controller()() {
 	res := make(chan string,i)  
 	isWorking := false
     
-    // //create workers 
-    // for w := 1; w <= MaxWorkers; w++ {             
-    //     logs.Info("loop workers ",w)
-    //     go serverTask(w, jobs, res)
-    // }
-
     //add UUID servers to jobs channel
-	//logs.Debug("Checking Stap server Status before launch goroutines-->"+strconv.FormatBool(stapStatus["stapStatus"]))
     if stapStatus["stapStatus"]{
 		//number of cores -1 for concurrency
 		var MaxWorkers int
@@ -79,8 +73,8 @@ func Controller()() {
 			MaxWorkers := runtime.GOMAXPROCS(runtime.NumCPU())-1
 			logs.Info(strconv.Itoa(MaxWorkers)+" CORE FOR CONCURRENCY")
 		}
-
 		isWorking = true
+
 		//create workers 
 		for w := 0; w <= MaxWorkers; w++ {             
 			logs.Info("loop workers ",w)
@@ -97,18 +91,10 @@ func Controller()() {
             jobs <- serverOnUUID
         }
     }
-	logs.Critical("Loading channels!!")
-	
+
     //add dinamically to channel the server who had finished their works
 	var validOutput = regexp.MustCompile(`error:`)
     for stapStatus["stapStatus"]{
-		// var countServers string
-		// numServers, _ := ndb.Sdb.Query("select count(*) from servers where server_param = \"status\" and server_value = \"true\";")
-		// defer numServers.Close()
-		// //load number of servers with status = true
-		// for numServers.Next(){
-		// 	numServers.Scan(&countServers) 
-		// }
 		uuid := <-res
 		if validOutput.MatchString(uuid){
 			splitValue := strings.Split(uuid,":")
@@ -130,11 +116,6 @@ func Controller()() {
 		logs.Info("Killing servers with status == True") 
 		for rowsKillStap.Next(){
 			rowsKillStap.Scan(&serverOnUUID)
-			// owlh, err := ndb.GetStapServerInformation(serverOnUUID)
-			// if err != nil {
-			// 	logs.Error("Error retrieving stap server information")
-			// }
-
 			StopSniffer(serverOnUUID)
 		}
 	}
@@ -142,6 +123,7 @@ func Controller()() {
 	logs.Info("Workers Closed")
 }
 
+//Launch a task for each worker with the server alocated on jobs channel
 func serverTask(id int, jobs <-chan string, res chan<- string) {
     for uuid:=range jobs{
 		alive,_ := CheckOwlhAlive(uuid)

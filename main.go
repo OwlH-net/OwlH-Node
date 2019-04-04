@@ -19,15 +19,6 @@ func main() {
     ndb.SConn()
     ndb.Conn()
 
-	// //put all the stap servers to true.
-	// logs.Info("First launch, putting all STAP servers to true")
-    // updateStap, err := ndb.Sdb.Prepare("update servers set server_value = ? where server_param = ?;")
-    // _, err = updateStap.Exec("true", "status")  
-    // defer updateStap.Close()
-    // if (err != nil){
-	// 	logs.Error("Error putting all the STAP servers to true for 1st time: "+err.Error())
-	// }
-	
     //Launch StapInit for 1st time for check status and go concurrency if status==true
     stap.StapInit()
     

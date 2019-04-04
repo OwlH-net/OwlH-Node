@@ -38,7 +38,6 @@ func Conn() {
     cmd := loadDataSQL["dbsConn"]["cmd"]
 	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
 	
-    //Db, err = sql.Open("sqlite3", "/etc/owlh/databases/node.db")
     Db, err = sql.Open(cmd, path)
     if err != nil {
         panic("ndb -> DB Open Failed ")

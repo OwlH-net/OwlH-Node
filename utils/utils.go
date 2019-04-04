@@ -16,20 +16,18 @@ import (
     "crypto/rand"
 )
 
-//Read map data
-//leer json del fichero para obtener el path del bpf
+//read data from main.conf
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
     confFilePath := "/etc/owlh/conf/main.conf"
     jsonPathBpf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
         logs.Error("utils/GetConf -> can't open Conf file -> " + confFilePath)
         return nil, err
-    }
+	}
 
     var anode map[string]map[string]string
     json.Unmarshal(jsonPathBpf, &anode)
 
-    logs.Info("|................|")
     for k,y := range loadData { 
         for y,_ := range y {
             if v, ok := anode[k][y]; ok {
@@ -39,7 +37,6 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
             }
         }
     }
-    
     return loadData, nil
 }
 
@@ -62,6 +59,7 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
     return nil
 }
 
+//create a BPF backup
 func BackupFullPath(path string) (err error) { 
     t := time.Now()
 
@@ -70,7 +68,7 @@ func BackupFullPath(path string) (err error) {
 
     err = cpCmd.Run()
     if err != nil{
-        logs.Info ("Erro exec cmd command")
+        logs.Info ("BackupFullPath Erro exec cmd command")
         return err
     }
     return nil
@@ -85,13 +83,13 @@ func BackupFile(path string, fileName string) (err error) {
     cpCmd := exec.Command("cp", srcFolder, destFolder)
     err = cpCmd.Run()
     if err != nil{
-        logs.Info ("Erro exec cmd command")
+        logs.Info ("BackupFile Erro exec cmd command")
         return err
     }
-
     return nil
 }
 
+//write data on a file
 func WriteNewDataOnFile(path string, data []byte)(err error){
     
     logs.Info("WriteNewDataOnFile  path->__   "+path)
@@ -106,7 +104,7 @@ func WriteNewDataOnFile(path string, data []byte)(err error){
     return nil
 }
 
-//leer ficheros
+//Read files 
 func GetConfFiles()(loadDataReturn map[string]string, err error) { 
     confFilePath := "/etc/owlh/conf/main.conf"
     JSONconf, err := ioutil.ReadFile(confFilePath)
@@ -118,12 +116,13 @@ func GetConfFiles()(loadDataReturn map[string]string, err error) {
     var anode map[string]map[string]string
     json.Unmarshal(JSONconf, &anode)
     
-    logs.Info("MOSTRAR ficheros MAIN.CONF")
+    logs.Info("Show main.conf")
     logs.Info(anode["files"])
 
     return anode["files"], nil
 }
 
+//Generate a 16 bytes unique id
 func Generate()(uuid string)  {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
@@ -136,13 +135,14 @@ func Generate()(uuid string)  {
 }
 
 func LoadDefaultServerData(fileName string)(json map[string]string, err error){
-
     //Get full path
     loadData := map[string]map[string]string{}
     loadData["files"] = map[string]string{}
     loadData["files"][fileName] = ""
 	loadData,err = GetConf(loadData)
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("LoadDefaultServerData Error getting data from main.conf")
+	}
 
     logs.Info(loadData["files"][fileName])
     fileContent := make(map[string]string)

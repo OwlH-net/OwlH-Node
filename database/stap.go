@@ -25,9 +25,10 @@ func SConn() {
 	loadDataSQL, err = utils.GetConf(loadDataSQL)    
     path := loadDataSQL["stapConn"]["path"]
     cmd := loadDataSQL["stapConn"]["cmd"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("Sconn Error getting data from main.conf")
+	}
 	
-    //Sdb, err = sql.Open("sqlite3", "database/servers.db")
     Sdb, err = sql.Open(cmd,path)
     if err != nil {
         panic("sdb/servers -- DB Open Failed")
@@ -40,7 +41,6 @@ func GetStapServerInformation(uuid string)(serverData map[string]string, err err
 	var value string
 	stapServer := make(map[string]string)
 	logs.Info("Creating data map for uuid: "+uuid)
-	// ip, err := ndb.Sdb.Query("select server_param,server_value from servers where server_param = \"ip\" and server_uniqueid = \""+uuid+"\";")
 	uuidParams, err := Sdb.Query("select server_param,server_value from servers where server_uniqueid = \""+uuid+"\";")
 	defer uuidParams.Close()
 	for uuidParams.Next(){

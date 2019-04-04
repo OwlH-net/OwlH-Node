@@ -18,7 +18,9 @@ func ZeekPath() (exists bool) {
 	loadDataZeekPath["loadDataZeekPath"]["path"] = ""
     loadDataZeekPath,err = utils.GetConf(loadDataZeekPath)    
     path := loadDataZeekPath["loadDataZeekPath"]["path"]
-	if err != nil {logs.Error("Error getting Zeek path")}
+	if err != nil {
+		logs.Error("ZeekPath Error getting data from main.conf")
+	}
 
     if _, err := os.Stat(path); os.IsNotExist(err) {
         logs.Error("Zeek is not installed on "+path+".")
@@ -39,7 +41,9 @@ func ZeekBin() (exists bool) {
     // cmd := loadDataZeekBin["loadDataZeekBin"]["cmd"]
     // param := loadDataZeekBin["loadDataZeekBin"]["param"]
     bin := loadDataZeekBin["loadDataZeekBin"]["bin"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("ZeekBin Error getting data from main.conf")
+	}
 
     //out, err := exec.Command("broctl","-V").Output()
     // out, err := exec.Command(cmd,param).Output()
@@ -74,7 +78,9 @@ func ZeekRunning() (running bool) {
     cmd := loadDataZeekRunning["loadDataZeekRunning"]["cmd"]
     param := loadDataZeekRunning["loadDataZeekRunning"]["param"]
     command := loadDataZeekRunning["loadDataZeekRunning"]["command"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("ZeekRunning Error getting data from main.conf")
+	}
 
     //cmd := "ps -ef | grep zeek | grep -v grep | grep -v sudo | awk '{print $8 \" \" $2}' "
     //out, err := exec.Command("bash", "-c", cmd).Output()
@@ -124,7 +130,9 @@ func RunZeek()(data string, err error){
     cmd := StartZeek["zeekStart"]["start"]
     param := StartZeek["zeekStart"]["param"]
     command := StartZeek["zeekStart"]["command"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("RunZeek Error getting data from main.conf")
+	}
 
     out,err := exec.Command(command, param, cmd).Output()
     logs.Info(string(out))
@@ -148,7 +156,9 @@ func StopZeek()(data string, err error){
     cmd := StopZeek["zeekStop"]["stop"]
     param := StopZeek["zeekStop"]["param"]
     command := StopZeek["zeekStop"]["command"]
-	if err != nil {logs.Error("Error getting path and BPF from main.conf")}
+	if err != nil {
+		logs.Error("StopZeek Error getting data from main.conf")
+	}
 	
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
