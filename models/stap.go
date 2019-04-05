@@ -50,6 +50,11 @@ func RunStapServer(serveruuid string) (data string, err error) {
     return data,err
 }
 
+func DeleteStapServer(serveruuid string) (data string, err error) {
+    data,err = stap.DeleteStapServer(serveruuid)
+    return data,err
+}
+
 func StopStapServer(serveruuid string) (data string, err error) {
     logs.Info("Stops StopStapServer system into node server")
     data,err = stap.StopStapServer(serveruuid)

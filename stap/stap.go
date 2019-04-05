@@ -389,19 +389,19 @@ func GetStapUUID()(uuid string){
     return ""
 }
 
-
-// //Goroutine for concurrency with Stap servers
-// func worker(uuid string){
-//     logs.Info("Starting Worker")
-//     defer func() {
-// 		logs.Info("Destroying worker "+uuid)
-// 		waitGroup.Done()
-//     }()
-//     for {
-//         // value, err := <-data
-//         logs.Warn("UUID: "+uuid+" --- Sleep for 1 second")
-//         time.Sleep(time.Second * 3)
-//         break
-//     }    
-    
-// }
+//delete specific stap server
+func DeleteStapServer(serveruuid string)(data string, err error){
+	if ndb.Sdb == nil {
+        logs.Error("DeleteStapServer stap -- Can't access to database")
+        return "",errors.New("DeleteStapServer stap -- Can't access to database")
+    } 
+    sql := "delete from servers where server_uniqueid = ?;"
+    deleteStartStapServer, err := ndb.Sdb.Prepare(sql)
+    _, err = deleteStartStapServer.Exec(&serveruuid)  
+    if (err != nil){
+        logs.Error("DeleteStapServer error deleting: %s", err.Error())
+        return "", err
+    }
+    defer deleteStartStapServer.Close()
+    return "Stap specific server is deleted!", err
+}

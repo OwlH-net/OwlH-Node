@@ -21,9 +21,10 @@ func (m *ZeekController) Get() {
 	mstatus,err := models.GetZeek()
 	m.Data["json"] = mstatus
 	if err != nil {
-        logs.Info("GetWazuh OUT -- ERROR : %s", err.Error())
+        logs.Info("GetZeek OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+	}
+	logs.Notice("Zeek is working")
     m.ServeJSON()
 }
 

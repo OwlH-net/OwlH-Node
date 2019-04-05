@@ -34,22 +34,17 @@ func WazuhBin() (exists bool) {
     //Retrieve bin for wazuh.
 	loadDataWazuhBin := map[string]map[string]string{}
 	loadDataWazuhBin["loadDataWazuhBin"] = map[string]string{}
-    // loadDataWazuhBin["loadDataWazuhBin"]["path"] = ""
-    // loadDataWazuhBin["loadDataWazuhBin"]["param"] = ""
     loadDataWazuhBin["loadDataWazuhBin"]["bin"] = ""
     loadDataWazuhBin,err = utils.GetConf(loadDataWazuhBin)    
-    // path := loadDataWazuhBin["loadDataWazuhBin"]["path"]
-    // param := loadDataWazuhBin["loadDataWazuhBin"]["param"]
 	bin := loadDataWazuhBin["loadDataWazuhBin"]["bin"]
 	if err != nil {
 		logs.Error("WazuhBin Error getting data from main.conf")
 	}
-
     if _, err := os.Stat(bin); os.IsNotExist(err) {
         logs.Error("Wazuh bin does not exist")
         return false
     }
-    logs.Error("Wazuh bin exist")
+    logs.Info("Wazuh bin exist")
     return true
 }
 
@@ -68,9 +63,6 @@ func WazuhRunning() (running bool) {
 	if err != nil {
 		logs.Error("WazuhRunning Error getting data from main.conf")
 	}
-
-    //cmd := "ps -ef | grep ossec | grep -v grep | grep -v sudo | awk '{print $8 \" \" $2}' "
-    //out, err := exec.Command("bash", "-c", cmd).Output()
     out, err := exec.Command(command, param, cmd).Output()
     if err == nil {
         if strings.Contains(string(out), "is running") {
@@ -84,12 +76,9 @@ func WazuhRunning() (running bool) {
 
 func Installed() (isIt map[string]bool, err error){
     wazuh := make(map[string]bool)
-    //Wazuh = false
     wazuh["path"] = WazuhPath()
     wazuh["bin"] = WazuhBin()
     wazuh["running"] = WazuhRunning()
-    logs.Info("WAZUH --> ")
-    logs.Info(wazuh)
     if wazuh["path"] || wazuh["bin"] || wazuh["running"]  {
         logs.Info("Wazuh installed and running")
         return wazuh, nil
@@ -116,8 +105,7 @@ func RunWazuh()(data string, err error){
 		logs.Error("RunWazuh Error getting data from main.conf")
 	}
 
-    out,err := exec.Command(command, param, cmd).Output()
-    logs.Info(string(out))
+    _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
         logs.Error("Error launching wazuh: "+err.Error())
         return "",err

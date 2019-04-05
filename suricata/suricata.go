@@ -89,14 +89,9 @@ func suriRunning() (running bool) {
 //if suricata, path and bin are true, then suricata is installed and running
 func Installed() (isIt map[string]bool, err error){
     suricata := make(map[string]bool)
-    //suricata = false
     suricata["path"] = suriPath()
     suricata["bin"] = suriBin()
     suricata["running"] = suriRunning()
-    
-    logs.Info("SURICATA")
-    logs.Info(suricata)
-
     if suricata["path"] || suricata["bin"] || suricata["running"] {
         logs.Info("Suricata installed and running")
         return suricata, nil
@@ -180,13 +175,12 @@ func RunSuricata()(data string, err error){
 		logs.Error("RunSuricata Error getting data from main.conf")
 	}
 
-    out,err := exec.Command(command, param, cmd).Output()
-    logs.Info(string(out))
+    _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
         logs.Error("Error launching suricata: "+err.Error())
         return "",err
     }
-    return "Suricata system is on",nil
+    return "Suricata system is ON!",nil
 }
 
 //Stop suricata

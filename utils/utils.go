@@ -44,31 +44,28 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
     //delete file content
     err = os.Truncate(path+file, 0)
 	if err != nil {
-		logs.Info(err)
+		logs.Error("Error truncate BPF file: "+err.Error())
+		return err
     }
     //write new bpf content
     newBPF, err := os.OpenFile(path+file, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
     if err != nil {
-		logs.Info(err)
+		logs.Error("Error opening new BPF file: "+err.Error())
         os.Exit(-1)
         return err
 	}
 	defer newBPF.Close()
-	fmt.Fprintf(newBPF, "%s\n", bpf)
-
     return nil
 }
 
 //create a BPF backup
 func BackupFullPath(path string) (err error) { 
     t := time.Now()
-
     destFolder := path+"-"+strconv.FormatInt(t.Unix(), 10)
     cpCmd := exec.Command("cp", path, destFolder)
-
     err = cpCmd.Run()
     if err != nil{
-        logs.Info ("BackupFullPath Erro exec cmd command")
+        logs.Error("BackupFullPath Erro exec cmd command")
         return err
     }
     return nil
@@ -83,7 +80,7 @@ func BackupFile(path string, fileName string) (err error) {
     cpCmd := exec.Command("cp", srcFolder, destFolder)
     err = cpCmd.Run()
     if err != nil{
-        logs.Info ("BackupFile Erro exec cmd command")
+        logs.Error("BackupFile Erro exec cmd command")
         return err
     }
     return nil
@@ -91,16 +88,11 @@ func BackupFile(path string, fileName string) (err error) {
 
 //write data on a file
 func WriteNewDataOnFile(path string, data []byte)(err error){
-    
-    logs.Info("WriteNewDataOnFile  path->__   "+path)
-    logs.Info("WriteNewDataOnFile  data->__   "+string(data))
-
     err = ioutil.WriteFile(path, data, 0644)
 	if err != nil {
-        logs.Info("Error WriteNewData")
+        logs.Error("Error WriteNewData")
 		return err
 	}
-
     return nil
 }
 
@@ -112,13 +104,8 @@ func GetConfFiles()(loadDataReturn map[string]string, err error) {
         logs.Error("utils/GetConf -> can't open Conf file -> " + confFilePath)
         return nil, err
     }
-
     var anode map[string]map[string]string
     json.Unmarshal(JSONconf, &anode)
-    
-    logs.Info("Show main.conf")
-    logs.Info(anode["files"])
-
     return anode["files"], nil
 }
 
@@ -130,7 +117,6 @@ func Generate()(uuid string)  {
 		logs.Error(err)
 	}
 	uuid = fmt.Sprintf("%x-%x-%x-%x-%x",b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
-	logs.Info(uuid)
 	return uuid
 }
 
@@ -142,17 +128,14 @@ func LoadDefaultServerData(fileName string)(json map[string]string, err error){
 	loadData,err = GetConf(loadData)
 	if err != nil {
 		logs.Error("LoadDefaultServerData Error getting data from main.conf")
+		return nil, err
 	}
-
-    logs.Info(loadData["files"][fileName])
     fileContent := make(map[string]string)
-
     rawData, err := ioutil.ReadFile(loadData["files"][fileName])
     if err != nil {
+		logs.Error("LoadDefaultServerData Error reading file")
         return nil,err
     }
-
     fileContent["fileContent"] = string(rawData)
-    
     return fileContent,nil
 }

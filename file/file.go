@@ -13,7 +13,6 @@ import (
 
 //read file and send back to webpage
 func SendFile(file string)(data map[string]string, err error){
-	//var voidArray map[string]string
 	sendBackArray := make(map[string]string)
     
     //create map and obtain file

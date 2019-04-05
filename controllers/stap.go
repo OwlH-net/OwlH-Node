@@ -38,14 +38,14 @@ func (n *StapController) AddServer() {
 // @Success 200 {object} models.stap
 // @router / [get]
 func (n *StapController) GetAllServers() {
-	logs.Info ("stap controller -> AddServer")
+	logs.Info ("stap controller -> GetAllServers")
 
 	servers, err := models.GetAllServers()
 
 	n.Data["json"] = servers
 
 	if err != nil {
-        logs.Info("AddServer JSON RECEIVED -- ERROR : %s", err.Error())
+        logs.Info("GetAllServers JSON RECEIVED -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
     n.ServeJSON()
@@ -173,5 +173,23 @@ func (n *StapController) PingServerStap() {
         logs.Info("PingServerStap OUT -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
+    n.ServeJSON()
+}
+
+// @Title DeleteStapServer
+// @Description Run specific Stap server
+// @Success 200 {object} models.Stap
+// @Failure 403 body is empty
+// @router /DeleteStapServer/:serveruuid [put]
+func (n *StapController) DeleteStapServer() {
+    logs.Info("DeleteStapServer -> In")
+    serveruuid := n.GetString(":serveruuid")
+    data,err := models.DeleteStapServer(serveruuid)
+    n.Data["json"] = data
+    if err != nil {
+        logs.Info("DeleteStapServer OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    logs.Info("DeleteStapServer -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
