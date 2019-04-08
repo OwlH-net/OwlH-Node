@@ -129,7 +129,6 @@ func StopWazuh()(data string, err error){
 	if err != nil {
 		logs.Error("RunWazuh Error getting data from main.conf")
 	}
-	
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
         logs.Error("Error stopping Wazuh: "+err.Error())

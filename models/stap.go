@@ -60,3 +60,8 @@ func StopStapServer(serveruuid string) (data string, err error) {
     data,err = stap.StopStapServer(serveruuid)
     return data,err
 }
+
+func EditStapServer(data map[string]string) (err error) {
+    err = stap.EditStapServer(data)
+    return err
+}
