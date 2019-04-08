@@ -3,16 +3,16 @@ package stap
 import (
     "github.com/astaxie/beego/logs"
     // "godoc.org/golang.org/x/crypto/ssh"
-    "os"
+    // "os"
     "os/exec"
     // "strings"
     // "regexp"
-  	// "owlhnode/utils"
+  	"owlhnode/utils"
   	// "owlhnode/database"
 	  "io/ioutil"
       //"encoding/json"
       "time"
-      "strconv"
+    //   "strconv"
     //   "errors"
       //"ssh.CleintConfig"
     //   "code.google.com/p/go.crypto/ssh"
@@ -23,32 +23,69 @@ import (
 )
 
 func Pcap_replay()() {
-	logs.Notice("PCAP_REPLAY")
-	inQueue := "/usr/share/owlh/in_queue/"
-	outQueue := "/usr/share/owlh/out_queue/"
-	logs.Debug("Inside the PcapReplay, just before the loop")
-	for{
-		files, _ := ioutil.ReadDir(inQueue)
+	var err error
+	//load in_, out_queue and interface from main.conf
+	loadStap := map[string]map[string]string{}
+	loadStap["stap"] = map[string]string{}
+    loadStap["stap"]["in_queue"] = ""
+	loadStap["stap"]["out_queue"] = ""
+	loadStap["stap"]["interface"] = ""
+	loadStap,err = utils.GetConf(loadStap)
+    inQueue := loadStap["stap"]["in_queue"]
+	outQueue := loadStap["stap"]["out_queue"]
+	stapInterface := loadStap["stap"]["interface"]
+	if err != nil {
+		logs.Error("Pcap_replay Error getting data from main.conf")
+	}
+	
+	//check Stap status
+	stapStatus := make(map[string]bool)
+	stapStatus,err = PingStap("")
+	if err != nil {
+		logs.Error("Waiting 60 seconds: Error doing ping to STAP : "+err.Error())
+		time.Sleep(time.Second * 60)
+	}
+	
+	//while stap == true, infinite loop will be active
+	for stapStatus["stapStatus"]{
+		//checking stap for each loop
+		stapStatus, err = PingStap("")
+		if err != nil {
+			logs.Error("Waiting 60 seconds: Error doing ping to STAP : "+err.Error())
+			time.Sleep(time.Second * 60)
+			continue
+		}
+
+		//checking in_queue path
+		files, err := ioutil.ReadDir(inQueue)
+		if err != nil {
+			logs.Error("Error reading in_queue path: "+err.Error())
+			time.Sleep(time.Second * 60)
+			continue
+		}
+		
+		//check files in remote path
 		if len(files) == 0 {
 			logs.Error("Error Pcap_replay reading files: No files")
 			time.Sleep(time.Second * 10)
+			continue
 		}
-		x := 0
-		// logs.Info(len(files))
-		for a, f := range files{
-			x += 1
-			logs.Info("Reading local count..>"+strconv.Itoa(x))
-			logs.Info("Reading for index 's'-->"+strconv.Itoa(a))
+		
+		//if there are files in remote path, use tcpreplay
+		for _, f := range files{
 			logs.Debug("Pcap_Replay-->"+f.Name())
-			cmd := "tcpreplay -i enp0s3 -t -l 1 "+inQueue+f.Name()
-			output, err := exec.Command("bash", "-c", cmd).Output()
-			logs.Info(string(output))
+			cmd := "tcpreplay -i "+stapInterface+" -t -l 1 "+inQueue+f.Name()
+			_, err := exec.Command("bash", "-c", cmd).Output()
 			if err != nil{
 				logs.Error("Error exec cmd command "+err.Error())
 			}
-			err = os.Rename(inQueue+f.Name(), outQueue+f.Name())
+			err = utils.CopyFile(outQueue, inQueue, f.Name(), 1000)
 			if err != nil{
 				logs.Error("Error moving file "+err.Error())
+			}
+			err = utils.RemoveFile(inQueue, f.Name())
+			if err != nil {
+				logs.Error("Error removing file "+err.Error())
 			}
 		}
 	}

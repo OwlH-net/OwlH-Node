@@ -13,7 +13,7 @@ import (
     "encoding/json"
     "sync"
     // "time"
-    // "strconv"
+    "strconv"
 )
 
 var waitGroup sync.WaitGroup
@@ -37,24 +37,35 @@ func AddServer(elem map[string]string) (err error){
 	insertServerIP, err := ndb.Sdb.Prepare("insert into servers (server_uniqueid, server_param, server_value) values (?,?,?);")
 	_, err = insertServerIP.Exec(&uuidServer, "ip", &nodeIP)  
 	defer insertServerIP.Close()
-	if err != nil {return err}	
+	if err != nil {
+		logs.Error("ERROR stap/AddServer INSERT new server ip: "+err.Error())
+		return err
+	}	
 
 	//insert name into server database
 	logs.Info("stap/AddServer INSERT new server name")
 	insertServerName, err := ndb.Sdb.Prepare("insert into servers (server_uniqueid, server_param, server_value) values (?,?,?);")
 	_, err = insertServerName.Exec(&uuidServer, "name", &nodeName)  
 	defer insertServerName.Close()
-	if err != nil {return err}	
+	if err != nil {
+		logs.Error("ERROR stap/AddServer INSERT new server name: "+err.Error())
+		return err
+	}	
 	
 	//Load default server data from main.conf
 	jsonDefaultData,err := utils.LoadDefaultServerData("defaults.json")
 	logs.Info("File readed !!!")
 	logs.Info(jsonDefaultData)
 	jsonData := make(map[string]string)
+
 	//parse raw data into byte array
 	jsonDataArray := []byte(jsonDefaultData["fileContent"])
 	err = json.Unmarshal(jsonDataArray, &jsonData)
-	if err != nil {return err}	
+	if err != nil {
+		logs.Error("ERROR unmarshal json on AddServer func: "+err.Error())
+		return err
+	}		
+
 	//insert default data into server database
 	for z,v := range jsonData{
 		//logs.Warn("Key--> "+z+" Value..> "+v)
@@ -62,6 +73,7 @@ func AddServer(elem map[string]string) (err error){
 		_, err = insertServerName.Exec(&uuidServer, &z, &v)  
 		defer insertServerName.Close()
 		if err != nil {
+			logs.Error("ERROR INSERT servers: "+err.Error())
 			return err
 		}
 	}
@@ -133,11 +145,11 @@ func GetServer(serveruuid string)(data *map[string]map[string]string, err error)
 
 
 
-func PingStap(uuid string) (isIt map[string]bool){
+func PingStap(uuid string) (isIt map[string]bool, err error){
     //database connection
 	if ndb.Sdb == nil {
         logs.Error("PingStap stap -- Can't access to database")
-        return nil
+        return nil, errors.New("PingStap stap -- Can't access to database")
     } 
     var res string
     stap := make(map[string]bool)
@@ -145,18 +157,17 @@ func PingStap(uuid string) (isIt map[string]bool){
 	
 	sql := "select stap_value from stap where stap_param = \"status\";"
 	rows, err := ndb.Sdb.Query(sql)
-	defer rows.Close()
-
+	// defer rows.Close()
     if err != nil {
         logs.Info("PingStap Query Error immediately after retrieve data %s",err.Error())
-        return stap
+        return stap,err
     }
-	//defer rows.Close()
+	defer rows.Close()
     if rows.Next() {
         err := rows.Scan(&res)
         if err != nil {
             logs.Info("Stap query error %s",err.Error())
-            return stap
+            return stap, err
         }
         if res=="true"{
             stap["stapStatus"]=true
@@ -171,12 +182,13 @@ func PingStap(uuid string) (isIt map[string]bool){
         insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
         _, err = insertStap.Exec(&uuid, "status", "false")  
         defer insertStap.Close()
-        if (err != nil){
+        if err != nil{
             logs.Info("Error Insert uuid !=")
-            return stap
+            return stap,err
         }
-    }
-    return stap
+	}
+	logs.Debug("checking stap value "+strconv.FormatBool(stap["stapStatus"]))
+    return stap,nil
 }
 
 
@@ -187,14 +199,17 @@ func RunStap(uuid string)(data string, err error){
         logs.Error("RunStap stap -- Can't access to database")
         return "",errors.New("RunStap stap -- Can't access to database")
 	} 
-    logs.Info("Starting Stap...")
+    logs.Info("Starting Stap...  "+uuid)
     //insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
-    updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_uniqueid = ? and stap_param = ?;")
-    _, err = updateStap.Exec("true", &uuid, "status")  
-    defer updateStap.Close()
+    // updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_uniqueid = ? and stap_param = ?;")
+	// _, err = updateStap.Exec("true", &uuid, "status")  
+	updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_param = ?;")
+    _, err = updateStap.Exec("true", "status")  
     if (err != nil){
-        return "", err
-    }
+		logs.Error("Error updating RunStap: "+err.Error())
+		return "", err
+	}
+	defer updateStap.Close()
 
     //call Concurrency StapInit
     StapInit()
@@ -229,15 +244,21 @@ func StopStap(uuid string)(data string, err error){
         logs.Error("StopStap stap -- Can't access to database")
         return "",errors.New("StopStap stap -- Can't access to database")
 	} 
-    logs.Info("Stopping Stap...")
-    updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_uniqueid = ? and stap_param = ?;")
-    _, err = updateStap.Exec("false", &uuid, "status")  
-    defer updateStap.Close()
-    if (err != nil){
-        return "", err
+    logs.Info("Stopping Stap..."+uuid)
+    updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_param = ?;")
+	if (err != nil){
+		logs.Error ("Stopping Stap Update Prepare Error -> "+ err.Error())
+		return "", err
     }
+	
+	_, err = updateStap.Exec("false", "status")  
+    if (err != nil){
+		logs.Error ("Stopping Stap Update Error -> "+ err.Error())
+		return "", err
+    }
+	defer updateStap.Close()
     status = false
-    return "Stap is stoped", err
+    return "Stap is stopped", err
 }
 
 //Run stap specific server
@@ -269,7 +290,7 @@ func StopStapServer(serveruuid string)(data string, err error){
     //database connection
 	if ndb.Sdb == nil {
         logs.Error("StopStapServer stap -- Can't access to database")
-        return "",errors.New("StopStapServer stap -- Can't access to database")
+        return "", errors.New("StopStapServer stap -- Can't access to database")
 	} 
     logs.Info("Stopping specific Stap server...")
     updateStopStapServer, err := ndb.Sdb.Prepare("update servers set server_value = ? where server_uniqueid = ? and server_param = ?;")
@@ -281,16 +302,33 @@ func StopStapServer(serveruuid string)(data string, err error){
     }
     return "Stap specific server  is stoped", err
 }
+//Error Stap specific server
+func ErrorStapServer(serveruuid string)(data string, err error){
+    //database connection
+	if ndb.Sdb == nil {
+        logs.Error("ErrorStapServer stap -- Can't access to database")
+        return "", errors.New("ErrorStapServer stap -- Can't access to database")
+	} 
+    logs.Info("Stopping specific Stap server...")
+    updateErrorStapServer, err := ndb.Sdb.Prepare("update servers set server_value = ? where server_uniqueid = ? and server_param = ?;")
+    _, err = updateErrorStapServer.Exec("error", &serveruuid, "status")  
+    defer updateErrorStapServer.Close()
+    if (err != nil){
+        logs.Error("ErrorStapServer error updating: %s", err.Error())
+        return "", err
+    }
+    return "Stap specific server status is error now", err
+}
 
-func PingServerStap(server string) (isIt map[string]bool){
+func PingServerStap(server string) (isIt map[string]string, err error){
     //database connection
 	if ndb.Sdb == nil {
         logs.Error("PingServerStap stap -- Can't access to database")
-        return nil
+        return nil, errors.New("PingServerStap stap -- Can't access to database")
     } 
     var res string
-    stap := make(map[string]bool)
-	stap["stapStatus"] = false
+    stap := make(map[string]string)
+	stap["stapStatus"] = "false"
 	
 	sql := "select server_value from servers where server_uniqueid = \""+server+"\" and server_param = \"status\";"
     logs.Info("PingServerStap select for check if exist query sql %s",sql)
@@ -299,22 +337,29 @@ func PingServerStap(server string) (isIt map[string]bool){
 
     if err != nil {
         logs.Error("PingServerStap Query Error immediately after retrieve data %s",err.Error())
-        return stap
+        return stap, err
     }
-    logs.Info("After rows Query")
     if rows.Next() {
         err := rows.Scan(&res)
         if err != nil {
             logs.Error("Stap query error %s",err.Error())
-            return stap
+            return stap, err
         }
         logs.Info("Stap status exists on stap DB --> Value: "+res)
-        if res=="true"{stap["stapStatus"]=true}else{stap["stapStatus"]=false}
-        logs.Info("PingServerStap status-->")
-        logs.Info(stap)
-        return stap
+        if res=="true"{
+			stap["stapStatus"]="true"
+		}else if res=="false"{
+			stap["stapStatus"]="false"
+		}else if res == "error"{
+			stap["stapStatus"]="error"
+		}else{
+			stap["stapStatus"]="N/A"
+		}
+
+        logs.Debug("PingServerStap status-->")
+        logs.Debug(stap)
     }
-    return stap
+    return stap, nil
 }
 
 func GetStapUUID()(uuid string){
@@ -344,19 +389,19 @@ func GetStapUUID()(uuid string){
     return ""
 }
 
-
-// //Goroutine for concurrency with Stap servers
-// func worker(uuid string){
-//     logs.Info("Starting Worker")
-//     defer func() {
-// 		logs.Info("Destroying worker "+uuid)
-// 		waitGroup.Done()
-//     }()
-//     for {
-//         // value, err := <-data
-//         logs.Warn("UUID: "+uuid+" --- Sleep for 1 second")
-//         time.Sleep(time.Second * 3)
-//         break
-//     }    
-    
-// }
+//delete specific stap server
+func DeleteStapServer(serveruuid string)(data string, err error){
+	if ndb.Sdb == nil {
+        logs.Error("DeleteStapServer stap -- Can't access to database")
+        return "",errors.New("DeleteStapServer stap -- Can't access to database")
+    } 
+    sql := "delete from servers where server_uniqueid = ?;"
+    deleteStartStapServer, err := ndb.Sdb.Prepare(sql)
+    _, err = deleteStartStapServer.Exec(&serveruuid)  
+    if (err != nil){
+        logs.Error("DeleteStapServer error deleting: %s", err.Error())
+        return "", err
+    }
+    defer deleteStartStapServer.Close()
+    return "Stap specific server is deleted!", err
+}

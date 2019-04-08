@@ -16,12 +16,16 @@ type SuricataController struct {
 // @Description get Surucata status
 // @Success 200 {object} models.suricata
 // @router / [get]
-func (m *SuricataController) Get() {
+func (n *SuricataController) Get() {
     logs.Info ("Suricata controller -> GET")
-	mstatus := models.GetSuricata()
-    //m.Data["json"] = map[string]string{"status": strconv.FormatBool(mstatus)}
-    m.Data["json"] = mstatus
-    m.ServeJSON()
+	mstatus, err := models.GetSuricata()
+    
+	n.Data["json"] = mstatus
+	if err != nil {
+        logs.Info("Suricata controller -> GET -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
 }
 
 

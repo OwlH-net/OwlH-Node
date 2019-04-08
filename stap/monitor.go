@@ -20,9 +20,8 @@ import (
     "golang.org/x/crypto/ssh"
 )
 
-
+//check whether owlh is alive 
 func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
-	// owlh := ndb.GetStapServerInformation(uuid)
   	alive, sshSession = owlh_connect(uuid)
   	logs.Info("Stap Server Task with uuid: "+uuid)
   	if alive{
@@ -32,9 +31,13 @@ func CheckOwlhAlive(uuid string)(alive bool, sshSession *ssh.Session){
   	logs.Error("NOT ALIVE Stap Server "+uuid)
   	return false, nil
 }
-      
+	  
+//check sniffer status through CPU, MEM and STORAGE status
 func GetStatusSniffer(uuid string)(running bool, status bool){
-	owlh := ndb.GetStapServerInformation(uuid)
+	owlh, err := ndb.GetStapServerInformation(uuid)
+	if err != nil {
+		logs.Error("Error retrieving stap server information")
+	}
 	logs.Info("Checking Sniffer status for uuid: "+uuid)
 	  
 	running, pid, cpu, mem := GetStatusSnifferSSH(uuid)
@@ -49,6 +52,7 @@ func GetStatusSniffer(uuid string)(running bool, status bool){
 	return running, false
 }
 
+//check CPU status
 func GetStatusCPU(owlh map[string]string, cpu string, uuid string)(status bool){
 	var validCPU = regexp.MustCompile(`(\d+)`+cpu+`;`)
 	if validCPU == nil{
@@ -56,7 +60,7 @@ func GetStatusCPU(owlh map[string]string, cpu string, uuid string)(status bool){
 	}
 	localCPU, _ := strconv.ParseFloat(cpu, 64)
 	ddbbCPU, _ := strconv.ParseFloat(owlh["max_cpu"], 64)
-	logs.Error("Check CPU for "+owlh["name"]+" - "+owlh["ip"])
+	logs.Info("Check CPU for "+owlh["name"]+" - "+owlh["ip"])
 	if localCPU>ddbbCPU{
 		logs.Error("SNIFFER -> Too much CPU on "+owlh["name"]+" - "+owlh["ip"])
 		StopSniffer(uuid)
@@ -65,6 +69,7 @@ func GetStatusCPU(owlh map[string]string, cpu string, uuid string)(status bool){
 	return true
 }
 
+//check MEM status
 func GetStatusMEM(owlh map[string]string, mem string, uuid string)(status bool){
 	var validMEM = regexp.MustCompile(`(\d+)`+mem+`;`)
 	if validMEM == nil{
@@ -72,7 +77,7 @@ func GetStatusMEM(owlh map[string]string, mem string, uuid string)(status bool){
 	}
 	localMEM, _ := strconv.ParseFloat(mem, 64)
 	ddbbMEM, _ := strconv.ParseFloat(owlh["max_mem"], 64)
-	logs.Error("Check MEM for "+owlh["name"]+" - "+owlh["ip"])
+	logs.Info("Check MEM for "+owlh["name"]+" - "+owlh["ip"])
 	if localMEM>ddbbMEM{
 		logs.Error("SNIFFER -> Too much MEM on "+owlh["name"]+" - "+owlh["ip"])
 		StopSniffer(uuid)
@@ -81,6 +86,7 @@ func GetStatusMEM(owlh map[string]string, mem string, uuid string)(status bool){
 	return true
 }	
 
+//check STORAGE status
 func GetStatusStorage(owlh map[string]string, uuid string)(status bool){
 	var pcapPath = owlh["pcap_path"]
 	status, path, storage := GetStatusStorageSSh(uuid, pcapPath)
@@ -99,54 +105,50 @@ func GetStatusStorage(owlh map[string]string, uuid string)(status bool){
 	return false
 }	
 
+//launch the sniffer
 func RunSniffer(uuid string)(){
-	// RunSnifferSSH(owlh, ssh, conf("default"), conf("capture_time"), conf("pcap_path"), conf("filter_path"), conf("owlh_user"))
 	RunSnifferSSH(uuid)
 }
 
+//stop the sniffer
 func StopSniffer(uuid string)(){
 	StopSnifferSSH(uuid)
 }
 
+//get pcap file list forfrom remote node
 func GetFileList(uuid string)(){
-	owlh := ndb.GetStapServerInformation(uuid)
+	owlh, err := ndb.GetStapServerInformation(uuid)
+	if err != nil {
+		logs.Error("Error retrieving stap server information")
+	}
 	logs.Error("Get file list for "+owlh["name"]+" - "+owlh["ip"])
 	file_list := GetFileListSSH(uuid,owlh, owlh["pcap_path"])
 	for file := range file_list {
 		var validOutput = regexp.MustCompile(`\.pcap+`)
 		if validOutput.MatchString(file_list[file]) {
-			//logs.Debug(file_list[file])
 			logs.Notice("Change remote file owned")
 			OwnerOwlh(uuid, owlh, file_list[file])
 			
 			logs.Notice("Copy files using sftp command and remove it!!")
 			TransportFile(uuid, owlh, file_list[file])
 			
-			// logs.Info("Delete remote files")
-			// RemoveFile(uuid, owlh, file_list[file])
-
 			logs.Warn("File list completed!")
 		}
 	}
 
 }
 
+//change pcap remote file owner
 func OwnerOwlh(uuid string, owlh map[string]string, fileRemote string)(){
-	logs.Error("Set "+owlh["name"]+" - "+owlh["ip"]+" as owner of file "+owlh["owlh_user"])
+	logs.Info("Set "+owlh["name"]+" - "+owlh["ip"]+" as owner of file "+owlh["owlh_user"])
 	OwnerOwlhSSH(uuid, owlh, fileRemote)
 }
 
+//send remote file to local machine
 func TransportFile(uuid string, owlh map[string]string, file string)(){
-	logs.Error("Get file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
+	logs.Info("Get file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
 	TransportFileSSH(uuid, owlh, file)
 }
-
-// func RemoveFile(uuid string, owlh map[string]string, file string)(){
-// 	logs.Error("Remove file "+owlh["local_pcap_path"]+" from "+owlh["name"]+" - "+owlh["ip"])
-// 	RemoveFileSSH(uuid, owlh, file)
-// }
-
-
 
 
 

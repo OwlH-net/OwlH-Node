@@ -18,8 +18,12 @@ type WazuhController struct {
 // @router / [get]
 func (m *WazuhController) Get() {
     logs.Info ("Wazuh controller -> GET")
-	mstatus := models.GetWazuh()
+	mstatus, err := models.GetWazuh()
 	m.Data["json"] = mstatus
+	if err != nil {
+        logs.Info("GetWazuh OUT -- ERROR : %s", err.Error())
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     m.ServeJSON()
 }
 

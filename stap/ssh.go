@@ -24,12 +24,14 @@ import (
 	//"github.com/tmc/scp"
 )
 
+//Run a command over the active ssh session
 func RunCMD(uuid string, cmd string)(status bool, data string){
 	logs.Info("Connect ssh from RunCMD")
 	var CMDoutput []byte
+
+	//check if server is alive 
 	alive, sshValue := owlh_connect(uuid)
 	if !alive{
-		//sshValue.Close()
 		return false, ""
 	}
 	logs.Info("Command to exec --> "+cmd)
@@ -45,16 +47,24 @@ func RunCMD(uuid string, cmd string)(status bool, data string){
 	}
 }
 
+//connect to remote server throught ssh
 func owlh_connect(uuid string)(alive bool, sshValue *ssh.Session){
+	var err error
     loadData := map[string]map[string]string{}
 	loadData["stapPubKey"] = map[string]string{}
     loadData["stapPubKey"]["user"] = ""
     loadData["stapPubKey"]["cert"] = ""
-    loadData = utils.GetConf(loadData)
+	loadData,err = utils.GetConf(loadData)
     userSSH := loadData["stapPubKey"]["user"]
-    cert := loadData["stapPubKey"]["cert"]
+	cert := loadData["stapPubKey"]["cert"]
+	if err != nil {
+		logs.Error("owlh_connect Error getting data from main.conf")
+	}
 
-	owlh := ndb.GetStapServerInformation(uuid)
+	owlh,err := ndb.GetStapServerInformation(uuid)
+	if err != nil {
+		logs.Error("Error retrieving stap server information")
+	}
 	logs.Info("Name: "+owlh["name"]+" IP: "+owlh["ip"])
 
     // //Declare ssh config
@@ -62,10 +72,8 @@ func owlh_connect(uuid string)(alive bool, sshValue *ssh.Session){
         User: userSSH,
         Auth: []ssh.AuthMethod{
             PublicKeyFile(cert),
-            // PublicKey(pk),
         },
         HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-        //Timeout: time.Duration(10)*time.Second,
     }
     logs.Warn("SSH Config declared!! -->"+owlh["ip"])
     client, err := ssh.Dial("tcp", owlh["ip"]+":22", sshConfig)
@@ -79,21 +87,20 @@ func owlh_connect(uuid string)(alive bool, sshValue *ssh.Session){
     //Launch new session
     session, err := client.NewSession()
 	if err != nil {
-        logs.Info("New Session Error: "+err.Error())
+        logs.Error("New Session Error: "+err.Error())
 		session.Close()
 		return false, nil
     }
-    // defer session.Close()
     logs.Info("New session has been established")
     return true, session //return session
 }
 
+//read public key for ssh configuration
 func PublicKeyFile(file string) ssh.AuthMethod {
 	buffer, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil
 	}
-
 	key, err := ssh.ParsePrivateKey(buffer)
 	if err != nil {
 		return nil
@@ -101,8 +108,8 @@ func PublicKeyFile(file string) ssh.AuthMethod {
 	return ssh.PublicKeys(key)
 }
 
+//Get sniffer status of CPU, MEM and PID
 func GetStatusSnifferSSH(uuid string)(status bool, pid string, cpu string, mem string ){
-	// logs.Info("Checking if sniffer is working in "+owlh["name"]+" - "+owlh["ip"])
 	cmd:="top -b -n1 | grep -v sudo | grep tcpdump | awk '{print $1 \",\" $9 \",\" $10}'"
 	output := ""
 	status, output = RunCMD(uuid,cmd)
@@ -115,7 +122,6 @@ func GetStatusSnifferSSH(uuid string)(status bool, pid string, cpu string, mem s
 		cpu = splitValue[1]
 		mem = splitValue[2]
 		if pid != "" {
-			// logs.Info("Sniffer PID: "+pid+" is working in "+owlh["name"]+" - "+owlh["ip"])
 			logs.Info("Sniffer PID: "+pid+" is working")
 			return true, pid, cpu, mem
 		}
@@ -124,36 +130,36 @@ func GetStatusSnifferSSH(uuid string)(status bool, pid string, cpu string, mem s
 	return false, "","",""
 }
 
+//Get status, path and storage available of the remote server
 func GetStatusStorageSSh(uuid string, folder string)(status bool, path string, storage string){
 	logs.Info("Checking if storage is OK in "+uuid)
 	cmd:="df -h "+folder+" --output=source,pcent | grep -v Filesystem | awk '{print $1 \",\" $2}'"
 	output := ""
 	status, output = RunCMD(uuid,cmd)
 	logs.Info("Output Run CMD -->"+output)
-	if regexp.MustCompile(`[^,]+,\d+%`+output+`;`) != nil{
+	var validOutput = regexp.MustCompile(`[^,]+,\d+%`)
+	if validOutput.MatchString(output) {
 		splitValue := strings.Split(output,",")
-		// // // //splitValue := strings.Fields(output)
-		logs.Info("sPLITvALUE: "+splitValue[0]+" ///// "+splitValue[1])
-		// path = splitValue[0]
-		// storage = splitValue[1]
-		// logs.Info("Device: "+path+" Percentage: "+storage)
 		return true, splitValue[0], splitValue[1]
 	}
 	return false, "", ""
-	// return true, "/etc/","18%"
 }
 
+//launch tcpdump when server is launched
 func RunSnifferSSH(uuid string)(){
 	logs.Info("Launching Sniffer...")
-	owlh := ndb.GetStapServerInformation(uuid)
+	owlh,err := ndb.GetStapServerInformation(uuid)
+	if err != nil {
+		logs.Error("Error retrieving stap server information")
+	}
 	cmd := "nohup sudo tcpdump -i "+owlh["default_interface"]+" -G "+owlh["capture_time"]+" -w "+owlh["pcap_path"]+"`hostname`-%y%m%d%H%M%S.pcap -F "+owlh["filter_path"]+" -z "+owlh["owlh_user"]+" >/dev/null 2>&1 &"
-	//logs.Debug(cmd)
 	status, output := RunCMD(uuid,cmd)
 	if status {
 		logs.Info("Sniffer is Running for server "+owlh["name"]+" - "+owlh["ip"]+". Output--> "+output)
 	}
 }
 
+//kill PID of tcpdump when server is stopped
 func StopSnifferSSH(uuid string)(){
 	logs.Info(uuid+"Stopping Sniffer...")
 	cmd := "ps -ef | grep -v grep | grep tcpdump | awk '{print $2}'"
@@ -173,42 +179,39 @@ func StopSnifferSSH(uuid string)(){
 	}
 }
 
+//get all pcap files older than a minute
 func GetFileListSSH(uuid string, owlh map[string]string, path string)(list []string){
-	//logs.Debug(uuid+" Getting file list...")
 	cmd := "find "+owlh["pcap_path"]+"*.pcap -maxdepth 0 -type f -mmin +1|sed 's#.*/##'| awk '{printf $1 \",\"}'"
     output := ""
 	_, output = RunCMD(uuid,cmd)
-
 	splitValue := strings.Split(output,",")
 	return splitValue
 }
 
+//change owner of remote files
 func OwnerOwlhSSH(uuid string, owlh map[string]string, fileRemote string)(){
 	logs.Info(uuid+" Change remote file owner: "+ fileRemote)
 	var validOutput = regexp.MustCompile(`\.pcap+`)
 	if validOutput.MatchString(fileRemote) {
-		// cmd := "sudo chown "+owlh["owlh_user"]+" "+fileRemote
 		cmd := "sudo chown "+owlh["owlh_user"]+" "+owlh["pcap_path"]+fileRemote
 		logs.Alert("Command for change owner file--> "+cmd)
 		RunCMD(uuid,cmd)
 	}
 }
 
+//use  sftp to transfer files from remote to local machine
 func TransportFileSSH(uuid string, owlh map[string]string, file string)(){
 	logs.Info(uuid+" Transport remote file: "+ file+" to local machine")
 	var validOutput = regexp.MustCompile(`\.pcap+`)
 	if validOutput.MatchString(file) {
-
-		//exec scp local
-
-		//cmd := "sudo scp -r "+owlh["owlh_user"]+"@"+owlh["pcap_path"]+":"+owlh["pcap_path"]+" "+owlh["local_pcap_path"]+""
 		status := SftpCMD(uuid, owlh["pcap_path"]+file, owlh["local_pcap_path"]+file)
 		logs.Info("Output CMD TransportFileSSH: "+file+" - "+strconv.FormatBool(status))
 	}
 }
 
+//When a files is copied from remote to local machine, the remote file is removed
 func RemoveFileSSH(uuid string, owlh map[string]string, file string)(){
-	logs.Info(uuid+" Remove remote files")
+	logs.Info("Remove remote files "+uuid)
 	var validOutput = regexp.MustCompile(`\.pcap+`)
 	if validOutput.MatchString(file) {
 		cmd := "sudo rm "+file+""
@@ -217,16 +220,15 @@ func RemoveFileSSH(uuid string, owlh map[string]string, file string)(){
 	}
 }
 
-
+//Copy remote file by sftp and remove them
 func SftpCMD(uuid string, srcFile string, dstFile string)(status bool){
-	logs.Notice("SFTP_CMD")
 	logs.Info("Connect sftp SftpCMD")
 	alive, sshClient:= owlh_connect_client(uuid)
 	if !alive{
 		return false
 	}
 
-	logs.Notice("NewClient")
+	logs.Info("NewClient")
 	sftp, err := sftp.NewClient(sshClient)
 	if err != nil {
 		logs.Error(err)
@@ -235,7 +237,7 @@ func SftpCMD(uuid string, srcFile string, dstFile string)(status bool){
 	defer sftp.Close()
 
 	// Open the source file
-	logs.Notice("Open Remote File")
+	logs.Info("Open Remote File")
 	remoteFile, err := sftp.Open(srcFile)
 	if err != nil {
 		logs.Error(err)
@@ -244,7 +246,7 @@ func SftpCMD(uuid string, srcFile string, dstFile string)(status bool){
 	defer remoteFile.Close()
 
 	// Create the destination file
-	logs.Notice("Create DST file")
+	logs.Info("Create DST file")
 	localFile, err := os.Create(dstFile)
 	if err != nil {
 		logs.Error(err)
@@ -253,43 +255,45 @@ func SftpCMD(uuid string, srcFile string, dstFile string)(status bool){
 	defer localFile.Close()
 
 	// Copy the file
-	logs.Notice("Copy file")
+	logs.Info("Copy file")
 	remoteFile.WriteTo(localFile)
 
 	//remove remote file
-	logs.Notice("Delete remote file")
+	logs.Info("Delete remote file")
 	err = sftp.Remove(srcFile)
 	if err != nil {
 		logs.Error(err)
 		return false
 	}
-	
 	return true
 }
 
+//get certs from main.conf and create a ssh connection for make sftp
 func owlh_connect_client(uuid string)(alive bool, sshClient *ssh.Client){
+	var err error
     loadData := map[string]map[string]string{}
 	loadData["stapPubKey"] = map[string]string{}
     loadData["stapPubKey"]["user"] = ""
     loadData["stapPubKey"]["cert"] = ""
-    loadData = utils.GetConf(loadData)
+    loadData,err = utils.GetConf(loadData)
     userSSH := loadData["stapPubKey"]["user"]
-    cert := loadData["stapPubKey"]["cert"]
+	cert := loadData["stapPubKey"]["cert"]
+	if err != nil {
+		logs.Error("owlh_connect_client Error getting data from main.conf")
+	}
 
-	owlh := ndb.GetStapServerInformation(uuid)
-	logs.Info("Name: "+owlh["name"]+" IP: "+owlh["ip"])
-
+	owlh,err := ndb.GetStapServerInformation(uuid)
+	if err != nil {
+		logs.Error("Error retrieving stap server information")
+	}
     // //Declare ssh config
     sshConfig := &ssh.ClientConfig{
         User: userSSH,
         Auth: []ssh.AuthMethod{
             PublicKeyFile(cert),
-            // PublicKey(pk),
         },
         HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-        //Timeout: time.Duration(10)*time.Second,
     }
-    logs.Warn("SSH Config declared!! -->"+owlh["ip"])
     client, err := ssh.Dial("tcp", owlh["ip"]+":22", sshConfig)
     if err != nil {
         logs.Error("SSH Dial Error: "+err.Error())

@@ -6,8 +6,11 @@ import (
 )
 
 
-func GetZeek() (status map[string]bool) {
-	return zeek.Installed()
+func GetZeek() (status map[string]bool, err error) {
+	logs.Info("Check whether Zeek is Installed!!")
+	status,err = zeek.Installed()
+	logs.Warn(status)
+	return status,err
 }
 
 func RunZeek() (data string, err error) {

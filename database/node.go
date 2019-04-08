@@ -43,9 +43,7 @@ func GetNode(nid string) (n *Node, err error) {
     logs.Info("DB -> Get Node")
     var node Node
     if Db != nil {
-//        rows, err := Db.Query("SELECT * FROM master WHERE master_id=1;")
 		row := Db.QueryRow("SELECT * FROM node WHERE node_id=%s;",nid)
-		// defer row.Close()
         logs.Info ("DB -> Row %s", row)
         err = row.Scan(&node.NId, &node.NName, &node.NIp, &node.NPort, &node.NType, &node.NUUID)
         if err == sql.ErrNoRows {

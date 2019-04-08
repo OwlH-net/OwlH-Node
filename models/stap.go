@@ -22,12 +22,14 @@ func GetServer(serveruuid string)(servers *map[string]map[string]string, err err
     return servers,err
 }
 
-func PingStap(uuid string) (status map[string]bool) {
-	return stap.PingStap(uuid)
+func PingStap(uuid string) (status map[string]bool, err error) {
+	status, err = stap.PingStap(uuid)
+	return status, err
 }
 
-func PingServerStap(server string) (status map[string]bool) {
-	return stap.PingServerStap(server)
+func PingServerStap(server string) (status map[string]string, err error) {
+	status, err = stap.PingServerStap(server)
+	return status, err
 }
 
 func RunStap(uuid string) (data string, err error) {
@@ -45,6 +47,11 @@ func StopStap(uuid string) (data string, err error) {
 func RunStapServer(serveruuid string) (data string, err error) {
     logs.Info("Run RunStapServer system into node server")
     data,err = stap.RunStapServer(serveruuid)
+    return data,err
+}
+
+func DeleteStapServer(serveruuid string) (data string, err error) {
+    data,err = stap.DeleteStapServer(serveruuid)
     return data,err
 }
 
