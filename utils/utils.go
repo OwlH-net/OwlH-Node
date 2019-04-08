@@ -7,7 +7,8 @@ import (
     //"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
     "io/ioutil"
-    // "io"
+	"io"
+	"errors"
     // "strings"
     "os"
     "time"
@@ -138,4 +139,61 @@ func LoadDefaultServerData(fileName string)(json map[string]string, err error){
     }
     fileContent["fileContent"] = string(rawData)
     return fileContent,nil
+}
+
+func CopyFile(dstfolder string, srcfolder string, file string, BUFFERSIZE int64) (err error) {
+	if BUFFERSIZE == 0{
+		BUFFERSIZE = 1000
+	}
+	sourceFileStat, err := os.Stat(srcfolder+file)
+    if err != nil {
+        logs.Error("Error -> " + err.Error())
+        return err
+	}
+    if !sourceFileStat.Mode().IsRegular() {
+        logs.Error("%s is not a regular file.", sourceFileStat)
+        return errors.New(sourceFileStat.Name()+" is not a regular file.")
+    } 
+    source, err := os.Open(srcfolder+file)
+    if err != nil {
+        return err
+    }
+    defer source.Close()
+    _, err = os.Stat(dstfolder+file)
+    if err == nil {
+        return errors.New("File "+dstfolder+file+" already exists.")
+    }
+    destination, err := os.Create(dstfolder+file)
+    if err != nil {
+        logs.Error("Error Create =-> "+err.Error())
+        return err
+    }
+    defer destination.Close()
+    logs.Info("copy file -> "+srcfolder+file)
+    logs.Info("to file -> "+dstfolder+file)
+    buf := make([]byte, BUFFERSIZE)
+    for {
+        n, err := source.Read(buf)
+        if err != nil && err != io.EOF {
+            logs.Error("Error no EOF=-> "+err.Error())
+            return err
+        }
+        if n == 0 {
+            break
+        }
+        if _, err := destination.Write(buf[:n]); err != nil {
+            logs.Error("Error Write File =-> "+err.Error())
+            return err
+        }
+    }
+    return err
+}
+
+func RemoveFile(path string, file string)(err error){
+	err = os.Remove(path+file)
+	if err != nil {
+		logs.Error("Error deleting file "+path+file+": "+err.Error())
+		return err
+	}
+	return nil
 }

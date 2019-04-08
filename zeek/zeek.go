@@ -68,18 +68,20 @@ func ZeekRunning() (running bool) {
     param := loadDataZeekRunning["loadDataZeekRunning"]["param"]
     command := loadDataZeekRunning["loadDataZeekRunning"]["command"]
 	if err != nil {
-		logs.Error("ZeekRunning Error getting data from main.conf: "+err.Error())
+		logs.Error("ZeekRunning Error getting data from main.conf")
 		return false
 	}
-    out, err := exec.Command(command, param, cmd).Output()
-    if err == nil {
-        if strings.Contains(string(out), "running") {
-            logs.Info("Zeek is running --> "+string(out))
-            return true
-        }
-    }
-    logs.Error("Zeek is NOT running -> "+err.Error())
-    return false
+	out, err := exec.Command(command, param, cmd).Output()
+	if err != nil {
+		logs.Error("Zeek is NOT running: "+err.Error())
+		return false
+	}
+	logs.Error("String out zeek Running: "+string(out))
+	if strings.Contains(string(out), "running") {
+		logs.Info("Zeek is now running: "+string(out))
+		return true
+	}
+	return false    
 }
 
 func Installed() (isIt map[string]bool, err error){

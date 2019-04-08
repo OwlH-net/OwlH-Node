@@ -7,7 +7,8 @@ import (
 
 
 func GetSuricata() (status map[string]bool, err error) {
-	return suricata.Installed()
+	status,err = suricata.Installed()
+	return status,err
 }
 /*
 func GetBPF() (currentbpf string) {

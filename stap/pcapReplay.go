@@ -3,7 +3,7 @@ package stap
 import (
     "github.com/astaxie/beego/logs"
     // "godoc.org/golang.org/x/crypto/ssh"
-    "os"
+    // "os"
     "os/exec"
     // "strings"
     // "regexp"
@@ -79,9 +79,13 @@ func Pcap_replay()() {
 			if err != nil{
 				logs.Error("Error exec cmd command "+err.Error())
 			}
-			err = os.Rename(inQueue+f.Name(), outQueue+f.Name())
+			err = utils.CopyFile(outQueue, inQueue, f.Name(), 1000)
 			if err != nil{
 				logs.Error("Error moving file "+err.Error())
+			}
+			err = utils.RemoveFile(inQueue, f.Name())
+			if err != nil {
+				logs.Error("Error removing file "+err.Error())
 			}
 		}
 	}

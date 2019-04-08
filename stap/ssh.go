@@ -74,7 +74,6 @@ func owlh_connect(uuid string)(alive bool, sshValue *ssh.Session){
             PublicKeyFile(cert),
         },
         HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-        //Timeout: time.Duration(10)*time.Second,
     }
     logs.Warn("SSH Config declared!! -->"+owlh["ip"])
     client, err := ssh.Dial("tcp", owlh["ip"]+":22", sshConfig)
@@ -88,7 +87,7 @@ func owlh_connect(uuid string)(alive bool, sshValue *ssh.Session){
     //Launch new session
     session, err := client.NewSession()
 	if err != nil {
-        logs.Info("New Session Error: "+err.Error())
+        logs.Error("New Session Error: "+err.Error())
 		session.Close()
 		return false, nil
     }
@@ -102,7 +101,6 @@ func PublicKeyFile(file string) ssh.AuthMethod {
 	if err != nil {
 		return nil
 	}
-
 	key, err := ssh.ParsePrivateKey(buffer)
 	if err != nil {
 		return nil
@@ -186,7 +184,6 @@ func GetFileListSSH(uuid string, owlh map[string]string, path string)(list []str
 	cmd := "find "+owlh["pcap_path"]+"*.pcap -maxdepth 0 -type f -mmin +1|sed 's#.*/##'| awk '{printf $1 \",\"}'"
     output := ""
 	_, output = RunCMD(uuid,cmd)
-
 	splitValue := strings.Split(output,",")
 	return splitValue
 }
@@ -196,7 +193,6 @@ func OwnerOwlhSSH(uuid string, owlh map[string]string, fileRemote string)(){
 	logs.Info(uuid+" Change remote file owner: "+ fileRemote)
 	var validOutput = regexp.MustCompile(`\.pcap+`)
 	if validOutput.MatchString(fileRemote) {
-		// cmd := "sudo chown "+owlh["owlh_user"]+" "+fileRemote
 		cmd := "sudo chown "+owlh["owlh_user"]+" "+owlh["pcap_path"]+fileRemote
 		logs.Alert("Command for change owner file--> "+cmd)
 		RunCMD(uuid,cmd)
@@ -215,7 +211,7 @@ func TransportFileSSH(uuid string, owlh map[string]string, file string)(){
 
 //When a files is copied from remote to local machine, the remote file is removed
 func RemoveFileSSH(uuid string, owlh map[string]string, file string)(){
-	logs.Info(uuid+" Remove remote files")
+	logs.Info("Remove remote files "+uuid)
 	var validOutput = regexp.MustCompile(`\.pcap+`)
 	if validOutput.MatchString(file) {
 		cmd := "sudo rm "+file+""
@@ -269,7 +265,6 @@ func SftpCMD(uuid string, srcFile string, dstFile string)(status bool){
 		logs.Error(err)
 		return false
 	}
-	
 	return true
 }
 
@@ -291,8 +286,6 @@ func owlh_connect_client(uuid string)(alive bool, sshClient *ssh.Client){
 	if err != nil {
 		logs.Error("Error retrieving stap server information")
 	}
-	logs.Info("Name: "+owlh["name"]+" IP: "+owlh["ip"])
-
     // //Declare ssh config
     sshConfig := &ssh.ClientConfig{
         User: userSSH,
@@ -301,7 +294,6 @@ func owlh_connect_client(uuid string)(alive bool, sshClient *ssh.Client){
         },
         HostKeyCallback: ssh.InsecureIgnoreHostKey(),
     }
-    logs.Warn("SSH Config declared!! -->"+owlh["ip"])
     client, err := ssh.Dial("tcp", owlh["ip"]+":22", sshConfig)
     if err != nil {
         logs.Error("SSH Dial Error: "+err.Error())
