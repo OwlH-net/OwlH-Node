@@ -80,7 +80,7 @@ func AddServer(elem map[string]string) (err error){
 	return nil
 }
 
-func GetAllServers()(data *map[string]map[string]string, err error){
+func GetAllServers()(data map[string]map[string]string, err error){
 	var uniqueid string
 	var param string
 	var value string
@@ -107,10 +107,10 @@ func GetAllServers()(data *map[string]map[string]string, err error){
         if allservers[uniqueid] == nil { allservers[uniqueid] = map[string]string{}}
         allservers[uniqueid][param]=value
 	} 
-	return &allservers, nil
+	return allservers, nil
 } 
 
-func GetServer(serveruuid string)(data *map[string]map[string]string, err error){
+func GetServer(serveruuid string)(data map[string]map[string]string, err error){
 	var uniqueid string
 	var param string
 	var value string
@@ -137,7 +137,7 @@ func GetServer(serveruuid string)(data *map[string]map[string]string, err error)
         if allservers[uniqueid] == nil { allservers[uniqueid] = map[string]string{}}
 		allservers[uniqueid][param]=value
 	} 
-	return &allservers, nil
+	return allservers, nil
 } 
 
 

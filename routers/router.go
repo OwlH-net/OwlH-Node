@@ -39,6 +39,11 @@ func init() {
 				&controllers.StapController{},
 			),
 		),
+		beego.NSNamespace("/ping",
+			beego.NSInclude(
+				&controllers.PingController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
