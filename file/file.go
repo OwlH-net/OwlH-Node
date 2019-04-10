@@ -2,13 +2,8 @@ package file
 
 import (
     "github.com/astaxie/beego/logs"
-    // "os"
-    // "os/exec"
-    // "strings"
-    // "regexp"
     "owlhnode/utils"
     "io/ioutil"
-    // "encoding/json"
 )
 
 //read file and send back to webpage

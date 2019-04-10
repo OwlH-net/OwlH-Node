@@ -9,10 +9,6 @@ import (
     "owlhnode/database"
 	"owlhnode/stap"
 	"owlhnode/utils"
-    // "sync"
-    // "owlhnode/suricata"
-    // "owlhnode/wazuh"
-    //"owlhnode/zeek"
 )
 
 func main() {
@@ -41,7 +37,6 @@ func main() {
 	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     ndb.SConn()
-    ndb.Conn()
 
     //Launch StapInit for 1st time for check status and go concurrency if status==true
     stap.StapInit()

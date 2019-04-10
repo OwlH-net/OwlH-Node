@@ -1,15 +1,12 @@
 package utils
 
 import (
-    //"owlhnode/models"
     "encoding/json"
     "strconv"
-    //"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
     "io/ioutil"
 	"io"
 	"errors"
-    // "strings"
     "os"
     "time"
     "os/exec"

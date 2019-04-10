@@ -8,8 +8,6 @@ import (
     "regexp"
 	"owlhnode/utils"
 	"errors"
-    // "fmt"
-    // "io/ioutil"
 )
 
 //Retrieve suricata path from main.conf

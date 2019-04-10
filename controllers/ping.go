@@ -1,11 +1,7 @@
 package controllers
 
 import (
-	// "owlhnode/models"
-	// "encoding/json"
-	// "strconv"
 	"github.com/astaxie/beego"
-    // "github.com/astaxie/beego/logs"
 )
 
 type PingController struct {

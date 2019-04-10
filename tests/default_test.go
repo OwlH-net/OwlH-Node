@@ -6,8 +6,6 @@ import (
 	"testing"
 	"runtime"
 	"path/filepath"
-	_ "owlhnode/routers"
-
 	"github.com/astaxie/beego"
 	. "github.com/smartystreets/goconvey/convey"
 )
