@@ -75,7 +75,6 @@ func BackupFullPath(path string) (err error) {
     }
     return nil
 }
-    
 
 func BackupFile(path string, fileName string) (err error) { 
     t := time.Now()
