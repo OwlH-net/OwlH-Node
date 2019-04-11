@@ -16,7 +16,6 @@ type SuricataController struct {
 // @Success 200 {object} models.suricata
 // @router / [get]
 func (n *SuricataController) Get() {
-    logs.Info ("Suricata controller -> GET")
 	mstatus, err := models.GetSuricata()
     
 	n.Data["json"] = mstatus
@@ -27,43 +26,34 @@ func (n *SuricataController) Get() {
     n.ServeJSON()
 }
 
-
-/*
 // @Title Get Suricata BPF
-// @Description get Surucata BPF
+// @Description get Suricata BPF from filter.bpf file
 // @Success 200 {object} models.suricata
 // @router /bpf [get]
-func (m *SuricataController) GetBPF() {
-    logs.Info ("Suricata controller -> GET BPF")
-    currentBPF := models.GetBPF()
-    m.Data["json"] = map[string]string{"current": currentBPF}
-    m.ServeJSON()
+func (n *SuricataController) GetBPF() {
+    bpf,err := models.GetBPF()
+    n.Data["json"] = bpf
+    if err != nil {
+        logs.Info("GetBPF OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+	n.ServeJSON()
 }
-*/
-
-
 
 // @Title PUT Suricata BPF
-// @Description Set Surucata BPF into filter.bpf file
+// @Description Set Suricata BPF into filter.bpf file
 // @Success 200 {object} models.suricata
 // @router /bpf [put]
 func (n *SuricataController) SetBPF() {
-    logs.Info ("Suricata controller -> SET BPF")
-    
     var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    data,err := models.SetBPF(anode)
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.SetBPF(anode)
 
-    n.Data["json"] = map[string]string{"bpf Node": data}
-
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         logs.Info("BPF JSON RECEIVED -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-
-    //newBPF := m.Ctx.Input.Param(":bpf")
-    //isSetBPF := models.SetBPF(newBPF)
-    n.Data["json"] = map[string]string{"status": "true"}
     n.ServeJSON()
 }
 
@@ -73,7 +63,6 @@ func (n *SuricataController) SetBPF() {
 // @Failure 403 body is empty
 // @router /retrieve [put]
 func (n *SuricataController) RetrieveFile() {
-    logs.Info("retrieve -> In")
     var anode map[string][]byte
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.RetrieveFile(anode)
@@ -83,7 +72,6 @@ func (n *SuricataController) RetrieveFile() {
         logs.Info("Ruleset retrieve OUT -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-    logs.Info("retrieve -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -93,14 +81,12 @@ func (n *SuricataController) RetrieveFile() {
 // @Failure 403 body is empty
 // @router /RunSuricata [put]
 func (n *SuricataController) RunSuricata() {
-    logs.Info("RunSuricata -> In")
     data,err := models.RunSuricata()
     n.Data["json"] = data
     if err != nil {
         logs.Info("RunSuricata OUT -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-    logs.Info("RunSuricata -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -110,13 +96,11 @@ func (n *SuricataController) RunSuricata() {
 // @Failure 403 body is empty
 // @router /StopSuricata [put]
 func (n *SuricataController) StopSuricata() {
-    logs.Info("StopSuricata -> In")
     data,err := models.StopSuricata()
     n.Data["json"] = data
     if err != nil {
         logs.Info("StopSuricata OUT -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-    logs.Info("StopSuricata -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }

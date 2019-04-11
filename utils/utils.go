@@ -16,10 +16,10 @@ import (
 
 //read data from main.conf
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
-    confFilePath := "/etc/owlh/conf/main.conf"
+    confFilePath := "./conf/main.conf"
     jsonPathBpf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file -> " + confFilePath)
+        logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
         return nil, err
 	}
 
@@ -44,15 +44,22 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
 	if err != nil {
 		logs.Error("Error truncate BPF file: "+err.Error())
 		return err
-    }
-    //write new bpf content
-    newBPF, err := os.OpenFile(path+file, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
-    if err != nil {
-		logs.Error("Error opening new BPF file: "+err.Error())
-        os.Exit(-1)
-        return err
 	}
-	defer newBPF.Close()
+
+	//write new bpf content
+	bpfByteArray := []byte(bpf)
+	err = WriteNewDataOnFile(path+file, bpfByteArray)
+	if err != nil {
+		logs.Error("Error writing new BPF data into file: "+err.Error())
+		return err
+	}
+    // newBPF, err := os.OpenFile(path+file, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
+    // if err != nil {
+	// 	logs.Error("Error opening new BPF file: "+err.Error())
+    //     os.Exit(-1)
+    //     return err
+	// }
+	// defer newBPF.Close()
     return nil
 }
 
@@ -63,7 +70,7 @@ func BackupFullPath(path string) (err error) {
     cpCmd := exec.Command("cp", path, destFolder)
     err = cpCmd.Run()
     if err != nil{
-        logs.Error("BackupFullPath Erro exec cmd command")
+        logs.Error("BackupFullPath Erro exec cmd command: "+err.Error())
         return err
     }
     return nil
@@ -78,7 +85,7 @@ func BackupFile(path string, fileName string) (err error) {
     cpCmd := exec.Command("cp", srcFolder, destFolder)
     err = cpCmd.Run()
     if err != nil{
-        logs.Error("BackupFile Erro exec cmd command")
+        logs.Error("BackupFile Error exec cmd command: "+err.Error())
         return err
     }
     return nil
@@ -96,14 +103,15 @@ func WriteNewDataOnFile(path string, data []byte)(err error){
 
 //Read files 
 func GetConfFiles()(loadDataReturn map[string]string, err error) { 
-    confFilePath := "/etc/owlh/conf/main.conf"
+    confFilePath := "./conf/main.conf"
     JSONconf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file -> " + confFilePath)
+        logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
         return nil, err
     }
     var anode map[string]map[string]string
-    json.Unmarshal(JSONconf, &anode)
+	json.Unmarshal(JSONconf, &anode)
+	logs.Debug(anode["files"])
     return anode["files"], nil
 }
 
@@ -125,13 +133,13 @@ func LoadDefaultServerData(fileName string)(json map[string]string, err error){
     loadData["files"][fileName] = ""
 	loadData,err = GetConf(loadData)
 	if err != nil {
-		logs.Error("LoadDefaultServerData Error getting data from main.conf")
+		logs.Error("LoadDefaultServerData Error getting data from main.conf: "+err.Error())
 		return nil, err
 	}
     fileContent := make(map[string]string)
     rawData, err := ioutil.ReadFile(loadData["files"][fileName])
     if err != nil {
-		logs.Error("LoadDefaultServerData Error reading file")
+		logs.Error("LoadDefaultServerData Error reading file: "+err.Error())
         return nil,err
     }
     fileContent["fileContent"] = string(rawData)
@@ -144,7 +152,7 @@ func CopyFile(dstfolder string, srcfolder string, file string, BUFFERSIZE int64)
 	}
 	sourceFileStat, err := os.Stat(srcfolder+file)
     if err != nil {
-        logs.Error("Error -> " + err.Error())
+        logs.Error("Error checking file at CopyFile function" + err.Error())
         return err
 	}
     if !sourceFileStat.Mode().IsRegular() {
@@ -179,7 +187,7 @@ func CopyFile(dstfolder string, srcfolder string, file string, BUFFERSIZE int64)
             break
         }
         if _, err := destination.Write(buf[:n]); err != nil {
-            logs.Error("Error Write File =-> "+err.Error())
+            logs.Error("Error Writing File: "+err.Error())
             return err
         }
     }
