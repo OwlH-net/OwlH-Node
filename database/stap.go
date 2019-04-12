@@ -26,7 +26,7 @@ func SConn() {
 	}
 	_, err = os.Stat(path) 
 	if err != nil {
-		panic("Fail opening servers.db from path: "+path)
+		panic("Fail opening servers.db from path: "+path+"  --  "+err.Error())
 	}	
 	Sdb, err = sql.Open(cmd,path)
     if err != nil {
