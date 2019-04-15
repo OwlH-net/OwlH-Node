@@ -52,7 +52,3 @@ func GetStapServerInformation(uuid string)(serverData map[string]string, err err
 	}
 	return stapServer, nil
 }
-
-// func Close() {
-// 	Sdb.Close()
-// }
