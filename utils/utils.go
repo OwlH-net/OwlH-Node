@@ -16,7 +16,7 @@ import (
 
 //read data from main.conf
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
-    confFilePath := "./conf/main.conf"
+    confFilePath := "conf/main.conf"
     jsonPathBpf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
         logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
@@ -53,13 +53,6 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
 		logs.Error("Error writing new BPF data into file: "+err.Error())
 		return err
 	}
-    // newBPF, err := os.OpenFile(path+file, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
-    // if err != nil {
-	// 	logs.Error("Error opening new BPF file: "+err.Error())
-    //     os.Exit(-1)
-    //     return err
-	// }
-	// defer newBPF.Close()
     return nil
 }
 

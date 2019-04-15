@@ -38,6 +38,8 @@ func main() {
 
     ndb.SConn()
 
+	//logs.Error("Version: 0.5.190415.0922")
+
     //Launch StapInit for 1st time for check status and go concurrency if status==true
     stap.StapInit()
     
