@@ -8,8 +8,7 @@ import (
     "regexp"
 	"owlhnode/utils"
 	"errors"
-    // "fmt"
-    // "io/ioutil"
+	"io/ioutil"
 )
 
 //Retrieve suricata path from main.conf
@@ -77,7 +76,7 @@ func suriRunning() (running bool) {
         if strings.Contains(string(out), "suricata") {
             spid := regexp.MustCompile("[0-9]+")
             pid := spid.FindAllString(string(out),1)
-            logs.Info("Suricata is running -> " + string(out))
+            //logs.Info("Suricata is running -> " + string(out))
             logs.Info("Suricata PID -> %s", pid[0])
             return true
         }
@@ -100,15 +99,32 @@ func Installed() (isIt map[string]bool, err error){
         return suricata, errors.New("Suricata isn't present or not running")
     }   
 }
-/*
-func GetBPF()(currentBPF string) {
-    utils.GetConf("bpfPath")
-    return ""
+
+func GetBPF()(bpf string, err error) {
+    logs.Info("Set Suricata BPF -- Making Map")
+	loadData := map[string]map[string]string{}
+	loadData["suricataBPF"] = map[string]string{}
+	loadData["suricataBPF"]["pathBPF"] = ""
+	loadData["suricataBPF"]["fileBPF"] = "" 
+    loadData,err = utils.GetConf(loadData)    
+    path := loadData["suricataBPF"]["pathBPF"]
+	file := loadData["suricataBPF"]["fileBPF"]
+	if err != nil {
+		logs.Error("GetBPF Error getting data from main.conf: "+err.Error())
+		return "",err
+	}
+
+	//read filter.bpf
+	bpfByte, err := ioutil.ReadFile(path+file) // just pass the file name
+    if err != nil {
+        logs.Error("GetBPF Error getting data from filter.bpf: "+err.Error())
+		return "",err
+    }
+	return string(bpfByte),nil
 }
-*/
 
 //set BPF for suricata
-func SetBPF(n map[string]string)(bpf string, err error) {
+func SetBPF(n map[string]string)(err error) {
     logs.Info("Set Suricata BPF -- Making Map")
 	loadData := map[string]map[string]string{}
 	loadData["suricataBPF"] = map[string]string{}
@@ -118,24 +134,25 @@ func SetBPF(n map[string]string)(bpf string, err error) {
     path := loadData["suricataBPF"]["pathBPF"]
     file := loadData["suricataBPF"]["fileBPF"]
 	if err != nil {
-		logs.Error("SetBPF Error getting data from main.conf")
+		logs.Error("SetBPF Error getting data from main.conf: "+err.Error())
+		return err
 	}
 
     //make backup file
     err = utils.BackupFile(path, file)
     if err != nil{
-		logs.Error("Error creating BPF backup...")
-        return "",err    
+		logs.Error("Error creating BPF backup: "+err.Error())
+        return err    
     }
 
     //write bpf into the file
-    textbpf := n["bpf"]
+	textbpf := n["bpf"]
     err = utils.UpdateBPFFile(path, file, textbpf)
     if err != nil{
-		logs.Error("Error writting data into BPF file...")
-        return "",err    
+		logs.Error("Error writting data into BPF file: "+err.Error())
+        return err    
     }
-    return bpf, nil
+    return nil
 }
 
 //Retrieve data, make a backup file and write the new data on the original file
@@ -147,14 +164,14 @@ func RetrieveFile(file map[string][]byte)(err error){
 	//create owlh.rules backup
     err = utils.BackupFile(path, fileToEdit)
     if err != nil{
-		logs.Error("Error creating owlh.rules backup...")
+		logs.Error("Error creating owlh.rules backup: "+err.Error())
         return err    
     }
 	
 	//write new data into owlh.rules file
     err = utils.WriteNewDataOnFile(path+fileToEdit, fileRetrieved)
     if err != nil{
-		logs.Error("Error writting data into owlh.rules file...")
+		logs.Error("Error writting data into owlh.rules file: "+err.Error())
         return err    
     }
     return nil
@@ -172,7 +189,8 @@ func RunSuricata()(data string, err error){
     param := StartSuricata["suriStart"]["param"]
     command := StartSuricata["suriStart"]["command"]
 	if err != nil {
-		logs.Error("RunSuricata Error getting data from main.conf")
+		logs.Error("RunSuricata Error getting data from main.conf: "+err.Error())
+		return "",err
 	}
 
     _,err = exec.Command(command, param, cmd).Output()

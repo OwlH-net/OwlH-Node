@@ -3,7 +3,6 @@ package controllers
 import (
 	"owlhnode/models"
 	"encoding/json"
-	// "strconv"
 	"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
 )
@@ -191,5 +190,22 @@ func (n *StapController) DeleteStapServer() {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     logs.Info("DeleteStapServer -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}
+
+// @Title EditStapServer
+// @Description Edit specific Stap server
+// @Success 200 {object} models.Stap
+// @Failure 403 body is empty
+// @router /EditStapServer [put]
+func (n *StapController) EditStapServer() {
+    var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.EditStapServer(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Info("EditStapServer OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     n.ServeJSON()
 }

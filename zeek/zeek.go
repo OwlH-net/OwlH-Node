@@ -5,10 +5,8 @@ import (
     "os"
     "os/exec"
     "strings"
-    // "regexp"
 	"owlhnode/utils"
 	"errors"
-	// "strconv"
 )
 
 func ZeekPath() (exists bool) {

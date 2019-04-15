@@ -17,8 +17,6 @@ type FileController struct {
 // @Failure 403 body is empty
 // @router /:fileName [get]
 func (n *FileController) SendFile() {
-	logs.Info("send -> In")
-    //fileName := n.Ctx.Input.Param(":fileName")
     fileName := n.GetString(":fileName")
     data, err := models.SendFile(fileName)
 
@@ -37,8 +35,6 @@ func (n *FileController) SendFile() {
 // @Failure 403 body is empty
 // @router / [put]
 func (n *FileController) SaveFile() {
-    logs.Info("save -> In")   
-
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.SaveFile(anode)

@@ -3,11 +3,9 @@ package ndb
 import (
     "github.com/astaxie/beego/logs"
     "database/sql"
-//    "fmt"
-//   "time"
-    _ "github.com/mattn/go-sqlite3"
-    // "errors"
-    "owlhnode/utils"
+	"os"
+	"owlhnode/utils"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -16,24 +14,26 @@ var (
 
 func SConn() {
     var err error
-
-    //Retrieve path and command for open sql.
 	loadDataSQL := map[string]map[string]string{}
 	loadDataSQL["stapConn"] = map[string]string{}
 	loadDataSQL["stapConn"]["path"] = ""
 	loadDataSQL["stapConn"]["cmd"] = "" 
 	loadDataSQL, err = utils.GetConf(loadDataSQL)    
     path := loadDataSQL["stapConn"]["path"]
-    cmd := loadDataSQL["stapConn"]["cmd"]
+	cmd := loadDataSQL["stapConn"]["cmd"]
 	if err != nil {
 		logs.Error("Sconn Error getting data from main.conf")
 	}
-	
-    Sdb, err = sql.Open(cmd,path)
+	_, err = os.Stat(path) 
+	if err != nil {
+		panic("Fail opening servers.db from path: "+path+"  --  "+err.Error())
+	}	
+	Sdb, err = sql.Open(cmd,path)
     if err != nil {
-        panic("sdb/servers -- DB Open Failed")
-    }
-    logs.Info("sdb/servers -- DB -> sql.Open, DB Ready") 
+        logs.Error("sdb/stap -- servers.db Open Failed: "+err.Error())
+    }else {
+		logs.Info("sdb/stap -- servers.db -> sql.Open, servers.db Ready") 
+	}
 }
 
 func GetStapServerInformation(uuid string)(serverData map[string]string, err error){

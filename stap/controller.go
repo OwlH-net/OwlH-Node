@@ -2,25 +2,12 @@ package stap
 
 import (
     "github.com/astaxie/beego/logs"
-    // "godoc.org/golang.org/x/crypto/ssh"
-    // "os"
-    // "os/exec"
     "strings"
     "regexp"
-  	// "owlhnode/utils"
   	"owlhnode/database"
-	//   "io/ioutil"
-	  //"errors"
-      //"encoding/json"
-      "time"
-      "strconv"
-    //   "errors"
-      //"ssh.CleintConfig"
-    //   "code.google.com/p/go.crypto/ssh"
-    //   "sync"
+	"time"
+	"strconv"
     "runtime"
-	// "math/rand"
-	// "golang.org/x/crypto/ssh"  
 )
 
 //init PcapReplay and Controller for concurrency

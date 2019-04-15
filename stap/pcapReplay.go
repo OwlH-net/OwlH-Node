@@ -2,24 +2,10 @@ package stap
 
 import (
     "github.com/astaxie/beego/logs"
-    // "godoc.org/golang.org/x/crypto/ssh"
-    // "os"
     "os/exec"
-    // "strings"
-    // "regexp"
   	"owlhnode/utils"
-  	// "owlhnode/database"
 	  "io/ioutil"
-      //"encoding/json"
       "time"
-    //   "strconv"
-    //   "errors"
-      //"ssh.CleintConfig"
-    //   "code.google.com/p/go.crypto/ssh"
-    //   "sync"
-    // "runtime"
-	// "math/rand"
-	// "golang.org/x/crypto/ssh"  
 )
 
 func Pcap_replay()() {

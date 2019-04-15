@@ -2,26 +2,14 @@ package stap
 import (
     "github.com/astaxie/beego/logs"
     "os"
-    // "os/exec"
     "strings"
     "regexp"
   	"owlhnode/utils"
   	"owlhnode/database"
 	  "io/ioutil"
-	  //"errors"
-      //"encoding/json"
-	//   "time"
-	//   "bytes"
       "strconv"
-    //   "errors"
-      //"ssh.CleintConfig"
-    //   "code.google.com/p/go.crypto/ssh"
-    //   "sync"
-    // "runtime"
-    // "math/rand"
 	"golang.org/x/crypto/ssh"
 	"github.com/pkg/sftp"
-	//"github.com/tmc/scp"
 )
 
 //Run a command over the active ssh session

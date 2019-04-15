@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"owlhnode/models"
-	//"encoding/json"
-	// "strconv"
 	"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
 )
@@ -24,7 +22,6 @@ func (m *ZeekController) Get() {
         logs.Info("GetZeek OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
-	logs.Notice("Zeek is working")
     m.ServeJSON()
 }
 

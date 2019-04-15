@@ -2,17 +2,11 @@ package stap
 
 import (
     "github.com/astaxie/beego/logs"
-    // "os"
-    // "os/exec"
-    // "strings"
-    // "regexp"
 	"owlhnode/utils"
 	"owlhnode/database"
-	// "io/ioutil"
 	"errors"
     "encoding/json"
     "sync"
-    // "time"
     "strconv"
 )
 
@@ -68,7 +62,6 @@ func AddServer(elem map[string]string) (err error){
 
 	//insert default data into server database
 	for z,v := range jsonData{
-		//logs.Warn("Key--> "+z+" Value..> "+v)
 		insertServerName, err := ndb.Sdb.Prepare("insert into servers (server_uniqueid, server_param, server_value) values (?,?,?);")
 		_, err = insertServerName.Exec(&uuidServer, &z, &v)  
 		defer insertServerName.Close()
@@ -81,7 +74,7 @@ func AddServer(elem map[string]string) (err error){
 	return nil
 }
 
-func GetAllServers()(data *map[string]map[string]string, err error){
+func GetAllServers()(data map[string]map[string]string, err error){
 	var uniqueid string
 	var param string
 	var value string
@@ -108,10 +101,10 @@ func GetAllServers()(data *map[string]map[string]string, err error){
         if allservers[uniqueid] == nil { allservers[uniqueid] = map[string]string{}}
         allservers[uniqueid][param]=value
 	} 
-	return &allservers, nil
+	return allservers, nil
 } 
 
-func GetServer(serveruuid string)(data *map[string]map[string]string, err error){
+func GetServer(serveruuid string)(data map[string]map[string]string, err error){
 	var uniqueid string
 	var param string
 	var value string
@@ -137,10 +130,8 @@ func GetServer(serveruuid string)(data *map[string]map[string]string, err error)
         }
         if allservers[uniqueid] == nil { allservers[uniqueid] = map[string]string{}}
 		allservers[uniqueid][param]=value
-		
-		//logs.Info(param+"   ----   "+value)
 	} 
-	return &allservers, nil
+	return allservers, nil
 } 
 
 
@@ -157,7 +148,6 @@ func PingStap(uuid string) (isIt map[string]bool, err error){
 	
 	sql := "select stap_value from stap where stap_param = \"status\";"
 	rows, err := ndb.Sdb.Query(sql)
-	// defer rows.Close()
     if err != nil {
         logs.Info("PingStap Query Error immediately after retrieve data %s",err.Error())
         return stap,err
@@ -174,9 +164,6 @@ func PingStap(uuid string) (isIt map[string]bool, err error){
         }else{
             stap["stapStatus"]=false
         }
-
-        //logs.Info("Stap status-->")
-        //logs.Info(stap)
     }else if uuid != "" {
         logs.Info("Put Stap status INSERT")
         insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
@@ -200,9 +187,6 @@ func RunStap(uuid string)(data string, err error){
         return "",errors.New("RunStap stap -- Can't access to database")
 	} 
     logs.Info("Starting Stap...  "+uuid)
-    //insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
-    // updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_uniqueid = ? and stap_param = ?;")
-	// _, err = updateStap.Exec("true", &uuid, "status")  
 	updateStap, err := ndb.Sdb.Prepare("update stap set stap_value = ? where stap_param = ?;")
     _, err = updateStap.Exec("true", "status")  
     if (err != nil){
@@ -214,26 +198,6 @@ func RunStap(uuid string)(data string, err error){
     //call Concurrency StapInit
     StapInit()
 
-
-    // //Start concurrency for stap servers.
-    // status = true
-    // var serverOnUUID string
-    // for{
-    //     rows, _ := ndb.Sdb.Query("select server_uniqueid from servers where server_param = \"status\" and server_value = \"true\";")
-    //     for rows.Next(){
-    //         rows.Scan(&serverOnUUID)
-    //         waitGroup.Add(1)
-    //         logs.Info("Worker added No:"+serverOnUUID)
-    //         //data <- ("Worker "+serverOnUUID)
-    //         go worker(serverOnUUID)
-    //     }
-    //     defer rows.Close()
-    //     waitGroup.Wait()
-    //     if (!status) {
-    //         logs.Info("Close Concurrency cLoop")
-    //         break
-    //     }
-    // }
     return "Stap is Running!", err
 }
 
@@ -270,7 +234,6 @@ func RunStapServer(serveruuid string)(data string, err error){
     } 
     logs.Error("Server uuid "+serveruuid)
     logs.Info("Starting specific Stap server...")
-    //insertStap, err := ndb.Sdb.Prepare("insert into stap (stap_uniqueid, stap_param, stap_value) values (?,?,?);")
     sql := "update servers set server_value = ? where server_uniqueid = ? and server_param = ?;"
     updateStartStapServer, err := ndb.Sdb.Prepare(sql)
     _, err = updateStartStapServer.Exec("true", &serveruuid, "status")  
@@ -355,9 +318,6 @@ func PingServerStap(server string) (isIt map[string]string, err error){
 		}else{
 			stap["stapStatus"]="N/A"
 		}
-
-        logs.Debug("PingServerStap status-->")
-        logs.Debug(stap)
     }
     return stap, nil
 }
@@ -404,4 +364,27 @@ func DeleteStapServer(serveruuid string)(data string, err error){
     }
     defer deleteStartStapServer.Close()
     return "Stap specific server is deleted!", err
+}
+
+//Edit params for stap servers
+func EditStapServer(data map[string]string) (err error){
+	param := data["param"]
+	logs.Warn(param)
+	value := data["value"]
+	logs.Warn(value)
+	server := data["server"]
+	logs.Warn(server)
+	if ndb.Sdb == nil {
+        logs.Error("EditStapServer stap -- Can't access to database")
+        return errors.New("EditStapServer stap -- Can't access to database")
+	} 
+	sql := "update servers set server_value = ? where server_uniqueid = ? and server_param = ?;"
+	editStapServer, err := ndb.Sdb.Prepare(sql)
+    _, err = editStapServer.Exec(&value, &server, &param)  
+    defer editStapServer.Close()
+    if (err != nil){
+        logs.Error("EditStapServer error updating: %s", err.Error())
+        return err
+    }
+    return nil
 }

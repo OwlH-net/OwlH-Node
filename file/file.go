@@ -2,13 +2,8 @@ package file
 
 import (
     "github.com/astaxie/beego/logs"
-    // "os"
-    // "os/exec"
-    // "strings"
-    // "regexp"
     "owlhnode/utils"
     "io/ioutil"
-    // "encoding/json"
 )
 
 //read file and send back to webpage
@@ -21,14 +16,15 @@ func SendFile(file string)(data map[string]string, err error){
 	loadData["files"][file] = ""
 	loadData,err = utils.GetConf(loadData)
 	if err != nil {
-        logs.Error("SendFile Error getting data from main.conf")
+		logs.Error("SendFile Error getting data from main.conf")
+		return nil,err
     }
 	    
     //save url from file selected and open file
     fileConfPath := loadData["files"][file]
 	fileReaded, err := ioutil.ReadFile(fileConfPath) // just pass the file name
     if err != nil {
-		logs.Info("Error reading file for path: "+fileConfPath)
+		logs.Error("Error reading file for path: "+fileConfPath)
         return nil,err
     }
 	
@@ -51,9 +47,8 @@ func SaveFile(file map[string]string)(err error){
 
     //make file backup before overwrite
     err = utils.BackupFullPath(loadData["files"][file["file"]])
-    logs.Info("after bck SaveFile->__   ")
     if err != nil {
-        logs.Info("Backup error->__   ")
+        logs.Info("SaveFile. Error doing backup with function BackupFullPath: "+err.Error())
         return err
     }
 
@@ -61,9 +56,10 @@ func SaveFile(file map[string]string)(err error){
     bytearray := []byte(file["content"])
     err = utils.WriteNewDataOnFile(loadData["files"][file["file"]], bytearray)
     if err != nil {
+		logs.Info("SaveFile. Error doing backup with function WriteNewDataOnFile: "+err.Error())
         return err
     }
-    return err
+    return nil
 }
 
 func GetAllFiles()(data map[string]string, err error){
