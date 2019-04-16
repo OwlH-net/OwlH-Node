@@ -369,11 +369,8 @@ func DeleteStapServer(serveruuid string)(data string, err error){
 //Edit params for stap servers
 func EditStapServer(data map[string]string) (err error){
 	param := data["param"]
-	logs.Warn(param)
 	value := data["value"]
-	logs.Warn(value)
 	server := data["server"]
-	logs.Warn(server)
 	if ndb.Sdb == nil {
         logs.Error("EditStapServer stap -- Can't access to database")
         return errors.New("EditStapServer stap -- Can't access to database")
