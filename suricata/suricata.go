@@ -158,9 +158,15 @@ func SetBPF(n map[string]string)(err error) {
 //Retrieve data, make a backup file and write the new data on the original file
 func RetrieveFile(file map[string][]byte)(err error){
     fileRetrieved := file["data"]
-    path := "/etc/owlh/suricata/ruleset/"
-    fileToEdit := "owlh.rules"
 	
+	StartSuricata := map[string]map[string]string{}
+    StartSuricata["suricataRuleset"] = map[string]string{}
+    StartSuricata["suricataRuleset"]["path"] = ""
+    StartSuricata["suricataRuleset"]["file"] = ""
+	StartSuricata,err = utils.GetConf(StartSuricata)
+	path := StartSuricata["suricataRuleset"]["path"]
+	fileToEdit := StartSuricata["suricataRuleset"]["file"]
+
 	//create owlh.rules backup
     err = utils.BackupFile(path, fileToEdit)
     if err != nil{

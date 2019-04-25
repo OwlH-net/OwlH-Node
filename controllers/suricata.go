@@ -66,7 +66,6 @@ func (n *SuricataController) RetrieveFile() {
     var anode map[string][]byte
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.RetrieveFile(anode)
-    //logs.Info(string(anode["data"]))
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         logs.Info("Ruleset retrieve OUT -- ERROR : %s", err.Error())
