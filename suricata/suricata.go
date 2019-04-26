@@ -179,7 +179,23 @@ func RetrieveFile(file map[string][]byte)(err error){
     if err != nil{
 		logs.Error("Error writting data into owlh.rules file: "+err.Error())
         return err    
-    }
+	}
+	// /usr/local/bin/suricatasc -c reload-rules /var/run/suricata/suricata-command.socket
+	//SuricataRulesetReload
+	SuricataRulesetReload := map[string]map[string]string{}
+    SuricataRulesetReload["SuricataRulesetReload"] = map[string]string{}
+    SuricataRulesetReload["SuricataRulesetReload"]["suricatasc"] = ""
+    SuricataRulesetReload["SuricataRulesetReload"]["param"] = ""
+    SuricataRulesetReload["SuricataRulesetReload"]["reload"] = ""
+    SuricataRulesetReload["SuricataRulesetReload"]["socket"] = ""
+	SuricataRulesetReload,err = utils.GetConf(SuricataRulesetReload)
+	suricatasc := SuricataRulesetReload["SuricataRulesetReload"]["suricatasc"]
+	param := SuricataRulesetReload["SuricataRulesetReload"]["param"]
+	reloads := SuricataRulesetReload["SuricataRulesetReload"]["reload"]
+	socket := SuricataRulesetReload["SuricataRulesetReload"]["socket"]
+
+	outpt,err := exec.Command(suricatasc, param, reloads, socket).Output()
+
     return nil
 }
 
