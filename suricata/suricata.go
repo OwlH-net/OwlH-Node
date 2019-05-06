@@ -194,8 +194,11 @@ func RetrieveFile(file map[string][]byte)(err error){
 	reloads := SuricataRulesetReload["SuricataRulesetReload"]["reload"]
 	socket := SuricataRulesetReload["SuricataRulesetReload"]["socket"]
 
-	outpt,err := exec.Command(suricatasc, param, reloads, socket).Output()
-
+	_,err = exec.Command(suricatasc, param, reloads, socket).Output()
+    if err != nil{
+		logs.Error("Error executing command in RetrieveFile function: "+err.Error())
+        return err    
+	}
     return nil
 }
 

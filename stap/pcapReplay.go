@@ -16,10 +16,12 @@ func Pcap_replay()() {
     loadStap["stap"]["in_queue"] = ""
 	loadStap["stap"]["out_queue"] = ""
 	loadStap["stap"]["interface"] = ""
+	loadStap["stap"]["keepPCAP"] = ""
 	loadStap,err = utils.GetConf(loadStap)
     inQueue := loadStap["stap"]["in_queue"]
 	outQueue := loadStap["stap"]["out_queue"]
 	stapInterface := loadStap["stap"]["interface"]
+	keepPCAP := loadStap["stap"]["keepPCAP"]
 	if err != nil {
 		logs.Error("Pcap_replay Error getting data from main.conf")
 	}
@@ -65,9 +67,11 @@ func Pcap_replay()() {
 			if err != nil{
 				logs.Error("Error exec cmd command "+err.Error())
 			}
-			err = utils.CopyFile(outQueue, inQueue, f.Name(), 1000)
-			if err != nil{
-				logs.Error("Error moving file "+err.Error())
+			if keepPCAP == "false" {
+				err = utils.CopyFile(outQueue, inQueue, f.Name(), 1000)
+				if err != nil{
+					logs.Error("Error moving file "+err.Error())
+				}
 			}
 			err = utils.RemoveFile(inQueue, f.Name())
 			if err != nil {

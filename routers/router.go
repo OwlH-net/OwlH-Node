@@ -44,6 +44,11 @@ func init() {
 				&controllers.PingController{},
 			),
 		),
+		beego.NSNamespace("/collector",
+			beego.NSInclude(
+				&controllers.CollectorController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
