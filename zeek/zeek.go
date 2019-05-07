@@ -144,3 +144,26 @@ func StopZeek()(data string, err error){
     }
     return "Zeek stopped ",nil
 }
+
+//Stop zeek
+func DeployZeek()(err error){
+    //Retrieve path for zeek.
+    DeployZeek := map[string]map[string]string{}
+	DeployZeek["zeekDeploy"] = map[string]string{}
+    DeployZeek["zeekDeploy"]["cmd"] = ""
+    DeployZeek["zeekDeploy"]["param"] = ""
+    DeployZeek["zeekDeploy"]["command"] = ""
+    DeployZeek,err = utils.GetConf(DeployZeek)    
+    cmd := DeployZeek["zeekDeploy"]["cmd"]
+    param := DeployZeek["zeekDeploy"]["param"]
+    command := DeployZeek["zeekDeploy"]["command"]
+	if err != nil {
+		logs.Error("DeployZeek Error getting data from main.conf: "+err.Error())
+	}
+	_,err = exec.Command(command, param, cmd).Output()
+    if err != nil {
+        logs.Error("Error deploying zeek: "+err.Error())
+        return err
+    }
+    return nil
+}

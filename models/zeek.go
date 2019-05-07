@@ -24,3 +24,9 @@ func StopZeek() (data string, err error) {
     data,err = zeek.StopZeek()
     return data,err
 }
+
+func DeployZeek() ( err error) {
+	logs.Info("DeployZeek system into node server")
+	err = zeek.DeployZeek()
+    return err
+}

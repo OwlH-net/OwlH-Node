@@ -58,3 +58,18 @@ func (n *ZeekController) StopZeek() {
     logs.Info("StopZeek -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
+
+// @Title DeployZeek
+// @Description get Zeek status
+// @Success 200 {object} models.zeek
+// @router /DeployZeek [get]
+func (m *ZeekController) DeployZeek() {
+    logs.Info ("Zeek controller -> GET")
+	err := models.DeployZeek()
+	m.Data["json"] = map[string]string{"ack": "true"}
+	if err != nil {
+        logs.Info("DeployZeek OUT -- ERROR : %s", err.Error())
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    m.ServeJSON()
+}
