@@ -10,3 +10,17 @@ CREATE TABLE stap (
     stap_param text NOT NULL,
     stap_value text NOT NULL
 );
+
+CREATE TABLE knownports (
+    kp_id integer PRIMARY KEY AUTOINCREMENT,
+    kp_uniqueid text NOT NULL,
+    kp_param text NOT NULL,
+    kp_value text NOT NULL
+);
+
+CREATE TABLE plugin (
+    plugin_id integer PRIMARY KEY AUTOINCREMENT,
+    plugin_uniqueid text NOT NULL,
+    plugin_param text NOT NULL,
+    plugin_value text NOT NULL
+);
