@@ -18,7 +18,7 @@ CREATE TABLE knownports (
     kp_value text NOT NULL
 );
 
-CREATE TABLE plugin (
+CREATE TABLE plugins (
     plugin_id integer PRIMARY KEY AUTOINCREMENT,
     plugin_uniqueid text NOT NULL,
     plugin_param text NOT NULL,
