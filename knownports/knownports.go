@@ -8,14 +8,36 @@ import (
 	"errors"
 	"regexp"
 	"strconv"
+	"encoding/json"
 	"time"
+	"net"
 )
 
+type newPortAlert struct {
+    Data      Data `json:"data"`
+}
+
+type Data struct {
+    Dstport     string `json:"dstport"`
+	Proto       string `json:"proto"`
+	Times		int `json:"times"`
+    Signature   Signature `json:"alert"`
+}
+
+type Signature struct {
+    Signature       string `json:"signature"`
+    Signature_id    string `json:"signature_id"`
+}
+
+type LastAlert struct {
+    PortProto       string 
+    Last		    time.Time
+    Counter		    int
+}
+
+
 func Init()(){
-	// res, err := CheckParamKnownports()
-	// if res = "Enabled"{
 	go NewPorts()		
-	// }
 }
 
 func NewPorts()(){
@@ -46,16 +68,30 @@ func NewPorts()(){
 				logs.Error("TailFile Error: %s", err.Error())
 				flag = false
 			}
+			portsData, err := LoadPortsData()
+			alertList := map[string]LastAlert{}
+			timeout := 60
+			_, localNet, err := net.ParseCIDR("192.168.0.0/24")
+			// logs.Debug(portsData)
+			if err != nil {
+				logs.Error("LoadPortsData NewPorts Error: %s", err.Error())
+				flag = false
+			}
 			for line := range t.Lines {
-				portsData, err := LoadPortsData()
-				logs.Debug(portsData)
-				if err != nil {
-					logs.Error("LoadPortsData NewPorts Error: %s", err.Error())
-					flag = false
-				}
-				var protoportRegexp = regexp.MustCompile(`"id.resp_p":(\d+),"proto":"(\w+)"`)
+				var protoportRegexp = regexp.MustCompile(`"id.resp_h":"(\d+\.\d+\.\d+\.\d+)","id.resp_p":(\d+),"proto":"(\w+)"`)
 				portProtocol := protoportRegexp.FindStringSubmatch(line.Text)
-				var protoport = portProtocol[1]+"/"+portProtocol[2]
+				if portProtocol== nil {continue}
+
+				dstip := portProtocol[1]
+				dstipnew, _, _ := net.ParseCIDR(dstip+"/32")
+				dstport := portProtocol[2]
+				proto := portProtocol[3]
+				var protoport = dstport+"/"+proto
+				if localNet.Contains(dstipnew){
+					// logs.Error("dstip is local: "+dstip)
+					continue
+				}
+				// logs.Info("dstip is NOT local: "+dstip)
 				if mode == "Learning"{
 					notPortprotLearn := false
 					for x := range portsData {
@@ -71,17 +107,26 @@ func NewPorts()(){
 								flag = false
 							}
 						}
+						if notPortprotLearn == true {break}
 					}
 					if !notPortprotLearn{
 						uuid := utils.Generate()
 						t := time.Now() 
 						value := strconv.FormatInt(t.Unix(), 10)
-						logs.Notice(portsData[uuid]["portprot"]+"     /--------/     "+protoport+" -------------------> INSERT")
-						err = InsertknownportsElements(uuid, "port", portProtocol[1])
-						err = InsertknownportsElements(uuid, "protocol", portProtocol[2])
-						err = InsertknownportsElements(uuid, "portprot", portProtocol[1]+"/"+portProtocol[2])
+						// logs.Notice(portsData[uuid]["portprot"]+"     /--------/     "+protoport+" -------------------> INSERT")
+						err = InsertknownportsElements(uuid, "port", dstport)
+						err = InsertknownportsElements(uuid, "protocol", proto)
+						err = InsertknownportsElements(uuid, "portprot", dstport+"/"+proto)
 						err = InsertknownportsElements(uuid, "first", value)
 						err = InsertknownportsElements(uuid, "last", value)
+						//insert into MAP portsData
+						// logs.Error(portsData)
+						portsData[uuid] = map[string]string{}
+						portsData[uuid]["port"] = dstport
+						portsData[uuid]["protocol"] = proto
+						portsData[uuid]["portprot"] = dstport+"/"+proto
+						portsData[uuid]["first"] = value
+						portsData[uuid]["last"] = value
 						if err != nil {
 							logs.Error("knownports insert error-> %s", err.Error())
 							flag = false
@@ -91,7 +136,6 @@ func NewPorts()(){
 					notPortprotProd := false
 					for x := range portsData { 
 						if portsData[x]["portprot"] == protoport{
-							logs.Critical("MODE PRODUCTION: portprot NOT exist into DB...")
 							notPortprotProd = true
 							t := time.Now()
 							value := strconv.FormatInt(t.Unix(), 10)
@@ -104,7 +148,57 @@ func NewPorts()(){
 						}
 					}
 					if !notPortprotProd {
-						logs.Debug("MODE PRODUCTION: portprot NOT exist into DB...")
+						// logs.Debug("MODE PRODUCTION: port and port do NOT exist into DB. Port/Protocol: "+protoport)				
+
+						createAlert := false
+						counter := 0 
+						alerted := LastAlert{}
+
+						if _, ok := alertList[protoport]; !ok {
+							alerted.PortProto = protoport
+							alerted.Last = time.Now()
+							alerted.Counter = 1
+							counter = 1
+
+							alertList[protoport] = alerted
+							// logs.Error("first time port alert - " +protoport)
+							createAlert = true
+							
+						} else {
+							alerted = alertList[protoport]
+							// timeToken := time.Now().Add(time.Second*time.Duration(-timeout))	
+							if time.Now().After(alertList[protoport].Last.Add(time.Second*time.Duration(timeout))) {
+								// logs.Notice("create alert - " +protoport + "/"+strconv.Itoa(alerted.Counter))
+								alerted.Counter = 0
+								createAlert = true
+							} else {
+								alerted.Counter += 1
+								// logs.Debug("do not alert yet - "+protoport+ "/"+strconv.Itoa(alerted.Counter))
+							}
+							alertList[protoport] = alerted
+							counter = alerted.Counter
+						}
+						if createAlert {
+							alert := newPortAlert{}
+							data := Data{}
+							signature := Signature{}
+	
+							signature.Signature = "OwlH UNKNOWN PORT - new port detected - "+protoport
+							signature.Signature_id = "8000101"
+	
+							data.Dstport = dstport
+							data.Proto = proto
+							data.Times = counter
+							data.Signature = signature
+	
+							alert.Data = data
+							_, err := json.Marshal(alert)
+							// logs.Info(string(b))
+							if err != nil {
+								logs.Error("Error creating JSON alert at Production Knownports: %s", err.Error())
+								flag = false
+							}
+						}
 					}
 				}
 			}
@@ -168,7 +262,7 @@ func InsertknownportsElements(uuid string, param string, value string)(err error
         _, err = insertKP.Exec(&uuid, &param, &value)  
         defer insertKP.Close()
         if err != nil{
-            logs.Info("Error Insert uuid !=")
+            logs.Error("Error InsertknownportsElements: "+err.Error())
             return err
 		}
 		return nil
