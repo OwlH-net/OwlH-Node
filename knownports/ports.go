@@ -34,27 +34,6 @@ func ShowPorts() (data map[string]string, err error) {
 	return allKnownPorts, nil
 }
 
-func ChangeMode() (err error) {
-	// protoportUpdate, err := ndb.Pdb.Prepare("update plugins set plugin_value = ? where plugin_param = ? and plugin_uniqueid = ?")
-	// _, err = protoportUpdate.Exec(&value, "last", "0000-00-00-00-000000")
-	// if err != nil {
-	// 	logs.Error("ChangeMode --> update error-> %s", err.Error())
-	// 	flag = false
-	// }
-	// return err
-	return nil
-}
-func ChangeStatus() (err error) {
-	// protoportUpdate, err := ndb.Pdb.Prepare("update plugins set plugin_value = ? where kp_param = ? and kp_uniqueid = ?")
-	// _, err = protoportUpdate.Exec(&value, "last", &x)
-	// if err != nil {
-	// 	logs.Error("ChangeMode --> update error-> %s", err.Error())
-	// 	flag = false
-	// }
-	// return err
-	return nil
-}
-
 func PingPorts() (data map[string]map[string]string ,err error) {
 	var uniqueid string
 	var param string
@@ -84,4 +63,28 @@ func PingPorts() (data map[string]map[string]string ,err error) {
         allKnownPorts[uniqueid][param]=value
 	} 
 	return allKnownPorts, nil
+}
+
+func ChangeStatus(anode map[string]string) (err error) {
+	value := anode["status"]
+	protoportUpdate, err := ndb.Pdb.Prepare("update plugins set plugin_value = ? where plugin_param = ? and plugin_uniqueid = ?")
+	defer protoportUpdate.Close()
+	_, err = protoportUpdate.Exec(&value, "status", "0000-00-00-00-000000")
+	if err != nil {
+		logs.Error("ChangeMode --> update error-> %s", err.Error())
+		return err
+	}
+	return nil
+}
+
+func ChangeMode(anode map[string]string) (err error) {
+	value := anode["mode"]
+	protoportUpdate, err := ndb.Pdb.Prepare("update plugins set plugin_value = ? where plugin_param = ? and plugin_uniqueid = ?")
+	defer protoportUpdate.Close()
+	_, err = protoportUpdate.Exec(&value, "mode", "0000-00-00-00-000000")
+	if err != nil {
+		logs.Error("ChangeMode --> update error-> %s", err.Error())
+		return err
+	}
+	return nil
 }

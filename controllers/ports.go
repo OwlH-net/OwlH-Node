@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"owlhnode/models"
+	"encoding/json"
 )
 
 type PortsController struct {
@@ -24,13 +25,30 @@ func (m *PortsController) ShowPorts() {
 	}
     m.ServeJSON()
 }
+
+// @Title PingPorts
+// @Description PingPorts status
+// @Success 200 {object} models.ports
+// @router /PingPorts [get]
+func (m *PortsController) PingPorts() {
+	data, err := models.PingPorts()
+	m.Data["json"] = data
+	if err != nil {
+        logs.Info("PingPorts OUT -- ERROR : %s", err.Error())
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    m.ServeJSON()
+}
+
 // @Title ChangeMode
 // @Description put new mode
 // @Success 200 {object} models.ports
 // @router /mode [put]
 func (m *PortsController) ChangeMode() {
-    logs.Info ("ports controller -> GET")
-	err := models.ChangeMode()
+    var anode map[string]string
+	json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+
+	err := models.ChangeMode(anode)
 	m.Data["json"] = map[string]string{"ack": "true"}
 	if err != nil {
         logs.Info("ChangeMode OUT -- ERROR : %s", err.Error())
@@ -44,25 +62,14 @@ func (m *PortsController) ChangeMode() {
 // @Success 200 {object} models.ports
 // @router /status [put]
 func (m *PortsController) ChangeStatus() {
+	var anode map[string]string
+	json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+
     logs.Info ("ports controller -> GET")
-	err := models.ChangeStatus()
+	err := models.ChangeStatus(anode)
 	m.Data["json"] = map[string]string{"ack": "true"}
 	if err != nil {
         logs.Info("ChangeStatus OUT -- ERROR : %s", err.Error())
-        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
-    m.ServeJSON()
-}
-
-// @Title PingPorts
-// @Description PingPorts status
-// @Success 200 {object} models.ports
-// @router /PingPorts [get]
-func (m *PortsController) PingPorts() {
-	data, err := models.PingPorts()
-	m.Data["json"] = data
-	if err != nil {
-        logs.Info("PingPorts OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
     m.ServeJSON()
