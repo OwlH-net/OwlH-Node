@@ -14,6 +14,7 @@ import (
     "crypto/rand"
 )
 
+
 //read data from main.conf
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
     confFilePath := "conf/main.conf"
@@ -193,4 +194,28 @@ func RemoveFile(path string, file string)(err error){
 		return err
 	}
 	return nil
+}
+
+//read data from main.conf
+func GetConfArray(loadData map[string]map[string][]string)(loadDataReturn map[string]map[string][]string, err error) { 
+    confFilePath := "conf/main.conf"
+    jsonPathBpf, err := ioutil.ReadFile(confFilePath)
+    if err != nil {
+        logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
+        return nil, err
+	}
+
+    var anode map[string]map[string][]string
+    json.Unmarshal(jsonPathBpf, &anode)
+
+    for k,y := range loadData { 
+        for y,_ := range y {
+            if v, ok := anode[k][y]; ok {
+                loadData[k][y] = v
+            }else{
+                loadData[k][y] = nil
+            }
+        }
+    }
+    return loadData, nil
 }

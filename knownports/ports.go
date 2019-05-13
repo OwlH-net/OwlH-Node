@@ -69,10 +69,13 @@ func ChangeStatus(anode map[string]string) (err error) {
 	value := anode["status"]
 	protoportUpdate, err := ndb.Pdb.Prepare("update plugins set plugin_value = ? where plugin_param = ? and plugin_uniqueid = ?")
 	defer protoportUpdate.Close()
-	_, err = protoportUpdate.Exec(&value, "status", "0000-00-00-00-000000")
+	_, err = protoportUpdate.Exec(&value, "status", "knownports")
 	if err != nil {
 		logs.Error("ChangeMode --> update error-> %s", err.Error())
 		return err
+	}
+	if value == "Enabled" {
+		Init()
 	}
 	return nil
 }
@@ -81,7 +84,7 @@ func ChangeMode(anode map[string]string) (err error) {
 	value := anode["mode"]
 	protoportUpdate, err := ndb.Pdb.Prepare("update plugins set plugin_value = ? where plugin_param = ? and plugin_uniqueid = ?")
 	defer protoportUpdate.Close()
-	_, err = protoportUpdate.Exec(&value, "mode", "0000-00-00-00-000000")
+	_, err = protoportUpdate.Exec(&value, "mode", "knownports")
 	if err != nil {
 		logs.Error("ChangeMode --> update error-> %s", err.Error())
 		return err
