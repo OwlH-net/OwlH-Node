@@ -6,10 +6,12 @@ import (
 	"owlhnode/database"
 )
 
-func ShowPorts() (data map[string]string, err error) {
+func ShowPorts() (data map[string]map[string]string, err error) {
 
+	var uniqueid string
+	var param string
 	var value string
-	var allKnownPorts = map[string]string{}
+	var allKnownPorts = map[string]map[string]string{}
 
 	//database connection
 	if ndb.Pdb == nil {
@@ -17,7 +19,7 @@ func ShowPorts() (data map[string]string, err error) {
         return nil,errors.New("ShowPorts knownports -- Can't access to database")
 	} 
 	//query and make map[]map[]
-	sql := "select kp_value from knownports where kp_param='portprot';"   
+	sql := "select kp_uniqueid, kp_param, kp_value from knownports;"   
 	rows, err := ndb.Pdb.Query(sql)
 	defer rows.Close()
     if err != nil {
@@ -25,11 +27,12 @@ func ShowPorts() (data map[string]string, err error) {
         return nil, err
     }
 	for rows.Next() {
-        if err = rows.Scan(&value); err != nil {
+        if err = rows.Scan(&uniqueid, &param, &value); err != nil {
             logs.Error("ShowPorts knownports -- Can't read query result: %s", err.Error())
-            return nil, err
+			return nil, err
         }
-        allKnownPorts[value]=value
+        if allKnownPorts[uniqueid] == nil { allKnownPorts[uniqueid] = map[string]string{}}
+        allKnownPorts[uniqueid][param]=value
 	} 
 	return allKnownPorts, nil
 }
@@ -67,16 +70,17 @@ func PingPorts() (data map[string]map[string]string ,err error) {
 
 func ChangeStatus(anode map[string]string) (err error) {
 	value := anode["status"]
+	plugin:= anode["plugin"]
 	protoportUpdate, err := ndb.Pdb.Prepare("update plugins set plugin_value = ? where plugin_param = ? and plugin_uniqueid = ?")
 	defer protoportUpdate.Close()
-	_, err = protoportUpdate.Exec(&value, "status", "knownports")
+	_, err = protoportUpdate.Exec(&value, "status", &plugin)
 	if err != nil {
 		logs.Error("ChangeMode --> update error-> %s", err.Error())
 		return err
 	}
-	if value == "Enabled" {
-		Init()
-	}
+	// if value == "Enabled" {
+	// 	Init()
+	// }
 	return nil
 }
 
@@ -89,5 +93,40 @@ func ChangeMode(anode map[string]string) (err error) {
 		logs.Error("ChangeMode --> update error-> %s", err.Error())
 		return err
 	}
+	return nil
+}
+
+func DeletePorts(ports map[string]string) (err error) {
+	for id := range ports {
+		protoportUpdate, err := ndb.Pdb.Prepare("delete from knownports where kp_uniqueid = ?")
+		defer protoportUpdate.Close()
+		_, err = protoportUpdate.Exec(&id)
+		if err != nil {
+			logs.Error("DeletePorts --> update error-> %s", err.Error())
+			return err
+		}
+	}
+	anode := make(map[string]string)
+	anode["plugin"]="knownports"
+	anode["status"]="Reload"
+	_ = ChangeStatus(anode)
+
+	return nil
+}
+
+func DeleteAllPorts() (err error) {
+	protoportUpdate, err := ndb.Pdb.Prepare("delete from knownports")
+	defer protoportUpdate.Close()
+	_, err = protoportUpdate.Exec()
+	if err != nil {
+		logs.Error("DeleteAllPorts --> update error-> %s", err.Error())
+		return err
+	}
+
+	anode := make(map[string]string)
+	anode["plugin"]="knownports"
+	anode["status"]="Reload"
+	_ = ChangeStatus(anode)
+
 	return nil
 }

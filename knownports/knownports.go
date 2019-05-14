@@ -48,9 +48,8 @@ func Init()(){
 
 func GetStatus()(){
 	for {
-		Status, err := CheckParamKnownports("status")
-		Mode, err := CheckParamKnownports("mode")
-		logs.Debug("GetStatus: "+Status, Mode)
+		_, err := CheckParamKnownports("status")
+		_, err = CheckParamKnownports("mode")
 		if err != nil {
 			logs.Error("CheckParamKnownports Error: "+err.Error())
 		}
@@ -81,15 +80,23 @@ func NewPorts()(){
 		logs.Error("CheckParamKnownports Error: "+err.Error())
 	}
 
-	for Status == "Enabled"{
-		// logs.Debug("Checking status: "+Status+" / "+Mode)
-		
-		t, err := tail.TailFile(file, tail.Config{Follow: true})
+	for Status != "Disabled"{
+		if Status == "Reload"{
+			anode := make(map[string]string)
+			anode["plugin"]="knownports"
+			anode["status"]="Enabled"
+			_=ChangeStatus(anode)
+		}
+
+		t, err := tail.TailFile(file, tail.Config{Follow: true, Location: &tail.SeekInfo{0, 2}})
 		if err != nil {
 			logs.Error("TailFile Error: %s", err.Error())
 			Status = "Disabled"
+			break
 		}
+		
 		portsData, err := LoadPortsData()
+
 		alertList := map[string]LastAlert{}
 
 		loadHomenet := map[string]map[string][]string{}
@@ -98,7 +105,6 @@ func NewPorts()(){
 		loadHomenet,err = utils.GetConfArray(loadHomenet)
 		IpNet := loadHomenet["Node"]["homenet"]
 
-		// logs.Debug(portsData)
 		if err != nil {
 			logs.Error("LoadPortsData NewPorts Error: %s", err.Error())
 			Status = "Disabled"
@@ -109,8 +115,7 @@ func NewPorts()(){
 			if err != nil {
 				logs.Error("CheckParamKnownports Error: "+err.Error())
 			}
-			// logs.Debug("Verify status: "+Status+" / "+Mode)
-			if Status == "Disabled"{
+			if Status != "Enabled"{
 				break
 			}
 			var protoportRegexp = regexp.MustCompile(`"id.resp_h":"(\d+\.\d+\.\d+\.\d+)","id.resp_p":(\d+),"proto":"(\w+)"`)
@@ -143,10 +148,11 @@ func NewPorts()(){
 			if Mode == "Learning"{
 				notPortprotLearn := false
 				for x := range portsData {
+
 					if portsData[x]["portprot"] == protoport{
 						// logs.Warn(portsData[x]["portprot"]+"     /--------/     "+protoport+" -------------------> UDAPTE")
-						t := time.Now() 
-						value := strconv.FormatInt(t.Unix(), 10)
+						timeNow := time.Now() 
+						value := strconv.FormatInt(timeNow.Unix(), 10)
 						notPortprotLearn = true
 						protoportUpdate, err := ndb.Pdb.Prepare("update knownports set kp_value = ? where kp_param = ? and kp_uniqueid = ?")
 						_, err = protoportUpdate.Exec(&value, "last", &x)
@@ -160,14 +166,10 @@ func NewPorts()(){
 				}
 				if !notPortprotLearn{
 					uuid := utils.Generate()
-					t := time.Now() 
-					value := strconv.FormatInt(t.Unix(), 10)
-					// logs.Notice(portsData[uuid]["portprot"]+"     /--------/     "+protoport+" -------------------> INSERT")
-					err = InsertknownportsElements(uuid, "port", dstport)
-					err = InsertknownportsElements(uuid, "protocol", proto)
-					err = InsertknownportsElements(uuid, "portprot", dstport+"/"+proto)
-					err = InsertknownportsElements(uuid, "first", value)
-					err = InsertknownportsElements(uuid, "last", value)
+					timeNow := time.Now() 
+					value := strconv.FormatInt(timeNow.Unix(), 10)
+					logs.Notice(portsData[uuid]["portprot"]+"     /--------/     "+protoport+" -------------------> INSERT")
+					
 					//insert into MAP portsData
 					// logs.Error(portsData)
 					portsData[uuid] = map[string]string{}
@@ -176,6 +178,13 @@ func NewPorts()(){
 					portsData[uuid]["portprot"] = dstport+"/"+proto
 					portsData[uuid]["first"] = value
 					portsData[uuid]["last"] = value
+
+					//insert to DB
+					err = InsertknownportsElements(uuid, "port", dstport)
+					err = InsertknownportsElements(uuid, "protocol", proto)
+					err = InsertknownportsElements(uuid, "portprot", dstport+"/"+proto)
+					err = InsertknownportsElements(uuid, "first", value)
+					err = InsertknownportsElements(uuid, "last", value)
 					if err != nil {
 						logs.Error("knownports insert error-> %s", err.Error())
 						Status = "Disabled"
@@ -220,16 +229,13 @@ func NewPorts()(){
 
 						counter = alerted.Counter
 						if time.Now().After(alerted.Last.Add(time.Second*time.Duration(tm))) {
-							logs.Notice(time.Now())
-							logs.Notice(alerted.Last)
-							logs.Notice(alerted.Last.Add(time.Second*time.Duration(tm)))
-							logs.Notice("create alert - " +protoport + "/"+strconv.Itoa(alerted.Counter))
+							// logs.Notice("create alert - " +protoport + "/"+strconv.Itoa(alerted.Counter))
 							createAlert = true
 							alerted.Last = time.Now()
 							alerted.Counter = 0
 						} else {
 							alerted.Counter += 1
-							logs.Debug("do not alert yet - "+protoport+ "/"+strconv.Itoa(alerted.Counter))
+							// logs.Debug("do not alert yet - "+protoport+ "/"+strconv.Itoa(alerted.Counter))
 						}
 						alertList[protoport] = alerted
 					}
@@ -273,6 +279,7 @@ func NewPorts()(){
 		}
 		Status, err = CheckParamKnownports("status")
 		Mode, err = CheckParamKnownports("mode")
+		t.Stop()
 	}
 	logs.Info("Knownports main loop: Exit")
 }

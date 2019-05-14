@@ -4,7 +4,7 @@ import (
     "owlhnode/knownports"
 )
 
-func ShowPorts() (data map[string]string, err error) {
+func ShowPorts() (data map[string]map[string]string, err error) {
 	data,err = knownports.ShowPorts()
 	return data,err
 }
@@ -21,5 +21,15 @@ func ChangeMode(anode map[string]string) (err error) {
 
 func ChangeStatus(anode map[string]string) (err error) {
 	err = knownports.ChangeStatus(anode)
+	return err
+}
+
+func DeletePorts(anode map[string]string) (err error) {
+	err = knownports.DeletePorts(anode)
+	return err
+}
+
+func DeleteAllPorts() (err error) {
+	err = knownports.DeleteAllPorts()
 	return err
 }
