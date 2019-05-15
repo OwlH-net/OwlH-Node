@@ -66,13 +66,6 @@ func ShowCollector() (data string, err error) {
 	command := stapCollector["stapCollector"]["command"]
 
 	output, err := exec.Command(command, param, status).Output()
-	logs.Debug(output)
-	logs.Debug(output)
-	logs.Debug(output)
-	logs.Debug(output)
-	logs.Debug(output)
-	logs.Debug(output)
-	logs.Debug(output)
     if err != nil{
 		logs.Error("Error executing command in ShowCollector function: "+err.Error())
         return "",err    
