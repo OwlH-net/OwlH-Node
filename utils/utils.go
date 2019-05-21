@@ -74,14 +74,19 @@ func BackupFile(path string, fileName string) (err error) {
     t := time.Now()
     newFile := fileName+"-"+strconv.FormatInt(t.Unix(), 10)
     srcFolder := path+fileName
-    destFolder := path+newFile
-    cpCmd := exec.Command("cp", srcFolder, destFolder)
-    err = cpCmd.Run()
-    if err != nil{
-        logs.Error("BackupFile Error exec cmd command: "+err.Error())
-        return err
-    }
-    return nil
+	destFolder := path+newFile
+	//check if file exist
+	if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
+		return nil
+	}else{
+		cpCmd := exec.Command("cp", srcFolder, destFolder)
+		err = cpCmd.Run()
+		if err != nil{
+			logs.Error("BackupFile Error exec cmd command: "+err.Error())
+			return err
+		}
+	}
+	return nil
 }
 
 //write data on a file

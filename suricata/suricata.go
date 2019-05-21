@@ -182,23 +182,26 @@ func RetrieveFile(file map[string][]byte)(err error){
 	}
 	// /usr/local/bin/suricatasc -c reload-rules /var/run/suricata/suricata-command.socket
 	//SuricataRulesetReload
-	SuricataRulesetReload := map[string]map[string]string{}
-    SuricataRulesetReload["SuricataRulesetReload"] = map[string]string{}
-    SuricataRulesetReload["SuricataRulesetReload"]["suricatasc"] = ""
-    SuricataRulesetReload["SuricataRulesetReload"]["param"] = ""
-    SuricataRulesetReload["SuricataRulesetReload"]["reload"] = ""
-    SuricataRulesetReload["SuricataRulesetReload"]["socket"] = ""
-	SuricataRulesetReload,err = utils.GetConf(SuricataRulesetReload)
-	suricatasc := SuricataRulesetReload["SuricataRulesetReload"]["suricatasc"]
-	param := SuricataRulesetReload["SuricataRulesetReload"]["param"]
-	reloads := SuricataRulesetReload["SuricataRulesetReload"]["reload"]
-	socket := SuricataRulesetReload["SuricataRulesetReload"]["socket"]
-
-	_,err = exec.Command(suricatasc, param, reloads, socket).Output()
-    if err != nil{
-		logs.Error("Error executing command in RetrieveFile function: "+err.Error())
-        return err    
+	if suriRunning(){
+		SuricataRulesetReload := map[string]map[string]string{}
+		SuricataRulesetReload["SuricataRulesetReload"] = map[string]string{}
+		SuricataRulesetReload["SuricataRulesetReload"]["suricatasc"] = ""
+		SuricataRulesetReload["SuricataRulesetReload"]["param"] = ""
+		SuricataRulesetReload["SuricataRulesetReload"]["reload"] = ""
+		SuricataRulesetReload["SuricataRulesetReload"]["socket"] = ""
+		SuricataRulesetReload,err = utils.GetConf(SuricataRulesetReload)
+		suricatasc := SuricataRulesetReload["SuricataRulesetReload"]["suricatasc"]
+		param := SuricataRulesetReload["SuricataRulesetReload"]["param"]
+		reloads := SuricataRulesetReload["SuricataRulesetReload"]["reload"]
+		socket := SuricataRulesetReload["SuricataRulesetReload"]["socket"]
+	
+		_,err = exec.Command(suricatasc, param, reloads, socket).Output()
+		if err != nil{
+			logs.Error("Error executing command in RetrieveFile function: "+err.Error())
+			return err    
+		}
 	}
+	
     return nil
 }
 
