@@ -334,11 +334,11 @@ func CheckParamKnownports(param string)(data string, err error){
 
 func InsertknownportsElements(uuid string, param string, value string)(err error){
 	insertKP, err := ndb.Pdb.Prepare("insert into knownports (kp_uniqueid, kp_param, kp_value) values (?,?,?);")
-        _, err = insertKP.Exec(&uuid, &param, &value)  
-        defer insertKP.Close()
-        if err != nil{
-            logs.Error("Error InsertknownportsElements: "+err.Error())
-            return err
-		}
-		return nil
+	_, err = insertKP.Exec(&uuid, &param, &value)  
+	defer insertKP.Close()
+	if err != nil{
+		logs.Error("Error InsertknownportsElements: "+err.Error())
+		return err
+	}
+	return nil
 }
