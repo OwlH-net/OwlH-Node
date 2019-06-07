@@ -125,7 +125,7 @@ func GetBPF()(bpf string, err error) {
 
 //set BPF for suricata
 func SetBPF(n map[string]string)(err error) {
-    logs.Info("Set Suricata BPF -- Making Map")
+	textbpf := n["bpf"]
 	loadData := map[string]map[string]string{}
 	loadData["suricataBPF"] = map[string]string{}
 	loadData["suricataBPF"]["pathBPF"] = ""
@@ -138,20 +138,29 @@ func SetBPF(n map[string]string)(err error) {
 		return err
 	}
 
-    //make backup file
-    err = utils.BackupFile(path, file)
-    if err != nil{
-		logs.Error("Error creating BPF backup: "+err.Error())
-        return err    
-    }
+	//check if exists
+	if _, err = os.Stat(path + file); os.IsNotExist(err) {
+		err = ioutil.WriteFile(path + file, []byte(textbpf), 0644)	
+		if err != nil{
+			logs.Error("Error writting data into BPF file: "+err.Error())
+			return err    
+		}	
+	}else{
+		//make backup file
+		err = utils.BackupFile(path, file)
+		if err != nil{
+			logs.Error("Error creating BPF backup: "+err.Error())
+			return err    
+		}
 
-    //write bpf into the file
-	textbpf := n["bpf"]
-    err = utils.UpdateBPFFile(path, file, textbpf)
-    if err != nil{
-		logs.Error("Error writting data into BPF file: "+err.Error())
-        return err    
-    }
+		//write bpf into the file	
+		err = utils.UpdateBPFFile(path, file, textbpf)
+		if err != nil{
+			logs.Error("Error UpdateBPFFile: "+err.Error())
+			return err    
+		}
+	}
+
     return nil
 }
 
