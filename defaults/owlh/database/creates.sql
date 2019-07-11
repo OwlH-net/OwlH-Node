@@ -24,3 +24,10 @@ CREATE TABLE plugins (
     plugin_param text NOT NULL,
     plugin_value text NOT NULL
 );
+
+CREATE TABLE analyzer (
+    analyzer_id integer PRIMARY KEY AUTOINCREMENT,
+    analyzer_uniqueid text NOT NULL,
+    analyzer_param text NOT NULL,
+    analyzer_value text NOT NULL
+);

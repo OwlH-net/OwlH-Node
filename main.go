@@ -9,6 +9,7 @@ import (
     "owlhnode/database"
 	"owlhnode/stap"
 	"owlhnode/utils"
+	"owlhnode/analyzer"
 	"owlhnode/knownports"
 )
 
@@ -45,6 +46,7 @@ func main() {
     //Launch StapInit for 1st time for check status and go concurrency if status==true
 	stap.StapInit()
 	knownports.Init()
+	analyzer.Init()
     
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true

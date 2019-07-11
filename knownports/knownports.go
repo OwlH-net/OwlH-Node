@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"encoding/json"
 	"time"
+	"os"
 	"net"
 )
 
@@ -39,12 +40,10 @@ type LastAlert struct {
 }
 
 
-func Init()(){
-	// go GetStatus()
+func Init(){
+	logs.Debug("-------------------------INIT KNOWNPORTS-------------------------")
 	go NewPorts()
-
 }
-
 
 func GetStatus()(){
 	for {
@@ -55,9 +54,7 @@ func GetStatus()(){
 		}
 		time.Sleep(time.Second * 20)
 	}
-
 }
-
 
 func NewPorts()(){
 	var err error
@@ -72,7 +69,6 @@ func NewPorts()(){
 		logs.Error("loadPorts Error getting data from main.conf: "+err.Error())
 		return
 	}
-
 	
 	Status, err = CheckParamKnownports("status")
 	Mode, err = CheckParamKnownports("mode")
@@ -80,12 +76,21 @@ func NewPorts()(){
 		logs.Error("CheckParamKnownports Error: "+err.Error())
 	}
 
+	for{
+		if _,err := os.Stat(file); os.IsNotExist(err){
+			logs.Info("KNOWNPORTS -- Waiting file...")
+			time.Sleep(time.Second * 60) 
+		}else{
+			break
+		}
+	}
+
 	for Status != "Disabled"{
 		if Status == "Reload"{
 			anode := make(map[string]string)
 			anode["plugin"]="knownports"
 			anode["status"]="Enabled"
-			_=ChangeStatus(anode)
+			ChangeStatus(anode)
 		}
 
 		t, err := tail.TailFile(file, tail.Config{Follow: true, Location: &tail.SeekInfo{0, 2}})
@@ -279,7 +284,9 @@ func NewPorts()(){
 		}
 		Status, err = CheckParamKnownports("status")
 		Mode, err = CheckParamKnownports("mode")
-		t.Stop()
+		t.Cleanup()
+		t.Stop()		
+		defer t.file.Close()
 	}
 	logs.Info("Knownports main loop: Exit")
 }

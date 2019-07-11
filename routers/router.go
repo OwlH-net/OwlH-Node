@@ -54,6 +54,11 @@ func init() {
 				&controllers.PortsController{},
 			),
 		),
+		beego.NSNamespace("/analyzer",
+			beego.NSInclude(
+				&controllers.AnalyzerController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

@@ -35,3 +35,33 @@ func PConn() {
 		logs.Info("Pdb/plugins -- plugins.db -> sql.Open, plugins.db Ready") 
 	}
 }
+
+func GetStatusAnalyzer()(data string, err error){
+	var value string
+
+	sql := "select analyzer_value from analyzer where analyzer_param='status'";
+	rows, err := Pdb.Query(sql)
+	if err != nil {
+		logs.Error("GetStatusAnalyzer Pdb.Query Error : %s", err.Error())
+		return "", err
+	}
+	for rows.Next() {
+		if err = rows.Scan(&value); err != nil {
+            logs.Error("GetStatusAnalyzer -- Query return error: %s", err.Error())
+            return "", err
+		}
+	} 
+	return value,nil
+}
+
+func UpdateAnalyzer(uuid string, param string, value string)(err error){
+	updateAnalyzerNode, err := Pdb.Prepare("update analyzer set analyzer_value = ? where analyzer_uniqueid = ? and analyzer_param = ?;")
+	if (err != nil){ logs.Error("updateAnalyzerNode UPDATE prepare error: "+err.Error()); return err}
+
+	_, err = updateAnalyzerNode.Exec(&value, &uuid, &param)
+	if (err != nil){ logs.Error("updateAnalyzerNode UPDATE exec error: "+err.Error()); return err}
+
+	defer updateAnalyzerNode.Close()
+	
+	return nil
+}
