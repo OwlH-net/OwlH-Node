@@ -216,13 +216,8 @@ func PingAnalyzer()(data string ,err error) {
 }
 
 func ChangeAnalyzerStatus(anode map[string]string) (err error) {
-	logs.Warn(anode)
 	err = ndb.UpdateAnalyzer(anode["uuid"], "status", anode["status"])
 	if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
-
-	if anode["status"] == "Enabled" {
-		
-	}
 
 	return nil
 }

@@ -41,7 +41,6 @@ type LastAlert struct {
 
 
 func Init(){
-	logs.Debug("-------------------------INIT KNOWNPORTS-------------------------")
 	go NewPorts()
 }
 
@@ -155,7 +154,6 @@ func NewPorts()(){
 				for x := range portsData {
 
 					if portsData[x]["portprot"] == protoport{
-						// logs.Warn(portsData[x]["portprot"]+"     /--------/     "+protoport+" -------------------> UDAPTE")
 						timeNow := time.Now() 
 						value := strconv.FormatInt(timeNow.Unix(), 10)
 						notPortprotLearn = true
@@ -173,7 +171,6 @@ func NewPorts()(){
 					uuid := utils.Generate()
 					timeNow := time.Now() 
 					value := strconv.FormatInt(timeNow.Unix(), 10)
-					logs.Notice(portsData[uuid]["portprot"]+"     /--------/     "+protoport+" -------------------> INSERT")
 					
 					//insert into MAP portsData
 					// logs.Error(portsData)
@@ -212,8 +209,6 @@ func NewPorts()(){
 					}
 				}
 				if !notPortprotProd {
-					// logs.Debug("MODE PRODUCTION: port and port do NOT exist into DB. Port/Protocol: "+protoport)				
-
 					createAlert := false
 					counter := 0 
 					alerted := LastAlert{}
@@ -234,13 +229,11 @@ func NewPorts()(){
 
 						counter = alerted.Counter
 						if time.Now().After(alerted.Last.Add(time.Second*time.Duration(tm))) {
-							// logs.Notice("create alert - " +protoport + "/"+strconv.Itoa(alerted.Counter))
 							createAlert = true
 							alerted.Last = time.Now()
 							alerted.Counter = 0
 						} else {
 							alerted.Counter += 1
-							// logs.Debug("do not alert yet - "+protoport+ "/"+strconv.Itoa(alerted.Counter))
 						}
 						alertList[protoport] = alerted
 					}
@@ -286,7 +279,6 @@ func NewPorts()(){
 		Mode, err = CheckParamKnownports("mode")
 		t.Cleanup()
 		t.Stop()		
-		defer t.file.Close()
 	}
 	logs.Info("Knownports main loop: Exit")
 }

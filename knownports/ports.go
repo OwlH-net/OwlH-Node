@@ -66,7 +66,6 @@ func PingPorts() (data map[string]map[string]string ,err error) {
         allKnownPorts[uniqueid][param]=value
 	} 
 	return allKnownPorts, nil
-}
 
 func ChangeStatus(anode map[string]string) (err error) {
 	value := anode["status"]
@@ -78,9 +77,6 @@ func ChangeStatus(anode map[string]string) (err error) {
 		logs.Error("ChangeMode --> update error-> %s", err.Error())
 		return err
 	}
-	// if value == "Enabled" {
-	// 	Init()
-	// }
 	return nil
 }
 
