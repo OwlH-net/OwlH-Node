@@ -59,6 +59,11 @@ func init() {
 				&controllers.AnalyzerController{},
 			),
 		),
+		beego.NSNamespace("/deploy",
+			beego.NSInclude(
+				&controllers.DeployController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

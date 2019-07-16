@@ -64,7 +64,7 @@ func BackupFullPath(path string) (err error) {
     cpCmd := exec.Command("cp", path, destFolder)
     err = cpCmd.Run()
     if err != nil{
-        logs.Error("BackupFullPath Erro exec cmd command: "+err.Error())
+        logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error())
         return err
     }
     return nil
@@ -82,7 +82,7 @@ func BackupFile(path string, fileName string) (err error) {
 		cpCmd := exec.Command("cp", srcFolder, destFolder)
 		err = cpCmd.Run()
 		if err != nil{
-			logs.Error("BackupFile Error exec cmd command: "+err.Error())
+			logs.Error("utils.BackupFile Error exec cmd command: "+err.Error())
 			return err
 		}
 	}
