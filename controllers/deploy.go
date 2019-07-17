@@ -10,16 +10,15 @@ type DeployController struct {
 	beego.Controller
 }
 
-// @Title Deploy
-// @Description save changes over requested file on webpage "edit.html"
+// @Title DeployNode
+// @Description Make a deploy for selected action
 // @Success 200 {object} models.file
 // @Failure 403 body is empty
 // @router / [put]
-func (n *DeployController) Deploy() {
+func (n *DeployController) DeployNode() {
     var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.Deploy(anode)
-
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.DeployNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -28,12 +27,12 @@ func (n *DeployController) Deploy() {
 }
 
 // @Title Deploy
-// @Description save changes over requested file on webpage "edit.html"
+// @Description Get all the deploy file status
 // @Success 200 {object} models.file
 // @Failure 403 body is empty
 // @router / [get]
 func (n *DeployController) CheckDeployFiles() {
-    anode := models.CheckDeployFiles()
+	anode := models.CheckDeployFiles()
     n.Data["json"] = anode
     n.ServeJSON()
 }

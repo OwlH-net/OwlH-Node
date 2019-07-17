@@ -64,6 +64,16 @@ func init() {
 				&controllers.DeployController{},
 			),
 		),
+		beego.NSNamespace("/dataflow",
+			beego.NSInclude(
+				&controllers.DataflowController{},
+			),
+		),
+		beego.NSNamespace("/net",
+			beego.NSInclude(
+				&controllers.NetController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

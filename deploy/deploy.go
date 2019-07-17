@@ -7,17 +7,21 @@ import (
 	"os"
 )
 
-func Deploy(anode map[string]string)(err error) {
+func DeployNode(anode map[string]string)(err error) {
 	loadData := map[string]map[string]string{}
 	loadData["deploy"] = map[string]string{}
 	loadData["deploy"][anode["value"]] = ""
 	loadData,err = utils.GetConf(loadData)
 	if err != nil { logs.Error("SendFile Error getting data from main.conf"); return err}
 	deployElement := loadData["deploy"][anode["value"]]
+	
+	out,err := exec.Command("bash", "-c", deployElement).Output()
+	// err = cpCmd.Run()
+	
+	logs.Notice(string(out))
 
-	cpCmd := exec.Command("bash", "-c", deployElement)
-    err = cpCmd.Run()
-    if err != nil{logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error()); return err}
+	if err != nil{logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error()); return err}
+	
     return nil
 }
 
@@ -27,16 +31,16 @@ func CheckDeployFiles()(anode map[string]string){
 	loadData["deploy"] = map[string]string{}
 	loadData["deploy"]["suricata"] = ""
 	loadData["deploy"]["zeek"] = ""
-	loadData["deploy"]["moloch"] = ""
-	loadData["deploy"]["interface"] = ""
-	loadData["deploy"]["firewall"] = ""
+	loadData["deploy"]["owlhmoloch"] = ""
+	loadData["deploy"]["owlhinterface"] = ""
+	loadData["deploy"]["owlhfirewall"] = ""
 	loadData,err := utils.GetConf(loadData)
 	if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil}
 	suricata := loadData["deploy"]["suricata"]
 	zeek := loadData["deploy"]["zeek"]
-	moloch := loadData["deploy"]["moloch"]
-	iface := loadData["deploy"]["interface"]
-	firewall := loadData["deploy"]["firewall"]
+	moloch := loadData["deploy"]["owlhmoloch"]
+	iface := loadData["deploy"]["owlhinterface"]
+	firewall := loadData["deploy"]["owlhfirewall"]
 
 	if _, err := os.Stat(suricata); os.IsNotExist(err) { check["suricata"]="false" } else { check["suricata"]="true" }
 	if _, err := os.Stat(zeek); os.IsNotExist(err) { check["zeek"]="false" } else { check["zeek"]="true" }

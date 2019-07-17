@@ -4,8 +4,8 @@ import (
     "owlhnode/deploy"
 )
 
-func Deploy(anode map[string]string)(err error) {
-    err = deploy.Deploy(anode)
+func DeployNode(anode map[string]string)(err error) {
+    err = deploy.DeployNode(anode)
     return err
 }
 

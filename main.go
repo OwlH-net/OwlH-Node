@@ -40,6 +40,7 @@ func main() {
 
     ndb.SConn()
     ndb.PConn()
+    ndb.NConn()
 
 	// logs.Error("Version: 0.5.190415.0922")
 
