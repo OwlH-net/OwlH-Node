@@ -31,3 +31,8 @@ func Main()(data map[string]string, err error) {
 	data = ListInterfaces(interfaces)
 	return data, nil
 }
+
+func UpdateNetworkInterface(data map[string]string) (err error) {
+	logs.Notice(data)
+    return nil
+}
