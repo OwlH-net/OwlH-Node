@@ -10,12 +10,26 @@ type NetController struct {
 	beego.Controller
 }
 
-// @Title PingNode
-// @Description get ping for node
+// @Title GetNetworkData
+// @Description get network data
 // @router / [get]
 func (m *NetController) GetNetworkData() {
-	data,err := models.GetNetworkData()
-	m.Data["json"] = data
+	values,err := models.GetNetworkData()
+	
+	m.Data["json"] = values
+	if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    m.ServeJSON()
+}
+
+// @Title LoadNetworkValuesSelected
+// @Description get network values selected by user
+// @router /values [get]
+func (m *NetController) LoadNetworkValuesSelected() {
+	values,err := models.LoadNetworkValuesSelected()
+	
+	m.Data["json"] = values
 	if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}

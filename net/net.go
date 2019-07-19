@@ -2,7 +2,8 @@ package net
 
 import (
 	"github.com/astaxie/beego/logs"
-    "github.com/google/gopacket/pcap"
+	"github.com/google/gopacket/pcap"
+	"owlhnode/database"
 )
 func ListInterfaces(interfaces []pcap.Interface)(netValues map[string]string) {
 	data := make(map[string]string)
@@ -10,29 +11,35 @@ func ListInterfaces(interfaces []pcap.Interface)(netValues map[string]string) {
 		data[localInt.Name] = localInt.Name
         // logs.Info(localInt.Addresses)
         // logs.Info(localInt.Name)
-		// logs.Info("---")
 	}
 	return data
 }
 func ReadInterfaces()(devices []pcap.Interface, err error){
     devices, err = pcap.FindAllDevs()
-    if err != nil {
-        return nil, err
-    }
+    if err != nil {logs.Error("ReadInterfaces Error reading interfaces for Node"); return nil, err}
     return devices, err
 }
 
-func Main()(data map[string]string, err error) {
-    interfaces, err := ReadInterfaces()
+func GetNetworkData()(values map[string]string, err error) {
+	//get interfaces
+	interfaces, err := ReadInterfaces()
     if err != nil {
-        logs.Error(err)
         return nil,err
     }
-	data = ListInterfaces(interfaces)
+	data := ListInterfaces(interfaces)
+
 	return data, nil
 }
 
 func UpdateNetworkInterface(data map[string]string) (err error) {
-	logs.Notice(data)
+	err = ndb.ChangeNodeconfigValues(data["uuid"],data["param"],data["value"])
+	if err != nil {logs.Error("UpdateNetworkInterface Error updating nodeconfig for Node"); return err}
     return nil
+}
+
+func LoadNetworkValuesSelected()(values map[string]map[string]string, err error) {
+	//get current values selected for network
+	values,err = ndb.LoadNodeconfigValues()
+	if err != nil {logs.Error("LoadNetworkValuesSelected Error reading nodeconfig values for Node"); return nil, err}
+    return values,err
 }

@@ -62,16 +62,56 @@ func LoadDataflowValues()(path map[string]map[string]string, err error){
 }
 
 func ChangeDataflowValues(anode map[string]string) (err error) {
-	updateRulesetNode, err := Nodedb.Prepare("update dataflow set flow_value = ? where flow_uniqueid = ? and flow_param = ?;")
+	updateDataflowNode, err := Nodedb.Prepare("update dataflow set flow_value = ? where flow_uniqueid = ? and flow_param = ?;")
 	if (err != nil){
-		logs.Error("ChangeDataflowValues UPDATE prepare error for update isDownloaded -- "+err.Error())
+		logs.Error("ChangeDataflowValues UPDATE prepare error: "+err.Error())
 		return err
 	}
-	_, err = updateRulesetNode.Exec(anode["value"], anode["FlowUUID"], anode["param"])
-	defer updateRulesetNode.Close()
+	_, err = updateDataflowNode.Exec(anode["value"], anode["FlowUUID"], anode["param"])
+	defer updateDataflowNode.Close()
 	if (err != nil){
-		logs.Error("ChangeDataflowValues UPDATE error for update isDownloaded -- "+err.Error())
+		logs.Error("ChangeDataflowValues UPDATE error: "+err.Error())
 		return err
 	}
 	return nil
+}
+
+func ChangeNodeconfigValues(uuid string, param string, value string)(err error){
+	updateNodeconfig, err := Nodedb.Prepare("update nodeconfig set config_value = ? where config_uniqueid = ? and config_param = ?;")
+	if (err != nil){
+		logs.Error("Change Nodeconfig Values UPDATE prepare error: "+err.Error())
+		return err
+	}
+	_, err = updateNodeconfig.Exec(&value, &uuid, &param)
+	defer updateNodeconfig.Close()
+	if (err != nil){
+		logs.Error("Change Nodeconfig Values UPDATE error: "+err.Error())
+		return err
+	}
+	return nil
+}
+
+func LoadNodeconfigValues()(path map[string]map[string]string, err error){
+	var configValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+
+	sql := "select config_uniqueid, config_param, config_value from nodeconfig;";
+	
+	rows, err := Nodedb.Query(sql)
+	if err != nil {
+		logs.Error("LoadNodeconfigValues Nodedb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("LoadNodeconfigValues -- Query return error: %s", err.Error())
+            return nil, err
+		}
+        if configValues[uniqid] == nil { configValues[uniqid] = map[string]string{}}
+        configValues[uniqid][param]=value
+	} 
+	return configValues,nil
 }
