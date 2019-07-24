@@ -165,7 +165,7 @@ func SetBPF(n map[string]string)(err error) {
 }
 
 //Retrieve data, make a backup file and write the new data on the original file
-func RetrieveFile(file map[string][]byte)(err error){
+func SyncRulesetFromMaster(file map[string][]byte)(err error){
     fileRetrieved := file["data"]
 	
 	StartSuricata := map[string]map[string]string{}
@@ -206,7 +206,7 @@ func RetrieveFile(file map[string][]byte)(err error){
 	
 		_,err = exec.Command(suricatasc, param, reloads, socket).Output()
 		if err != nil{
-			logs.Error("Error executing command in RetrieveFile function: "+err.Error())
+			logs.Error("Error executing command in SyncRulesetFromMaster function: "+err.Error())
 			return err    
 		}
 	}

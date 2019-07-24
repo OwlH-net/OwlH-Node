@@ -38,6 +38,7 @@ func (m *PortsController) PingPorts() {
         logs.Info("PingPorts OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
+
     m.ServeJSON()
 }
 
