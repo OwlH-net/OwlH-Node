@@ -4,6 +4,10 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/google/gopacket/pcap"
 	"owlhnode/database"
+	"owlhnode/utils"
+	"io/ioutil"
+	"regexp"
+	"strings"
 )
 func ListInterfaces(interfaces []pcap.Interface)(netValues map[string]string) {
 	data := make(map[string]string)
@@ -16,7 +20,7 @@ func ListInterfaces(interfaces []pcap.Interface)(netValues map[string]string) {
 }
 func ReadInterfaces()(devices []pcap.Interface, err error){
     devices, err = pcap.FindAllDevs()
-    if err != nil {logs.Error("ReadInterfaces Error reading interfaces for Node"); return nil, err}
+    if err != nil {logs.Error("ReadInterfaces Error reading interfaces for Node: "+err.Error()); return nil, err}
     return devices, err
 }
 
@@ -31,15 +35,99 @@ func GetNetworkData()(values map[string]string, err error) {
 	return data, nil
 }
 
-func UpdateNetworkInterface(data map[string]string) (err error) {
-	err = ndb.ChangeNodeconfigValues(data["uuid"],data["param"],data["value"])
-	if err != nil {logs.Error("UpdateNetworkInterface Error updating nodeconfig for Node"); return err}
-    return nil
-}
-
 func LoadNetworkValuesSelected()(values map[string]map[string]string, err error) {
 	//get current values selected for network
 	values,err = ndb.LoadNodeconfigValues()
-	if err != nil {logs.Error("LoadNetworkValuesSelected Error reading nodeconfig values for Node"); return nil, err}
+	if err != nil {logs.Error("LoadNetworkValuesSelected Error reading nodeconfig values for Node: "+err.Error()); return nil, err}
     return values,err
 }
+
+func UpdateNetworkInterface(data map[string]string) (err error) {
+	//read suricata file
+	suricataPath := map[string]map[string]string{}
+    suricataPath["suriInit"] = map[string]string{}
+    suricataPath["suriInit"]["path"] = ""
+	suricataPath,err = utils.GetConf(suricataPath)
+	if err != nil {logs.Error("UpdateNetworkInterface Error readding GetConf: "+err.Error())}
+	suricataPathValue := suricataPath["suriInit"]["path"]
+	
+	reg := regexp.MustCompile(`interface=`)
+	err = GetRegexpInterface(data,suricataPathValue, reg, "interface="+data["value"])
+	if err != nil {logs.Error("UpdateNetworkInterface Error calling function GetRegexpInterface: "+err.Error())}
+	reg = regexp.MustCompile(`INTERFACE="`)
+	err = GetRegexpInterface(data,suricataPathValue, reg, "INTERFACE=\""+data["value"]+"\"")
+	if err != nil {logs.Error("UpdateNetworkInterface Error calling function GetRegexpInterface: "+err.Error())}
+
+	//read zeek file
+	zeekPath := map[string]map[string]string{}
+    zeekPath["loadDataZeekPath"] = map[string]string{}
+    zeekPath["loadDataZeekPath"]["nodeConfig"] = ""
+	zeekPath,err = utils.GetConf(zeekPath)
+	if err != nil {logs.Error("UpdateNetworkInterface Error readding GetConf: "+err.Error())}
+	zeekPathValue := zeekPath["loadDataZeekPath"]["nodeConfig"]
+
+	reg = regexp.MustCompile(`interface=`)
+	err = GetRegexpInterface(data,zeekPathValue, reg, "interface="+data["value"])
+	if err != nil {logs.Error("UpdateNetworkInterface Error calling function GetRegexpInterface: "+err.Error())}
+	reg = regexp.MustCompile(`INTERFACE="`)
+	err = GetRegexpInterface(data,zeekPathValue, reg, "INTERFACE=\""+data["value"]+"\"")
+	if err != nil {logs.Error("UpdateNetworkInterface Error calling function GetRegexpInterface: "+err.Error())}
+
+	//update database with the new value
+	err = ndb.ChangeNodeconfigValues(data["uuid"],data["param"],data["value"])
+	if err != nil {logs.Error("UpdateNetworkInterface Error updating nodeconfig for Node: "+err.Error()); return err}
+	
+	//restart suricata
+	err = utils.RestartSuricata()
+	if err != nil {logs.Error("UpdateNetworkInterface Error restarting Suricata"); return err}
+	
+	//restart zeek
+	err = utils.RestartZeek()
+	if err != nil {logs.Error("UpdateNetworkInterface Error restarting Zeek"); return err}
+	
+    return nil
+}
+
+// cambiainterface(fichero, regex, newline)
+
+// fichero - suriinit
+// regex - INTERFACE=
+// newline - INTERFACE="nuevointerface"
+
+
+// fichero - nodeconfig
+// regex - interface=
+// newline - interface=nuevointerface
+
+
+
+func GetRegexpInterface(data map[string]string, path string, regexpValue *regexp.Regexp, newLine string)(err error){
+	//get current interface value
+	// interfaceCurrentValue,err := ndb.GetNodeconfigValue(data["uuid"],data["param"])
+	// if err != nil {logs.Error("GetRegexpInterface Error getting nodeconfig value"); return err}
+
+	//get first occurrence suricata
+	input, err := ioutil.ReadFile(path)
+	if err != nil {logs.Error("GetRegexpInterface Error readding zeek interface file: "+err.Error()); return err}
+	lines := strings.Split(string(input), "\n")
+	
+	found := false
+	for i := range lines {		
+		regexpresult := regexpValue.FindStringSubmatch(lines[i])
+		if regexpresult != nil && !found{
+			logs.Debug(newLine)
+				lines[i] = newLine
+				found = true
+		}
+		// if strings.Contains(line, interfaceCurrentValue) && !found{
+		// 	lines[i] = strings.Replace(lines[i], interfaceCurrentValue, data["value"], -1)
+		// 	found = true
+		// }
+	}
+	output := strings.Join(lines, "\n")
+	err = ioutil.WriteFile(path, []byte(output), 0644)
+	if err != nil {logs.Error("GetRegexpInterface Error writting new interface for Node: "+err.Error()); return err}
+
+	return nil
+}
+

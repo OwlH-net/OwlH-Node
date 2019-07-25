@@ -115,3 +115,17 @@ func LoadNodeconfigValues()(path map[string]map[string]string, err error){
 	} 
 	return configValues,nil
 }
+
+func GetNodeconfigValue(uuid string, param string)(val string, err error){
+	var value string
+
+	sql := "select config_value from nodeconfig where config_param=\""+param+"\" and config_uniqueid=\""+uuid+"\";";
+	rows, err := Nodedb.Query(sql)
+	if err != nil { logs.Error("GetNodeconfigValue Nodedb.Query Error : %s", err.Error()); return "", err}
+
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&value); err != nil { logs.Error("GetNodeconfigValue -- Query return error: %s", err.Error()); return "", err}
+	} 
+	return value,nil
+}

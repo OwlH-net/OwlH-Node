@@ -160,7 +160,8 @@ func DeployZeek()(err error){
 	if err != nil {
 		logs.Error("DeployZeek Error getting data from main.conf: "+err.Error())
 	}
-	_,err = exec.Command(command, param, cmd).Output()
+	// _,err = exec.Command(command, param, cmd).Output()
+	_,err = exec.Command(cmd).Output()
     if err != nil {
         logs.Error("Error deploying zeek: "+err.Error())
         return err

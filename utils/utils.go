@@ -224,3 +224,47 @@ func GetConfArray(loadData map[string]map[string][]string)(loadDataReturn map[st
     }
     return loadData, nil
 }
+
+func RestartSuricata()(err error){
+	//stop suricata
+	suricataStop := map[string]map[string]string{}
+	suricataStop["suriStop"] = map[string]string{}
+	suricataStop["suriStop"]["stop"] = ""
+	suricataStop["suriStop"]["param"] = ""
+	suricataStop["suriStop"]["command"] = ""
+	suricataStop,err = GetConf(suricataStop)
+	if err != nil {logs.Error("RestartSuricata Error readding GetConf for stop: "+err.Error()); return err}
+	
+	_,err = exec.Command(suricataStop["suriStop"]["command"], suricataStop["suriStop"]["param"], suricataStop["suriStop"]["stop"]).Output()
+	if err != nil{logs.Error("RestartSuricata Error exec cmd command: "+err.Error()); return err}
+
+	//run suricata
+	suricatastart := map[string]map[string]string{}
+	suricatastart["suriStart"] = map[string]string{}
+	suricatastart["suriStart"]["start"] = ""
+	suricatastart["suriStart"]["param"] = ""
+	suricatastart["suriStart"]["command"] = ""
+	suricatastart,err = GetConf(suricatastart)
+	if err != nil {logs.Error("RestartSuricata Error readding GetConf for start: "+err.Error()); return err}
+	
+	_,err = exec.Command(suricatastart["suriStart"]["command"], suricatastart["suriStart"]["param"], suricatastart["suriStart"]["start"]).Output()
+	if err != nil{logs.Error("RestartSuricata Error exec cmd command: "+err.Error()); return err}
+
+	return nil
+}
+
+func RestartZeek()(err error){
+	//restart zeek
+	zeekDeploy := map[string]map[string]string{}
+	zeekDeploy["zeekDeploy"] = map[string]string{}
+	zeekDeploy["zeekDeploy"]["stop"] = ""
+	zeekDeploy["zeekDeploy"]["param"] = ""
+	zeekDeploy["zeekDeploy"]["command"] = ""
+	zeekDeploy,err = GetConf(zeekDeploy)
+	if err != nil {logs.Error("RestartZeek Error readding GetConf for stop: "+err.Error()); return err}
+	
+	_,err = exec.Command(zeekDeploy["zeekDeploy"]["command"], zeekDeploy["zeekDeploy"]["param"], zeekDeploy["zeekDeploy"]["stop"]).Output()
+	if err != nil{logs.Error("RestartZeek Error exec cmd command: "+err.Error()); return err}
+
+	return nil
+}

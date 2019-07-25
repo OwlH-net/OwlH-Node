@@ -16,7 +16,6 @@ func DeployNode(anode map[string]string)(err error) {
 	deployElement := loadData["deploy"][anode["value"]]
 	
 	_,err = exec.Command("bash", "-c", deployElement).Output()
-
 	if err != nil{logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error()); return err}
 	
     return nil
