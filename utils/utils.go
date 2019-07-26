@@ -253,18 +253,13 @@ func RestartSuricata()(err error){
 	return nil
 }
 
-func RestartZeek()(err error){
-	//restart zeek
-	zeekDeploy := map[string]map[string]string{}
-	zeekDeploy["zeekDeploy"] = map[string]string{}
-	zeekDeploy["zeekDeploy"]["stop"] = ""
-	zeekDeploy["zeekDeploy"]["param"] = ""
-	zeekDeploy["zeekDeploy"]["command"] = ""
-	zeekDeploy,err = GetConf(zeekDeploy)
-	if err != nil {logs.Error("RestartZeek Error readding GetConf for stop: "+err.Error()); return err}
-	
-	_,err = exec.Command(zeekDeploy["zeekDeploy"]["command"], zeekDeploy["zeekDeploy"]["param"], zeekDeploy["zeekDeploy"]["stop"]).Output()
-	if err != nil{logs.Error("RestartZeek Error exec cmd command: "+err.Error()); return err}
-
-	return nil
+func RunCommand(cmdtxt, params string)err error{
+    cmd := exec.Command(cmdtxt, params)
+    logs.Notice("utils run command -> Running command "+cmdtxt+"with params " + params)
+    err = cmd.Run()
+    if err != nil {
+        logs.Error("utils run command -> "+err.Error())
+        return nil, err
+    }
+    return nil
 }
