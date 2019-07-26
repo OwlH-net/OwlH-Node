@@ -253,13 +253,22 @@ func RestartSuricata()(err error){
 	return nil
 }
 
-func RunCommand(cmdtxt, params string)err error{
+func RestartZeek()(err error){
+    err = RunCommand("/usr/local/zeek/bin/zeekctl","deploy")
+    if err != nil {
+        logs.Error("utils run command -> "+err.Error())
+        return err
+    }
+    return err
+}
+
+func RunCommand(cmdtxt, params string)(err error){
     cmd := exec.Command(cmdtxt, params)
     logs.Notice("utils run command -> Running command "+cmdtxt+"with params " + params)
     err = cmd.Run()
     if err != nil {
         logs.Error("utils run command -> "+err.Error())
-        return nil, err
+        return err
     }
-    return nil
+    return err
 }
