@@ -14,6 +14,7 @@ import (
     "crypto/rand"
 )
 
+
 //read data from main.conf
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
     confFilePath := "conf/main.conf"
@@ -63,7 +64,7 @@ func BackupFullPath(path string) (err error) {
     cpCmd := exec.Command("cp", path, destFolder)
     err = cpCmd.Run()
     if err != nil{
-        logs.Error("BackupFullPath Erro exec cmd command: "+err.Error())
+        logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error())
         return err
     }
     return nil
@@ -73,14 +74,19 @@ func BackupFile(path string, fileName string) (err error) {
     t := time.Now()
     newFile := fileName+"-"+strconv.FormatInt(t.Unix(), 10)
     srcFolder := path+fileName
-    destFolder := path+newFile
-    cpCmd := exec.Command("cp", srcFolder, destFolder)
-    err = cpCmd.Run()
-    if err != nil{
-        logs.Error("BackupFile Error exec cmd command: "+err.Error())
-        return err
-    }
-    return nil
+	destFolder := path+newFile
+	//check if file exist
+	if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
+		return nil
+	}else{
+		cpCmd := exec.Command("cp", srcFolder, destFolder)
+		err = cpCmd.Run()
+		if err != nil{
+			logs.Error("utils.BackupFile Error exec cmd command: "+err.Error())
+			return err
+		}
+	}
+	return nil
 }
 
 //write data on a file
@@ -193,4 +199,76 @@ func RemoveFile(path string, file string)(err error){
 		return err
 	}
 	return nil
+}
+
+//read data from main.conf
+func GetConfArray(loadData map[string]map[string][]string)(loadDataReturn map[string]map[string][]string, err error) { 
+    confFilePath := "conf/main.conf"
+    jsonPathBpf, err := ioutil.ReadFile(confFilePath)
+    if err != nil {
+        logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
+        return nil, err
+	}
+
+    var anode map[string]map[string][]string
+    json.Unmarshal(jsonPathBpf, &anode)
+
+    for k,y := range loadData { 
+        for y,_ := range y {
+            if v, ok := anode[k][y]; ok {
+                loadData[k][y] = v
+            }else{
+                loadData[k][y] = nil
+            }
+        }
+    }
+    return loadData, nil
+}
+
+func RestartSuricata()(err error){
+	//stop suricata
+	suricataStop := map[string]map[string]string{}
+	suricataStop["suriStop"] = map[string]string{}
+	suricataStop["suriStop"]["stop"] = ""
+	suricataStop["suriStop"]["param"] = ""
+	suricataStop["suriStop"]["command"] = ""
+	suricataStop,err = GetConf(suricataStop)
+	if err != nil {logs.Error("RestartSuricata Error readding GetConf for stop: "+err.Error()); return err}
+	
+	_,err = exec.Command(suricataStop["suriStop"]["command"], suricataStop["suriStop"]["param"], suricataStop["suriStop"]["stop"]).Output()
+	if err != nil{logs.Error("RestartSuricata Error exec cmd command: "+err.Error()); return err}
+
+	//run suricata
+	suricatastart := map[string]map[string]string{}
+	suricatastart["suriStart"] = map[string]string{}
+	suricatastart["suriStart"]["start"] = ""
+	suricatastart["suriStart"]["param"] = ""
+	suricatastart["suriStart"]["command"] = ""
+	suricatastart,err = GetConf(suricatastart)
+	if err != nil {logs.Error("RestartSuricata Error readding GetConf for start: "+err.Error()); return err}
+	
+	_,err = exec.Command(suricatastart["suriStart"]["command"], suricatastart["suriStart"]["param"], suricatastart["suriStart"]["start"]).Output()
+	if err != nil{logs.Error("RestartSuricata Error exec cmd command: "+err.Error()); return err}
+
+	return nil
+}
+
+func RestartZeek()(err error){
+    err = RunCommand("/usr/local/zeek/bin/zeekctl","deploy")
+    if err != nil {
+        logs.Error("utils run command -> "+err.Error())
+        return err
+    }
+    return err
+}
+
+func RunCommand(cmdtxt, params string)(err error){
+    cmd := exec.Command(cmdtxt, params)
+    logs.Notice("utils run command -> Running command "+cmdtxt+"with params " + params)
+    err = cmd.Run()
+    if err != nil {
+        logs.Error("utils run command -> "+err.Error())
+        return err
+    }
+    return err
 }

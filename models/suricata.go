@@ -20,8 +20,8 @@ func SetBPF(n map[string]string) (err error) {
     return err
 }
 
-func RetrieveFile(n map[string][]byte) (err error) {
-    err = suricata.RetrieveFile(n)
+func SyncRulesetFromMaster(n map[string][]byte) (err error) {
+    err = suricata.SyncRulesetFromMaster(n)
     return err
 }
 

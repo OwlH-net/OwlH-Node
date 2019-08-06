@@ -125,7 +125,7 @@ func GetBPF()(bpf string, err error) {
 
 //set BPF for suricata
 func SetBPF(n map[string]string)(err error) {
-    logs.Info("Set Suricata BPF -- Making Map")
+	textbpf := n["bpf"]
 	loadData := map[string]map[string]string{}
 	loadData["suricataBPF"] = map[string]string{}
 	loadData["suricataBPF"]["pathBPF"] = ""
@@ -138,29 +138,44 @@ func SetBPF(n map[string]string)(err error) {
 		return err
 	}
 
-    //make backup file
-    err = utils.BackupFile(path, file)
-    if err != nil{
-		logs.Error("Error creating BPF backup: "+err.Error())
-        return err    
-    }
+	//check if exists
+	if _, err = os.Stat(path + file); os.IsNotExist(err) {
+		err = ioutil.WriteFile(path + file, []byte(textbpf), 0644)	
+		if err != nil{
+			logs.Error("Error writting data into BPF file: "+err.Error())
+			return err    
+		}	
+	}else{
+		//make backup file
+		err = utils.BackupFile(path, file)
+		if err != nil{
+			logs.Error("Error creating BPF backup: "+err.Error())
+			return err    
+		}
 
-    //write bpf into the file
-	textbpf := n["bpf"]
-    err = utils.UpdateBPFFile(path, file, textbpf)
-    if err != nil{
-		logs.Error("Error writting data into BPF file: "+err.Error())
-        return err    
-    }
+		//write bpf into the file	
+		err = utils.UpdateBPFFile(path, file, textbpf)
+		if err != nil{
+			logs.Error("Error UpdateBPFFile: "+err.Error())
+			return err    
+		}
+	}
+
     return nil
 }
 
 //Retrieve data, make a backup file and write the new data on the original file
-func RetrieveFile(file map[string][]byte)(err error){
+func SyncRulesetFromMaster(file map[string][]byte)(err error){
     fileRetrieved := file["data"]
-    path := "/etc/owlh/suricata/ruleset/"
-    fileToEdit := "owlh.rules"
 	
+	StartSuricata := map[string]map[string]string{}
+    StartSuricata["suricataRuleset"] = map[string]string{}
+    StartSuricata["suricataRuleset"]["path"] = ""
+    StartSuricata["suricataRuleset"]["file"] = ""
+	StartSuricata,err = utils.GetConf(StartSuricata)
+	path := StartSuricata["suricataRuleset"]["path"]
+	fileToEdit := StartSuricata["suricataRuleset"]["file"]
+
 	//create owlh.rules backup
     err = utils.BackupFile(path, fileToEdit)
     if err != nil{
@@ -173,7 +188,29 @@ func RetrieveFile(file map[string][]byte)(err error){
     if err != nil{
 		logs.Error("Error writting data into owlh.rules file: "+err.Error())
         return err    
-    }
+	}
+	// /usr/local/bin/suricatasc -c reload-rules /var/run/suricata/suricata-command.socket
+	//SuricataRulesetReload
+	if suriRunning(){
+		SuricataRulesetReload := map[string]map[string]string{}
+		SuricataRulesetReload["SuricataRulesetReload"] = map[string]string{}
+		SuricataRulesetReload["SuricataRulesetReload"]["suricatasc"] = ""
+		SuricataRulesetReload["SuricataRulesetReload"]["param"] = ""
+		SuricataRulesetReload["SuricataRulesetReload"]["reload"] = ""
+		SuricataRulesetReload["SuricataRulesetReload"]["socket"] = ""
+		SuricataRulesetReload,err = utils.GetConf(SuricataRulesetReload)
+		suricatasc := SuricataRulesetReload["SuricataRulesetReload"]["suricatasc"]
+		param := SuricataRulesetReload["SuricataRulesetReload"]["param"]
+		reloads := SuricataRulesetReload["SuricataRulesetReload"]["reload"]
+		socket := SuricataRulesetReload["SuricataRulesetReload"]["socket"]
+	
+		_,err = exec.Command(suricatasc, param, reloads, socket).Output()
+		if err != nil{
+			logs.Error("Error executing command in SyncRulesetFromMaster function: "+err.Error())
+			return err    
+		}
+	}
+	
     return nil
 }
 

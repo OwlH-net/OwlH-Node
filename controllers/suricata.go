@@ -57,16 +57,15 @@ func (n *SuricataController) SetBPF() {
     n.ServeJSON()
 }
 
-// @Title RetrieveFile
-// @Description Retrieve file from master
+// @Title SyncRulesetFromMaster
+// @Description Sync ruleset file from master
 // @Success 200 {object} models.Node
 // @Failure 403 body is empty
-// @router /retrieve [put]
-func (n *SuricataController) RetrieveFile() {
+// @router /sync [put]
+func (n *SuricataController) SyncRulesetFromMaster() {
     var anode map[string][]byte
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.RetrieveFile(anode)
-    //logs.Info(string(anode["data"]))
+    err := models.SyncRulesetFromMaster(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         logs.Info("Ruleset retrieve OUT -- ERROR : %s", err.Error())

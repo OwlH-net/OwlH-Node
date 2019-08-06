@@ -9,6 +9,8 @@ import (
     "owlhnode/database"
 	"owlhnode/stap"
 	"owlhnode/utils"
+	"owlhnode/analyzer"
+	"owlhnode/knownports"
 )
 
 func main() {
@@ -37,11 +39,15 @@ func main() {
 	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     ndb.SConn()
+    ndb.PConn()
+    ndb.NConn()
 
-	//logs.Error("Version: 0.5.190415.0922")
+	// logs.Error("Version: 0.5.190415.0922")
 
     //Launch StapInit for 1st time for check status and go concurrency if status==true
-    stap.StapInit()
+	stap.StapInit()
+	knownports.Init()
+	analyzer.Init()
     
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true

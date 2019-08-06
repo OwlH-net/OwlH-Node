@@ -15,10 +15,7 @@ func SendFile(file string)(data map[string]string, err error){
 	loadData["files"] = map[string]string{}
 	loadData["files"][file] = ""
 	loadData,err = utils.GetConf(loadData)
-	if err != nil {
-		logs.Error("SendFile Error getting data from main.conf")
-		return nil,err
-    }
+	if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
 	    
     //save url from file selected and open file
     fileConfPath := loadData["files"][file]

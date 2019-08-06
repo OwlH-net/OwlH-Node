@@ -44,6 +44,36 @@ func init() {
 				&controllers.PingController{},
 			),
 		),
+		beego.NSNamespace("/collector",
+			beego.NSInclude(
+				&controllers.CollectorController{},
+			),
+		),
+		beego.NSNamespace("/ports",
+			beego.NSInclude(
+				&controllers.PortsController{},
+			),
+		),
+		beego.NSNamespace("/analyzer",
+			beego.NSInclude(
+				&controllers.AnalyzerController{},
+			),
+		),
+		beego.NSNamespace("/deploy",
+			beego.NSInclude(
+				&controllers.DeployController{},
+			),
+		),
+		beego.NSNamespace("/dataflow",
+			beego.NSInclude(
+				&controllers.DataflowController{},
+			),
+		),
+		beego.NSNamespace("/net",
+			beego.NSInclude(
+				&controllers.NetController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
