@@ -61,13 +61,13 @@ func LoadDataflowValues()(path map[string]map[string]string, err error){
 	return pingData,nil
 }
 
-func ChangeDataflowValues(anode map[string]string) (err error) {
+func ChangeDataflowValues(uuid string, param string, value string) (err error) {
 	updateDataflowNode, err := Nodedb.Prepare("update dataflow set flow_value = ? where flow_uniqueid = ? and flow_param = ?;")
 	if (err != nil){
 		logs.Error("ChangeDataflowValues UPDATE prepare error: "+err.Error())
 		return err
 	}
-	_, err = updateDataflowNode.Exec(anode["value"], anode["FlowUUID"], anode["param"])
+	_, err = updateDataflowNode.Exec(&value, &uuid, &param)
 	defer updateDataflowNode.Close()
 	if (err != nil){
 		logs.Error("ChangeDataflowValues UPDATE error: "+err.Error())

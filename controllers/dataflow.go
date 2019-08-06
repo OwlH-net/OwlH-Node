@@ -39,3 +39,33 @@ func (n *DataflowController) LoadDataflowValues() {
     }
     n.ServeJSON()
 }
+
+// @Title SaveSocketToNetwork
+// @Description Save socket information to Network at node dataflow
+// @Success 200 {object} models.file
+// @Failure 403 body is empty
+// @router /saveSocketToNetwork [put]
+func (n *DataflowController) SaveSocketToNetwork() {
+	var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
+    err := models.SaveSocketToNetwork(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// // @Title LoadSocketToNetwork
+// // @Description Load data flow values for socket to network
+// // @Success 200 {object} models.file
+// // @Failure 403 body is empty
+// // @router /loadSocketToNetwork [get]
+// func (n *DataflowController) LoadSocketToNetwork() {
+//     data,err := models.LoadSocketToNetwork()
+//     n.Data["json"] = data
+//     if err != nil {
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }
