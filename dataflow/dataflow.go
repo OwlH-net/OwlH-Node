@@ -27,8 +27,14 @@ func SaveSocketToNetwork(anode map[string]string) (err error) {
     return nil
 }
 
-// func LoadSocketToNetwork() (data map[string]map[string]string, err error) {
-//     err = ndb.LoadSocketToNetwork()
-// 	if (err != nil){ logs.Error("ChangeDataflowValues UPDATE error for update dataflow values: "+err.Error()); return nil,err}
-//     return nil
-// }
+func SaveNewLocal(anode map[string]string)(err error) {
+    logs.Info("Saving new local...")
+    logs.Notice(anode)
+    return nil
+}
+
+func SaveVxLAN(anode map[string]string)(err error) {
+	logs.Info("Saving new local...")
+    logs.Notice(anode)
+    return nil
+}

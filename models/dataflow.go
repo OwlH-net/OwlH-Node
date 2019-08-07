@@ -19,7 +19,12 @@ func LoadDataflowValues()(data map[string]map[string]string, err error) {
     return data, err
 }
 
-// func LoadSocketToNetwork() (data map[string]map[string]string, err error) {
-//     err = dataflow.LoadSocketToNetwork(anode)
-//     return err
-// }
+func SaveNewLocal(anode map[string]string)(err error) {
+    err = dataflow.SaveNewLocal(anode)
+    return err
+}
+
+func SaveVxLAN(anode map[string]string)(err error) {
+    err = dataflow.SaveVxLAN(anode)
+    return err
+}

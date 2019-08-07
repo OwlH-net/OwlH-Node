@@ -56,16 +56,34 @@ func (n *DataflowController) SaveSocketToNetwork() {
     n.ServeJSON()
 }
 
-// // @Title LoadSocketToNetwork
-// // @Description Load data flow values for socket to network
-// // @Success 200 {object} models.file
-// // @Failure 403 body is empty
-// // @router /loadSocketToNetwork [get]
-// func (n *DataflowController) LoadSocketToNetwork() {
-//     data,err := models.LoadSocketToNetwork()
-//     n.Data["json"] = data
-//     if err != nil {
-//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-//     }
-//     n.ServeJSON()
-// }
+// @Title SaveNewLocal
+// @Description Save socket information to Network at node dataflow
+// @Success 200 {object} models.file
+// @Failure 403 body is empty
+// @router /saveNewLocal [put]
+func (n *DataflowController) SaveNewLocal() {
+	var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
+    err := models.SaveNewLocal(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveVxLAN
+// @Description Save socket information to Network at node dataflow
+// @Success 200 {object} models.file
+// @Failure 403 body is empty
+// @router /saveVxLAN [put]
+func (n *DataflowController) SaveVxLAN() {
+	var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
+    err := models.SaveVxLAN(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
