@@ -87,3 +87,35 @@ func (n *DataflowController) SaveVxLAN() {
     }
     n.ServeJSON()
 }
+
+// @Title SaveSocketToNetworkSelected
+// @Description Save socket information to Network at node dataflow
+// @Success 200 {object} models.file
+// @Failure 403 body is empty
+// @router /saveSocketToNetworkSelected [put]
+func (n *DataflowController) SaveSocketToNetworkSelected() {
+	var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
+    err := models.SaveSocketToNetworkSelected(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteSocketToNetworkSelected
+// @Description Save socket information to Network at node dataflow
+// @Success 200 {object} models.file
+// @Failure 403 body is empty
+// @router /deleteSocketToNetworkSelected [delete]
+func (n *DataflowController) DeleteSocketToNetworkSelected() {
+	var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
+    err := models.DeleteSocketToNetworkSelected(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

@@ -4,6 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "database/sql"
 	"os"
+	"errors"
 	"owlhnode/utils"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -128,4 +129,24 @@ func GetNodeconfigValue(uuid string, param string)(val string, err error){
 		if err = rows.Scan(&value); err != nil { logs.Error("GetNodeconfigValue -- Query return error: %s", err.Error()); return "", err}
 	} 
 	return value,nil
+}
+
+func InsertDataflowValues(uuid string, param string, value string)(err error){
+    if Nodedb == nil {logs.Error("no access to database dataflow");return errors.New("no access to database dataflow")}
+	
+	stmt, err := Nodedb.Prepare("insert into dataflow (flow_uniqueid, flow_param, flow_value) values (?,?,?);")
+    if err != nil {logs.Error("InsertDataflowValues Prepare error: %s", err.Error());return err}
+	
+	_, err = stmt.Exec(&uuid, &param, &value)
+	if err != nil {logs.Error("InsertDataflowValues Execute error: %s", err.Error());return err}
+	
+    return nil
+}
+
+func DeleteSocketToNetworkSelected(uuid string)(err error){
+	deleteSocketToNetwork, err := Nodedb.Prepare("delete from dataflow where flow_uniqueid = ?;")
+	_, err = deleteSocketToNetwork.Exec(&uuid)
+	defer deleteSocketToNetwork.Close()
+    if err != nil {logs.Error("DeleteSocketToNetworkSelected ERROR deleting: "+err.Error());return err}
+	return nil
 }

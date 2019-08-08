@@ -28,3 +28,13 @@ func SaveVxLAN(anode map[string]string)(err error) {
     err = dataflow.SaveVxLAN(anode)
     return err
 }
+
+func SaveSocketToNetworkSelected(anode map[string]string)(err error) {
+    err = dataflow.SaveSocketToNetworkSelected(anode)
+    return err
+}
+
+func DeleteSocketToNetworkSelected(anode map[string]string)(err error) {
+    err = dataflow.DeleteSocketToNetworkSelected(anode)
+    return err
+}
