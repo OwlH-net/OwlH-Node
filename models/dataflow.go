@@ -34,7 +34,7 @@ func SaveSocketToNetworkSelected(anode map[string]string)(err error) {
     return err
 }
 
-func DeleteSocketToNetworkSelected(anode map[string]string)(err error) {
-    err = dataflow.DeleteSocketToNetworkSelected(anode)
+func DeleteDataFlowValueSelected(anode map[string]string)(err error) {
+    err = dataflow.DeleteDataFlowValueSelected(anode)
     return err
 }

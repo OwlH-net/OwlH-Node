@@ -47,8 +47,20 @@ func SaveNewLocal(anode map[string]string)(err error) {
 }
 
 func SaveVxLAN(anode map[string]string)(err error) {
-	logs.Info("Saving new local...")
-    logs.Notice(anode)
+	uuid := utils.Generate()
+	err = ndb.InsertDataflowValues(uuid, "name", anode["interface"])
+	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+	err = ndb.InsertDataflowValues(uuid, "lanIp", anode["lanIp"])
+	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+	err = ndb.InsertDataflowValues(uuid, "localIp", anode["localIp"])
+	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+	err = ndb.InsertDataflowValues(uuid, "portIp", anode["portIp"])
+	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+	err = ndb.InsertDataflowValues(uuid, "type", anode["type"])
+	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+	err = ndb.InsertDataflowValues(uuid, "baseInterface", anode["baseInterface"])
+	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+    
     return nil
 }
 
@@ -57,8 +69,8 @@ func SaveSocketToNetworkSelected(anode map[string]string)(err error) {
     return nil
 }
 
-func DeleteSocketToNetworkSelected(anode map[string]string)(err error) {
-	err = ndb.DeleteSocketToNetworkSelected(anode["uuidNode"])
-	if (err != nil){ logs.Error("DeleteSocketToNetworkSelected error deleting a socket->network: "+err.Error()); return err}
+func DeleteDataFlowValueSelected(anode map[string]string)(err error) {
+	err = ndb.DeleteDataFlowValueSelected(anode["uuidNode"])
+	if (err != nil){ logs.Error("DeleteDataFlowValueSelected error deleting a socket->network: "+err.Error()); return err}
     return nil
 }

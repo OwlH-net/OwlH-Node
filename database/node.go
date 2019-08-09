@@ -143,10 +143,10 @@ func InsertDataflowValues(uuid string, param string, value string)(err error){
     return nil
 }
 
-func DeleteSocketToNetworkSelected(uuid string)(err error){
-	deleteSocketToNetwork, err := Nodedb.Prepare("delete from dataflow where flow_uniqueid = ?;")
-	_, err = deleteSocketToNetwork.Exec(&uuid)
-	defer deleteSocketToNetwork.Close()
-    if err != nil {logs.Error("DeleteSocketToNetworkSelected ERROR deleting: "+err.Error());return err}
+func DeleteDataFlowValueSelected(uuid string)(err error){
+	deleteDataflow, err := Nodedb.Prepare("delete from dataflow where flow_uniqueid = ?;")
+	_, err = deleteDataflow.Exec(&uuid)
+	defer deleteDataflow.Close()
+    if err != nil {logs.Error("DeleteDataFlowValueSelected ERROR deleting: "+err.Error());return err}
 	return nil
 }

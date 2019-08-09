@@ -104,15 +104,15 @@ func (n *DataflowController) SaveSocketToNetworkSelected() {
     n.ServeJSON()
 }
 
-// @Title DeleteSocketToNetworkSelected
+// @Title DeleteDataFlowValueSelected
 // @Description Save socket information to Network at node dataflow
 // @Success 200 {object} models.file
 // @Failure 403 body is empty
-// @router /deleteSocketToNetworkSelected [delete]
-func (n *DataflowController) DeleteSocketToNetworkSelected() {
+// @router /deleteDataFlowValueSelected [delete]
+func (n *DataflowController) DeleteDataFlowValueSelected() {
 	var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
-    err := models.DeleteSocketToNetworkSelected(anode)
+    err := models.DeleteDataFlowValueSelected(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
