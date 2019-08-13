@@ -3,7 +3,9 @@ package dataflow
 import (
     "github.com/astaxie/beego/logs"
     "owlhnode/database"
-    "owlhnode/utils"
+	"owlhnode/utils"
+	"strings"
+	"errors"
 )
 
 func ChangeDataflowValues(anode map[string]string)(err error) {
@@ -19,47 +21,97 @@ func LoadDataflowValues()(data map[string]map[string]string, err error) {
 }
 
 func SaveSocketToNetwork(anode map[string]string) (err error) {
-	uuid := utils.Generate()
-	err = ndb.InsertDataflowValues(uuid, "name", anode["name"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting name dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "cert", anode["cert"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting cert dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "interface", anode["interface"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "port", anode["port"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting port dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "type", "sockettonetwork")
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting sockettonetwork dataflow values: "+err.Error()); return err}
+	data,err := ndb.LoadDataflowValues()
+	anodeCapitalized := strings.Replace(strings.ToLower(anode["name"]), " ", "_", -1)
+	exists := false
+
+	for x := range data {
+		dbCapitalized := strings.Replace(strings.ToLower(data[x]["name"]), " ", "_", -1)
+		if (data[x]["type"] == "sockettonetwork" && anodeCapitalized == dbCapitalized){
+			exists = true
+			break
+		}		
+	}
+
+	if (exists){
+		return errors.New("Name in use. Use other name.")
+	}else{
+		uuid := utils.Generate()
+		err = ndb.InsertDataflowValues(uuid, "name", anode["name"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting name dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "cert", anode["cert"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting cert dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "interface", anode["interface"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "port", anode["port"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting port dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "type", "sockettonetwork")
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting sockettonetwork dataflow values: "+err.Error()); return err}
+	}
     
     return nil
 }
 
 func SaveNewLocal(anode map[string]string)(err error) {
-	uuid := utils.Generate()
-	err = ndb.InsertDataflowValues(uuid, "name", anode["name"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting name dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "mtu", anode["mtu"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting cert dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "type", "networknewlocal")
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting sockettonetwork dataflow values: "+err.Error()); return err}
-    
+	data,err := ndb.LoadDataflowValues()
+	anodeCapitalized := strings.Replace(strings.ToLower(anode["name"]), " ", "_", -1)
+	exists := false
+
+	for x := range data {
+		dbCapitalized := strings.Replace(strings.ToLower(data[x]["name"]), " ", "_", -1)
+		if (data[x]["type"] == "networknewlocal" && anodeCapitalized == dbCapitalized){
+			exists = true
+			break
+		}		
+	}
+
+	if (exists){
+		return errors.New("Name in use. Use other name.")
+	}else{
+		uuid := utils.Generate()
+		logs.Warn(uuid)
+		err = ndb.InsertDataflowValues(uuid, "name", anode["name"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting name dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "mtu", anode["mtu"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting cert dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "type", "networknewlocal")
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting sockettonetwork dataflow values: "+err.Error()); return err}
+	}
+
     return nil
 }
 
 func SaveVxLAN(anode map[string]string)(err error) {
-	uuid := utils.Generate()
-	err = ndb.InsertDataflowValues(uuid, "name", anode["interface"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "lanIp", anode["lanIp"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "localIp", anode["localIp"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "portIp", anode["portIp"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "type", anode["type"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
-	err = ndb.InsertDataflowValues(uuid, "baseInterface", anode["baseInterface"])
-	if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+	data,err := ndb.LoadDataflowValues()
+	anodeCapitalized := strings.Replace(strings.ToLower(anode["interface"]), " ", "_", -1)
+	exists := false
+
+	for x := range data {
+		dbCapitalized := strings.Replace(strings.ToLower(data[x]["name"]), " ", "_", -1)
+		logs.Debug(anodeCapitalized+"  --  "+dbCapitalized)
+		if (data[x]["type"] == "networkvxlan" && anodeCapitalized == dbCapitalized){
+			exists = true
+			break
+		}		
+	}
+
+	if (exists){
+		return errors.New("Name in use. Use other name.")
+	}else{
+		uuid := utils.Generate()
+		err = ndb.InsertDataflowValues(uuid, "name", anode["interface"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "lanIp", anode["lanIp"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "localIp", anode["localIp"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "portIp", anode["portIp"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "type", anode["type"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+		err = ndb.InsertDataflowValues(uuid, "baseInterface", anode["baseInterface"])
+		if (err != nil){ logs.Error("SaveSocketToNetwork error inserting interface dataflow values: "+err.Error()); return err}
+	}
     
     return nil
 }

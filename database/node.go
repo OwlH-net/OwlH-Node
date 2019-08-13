@@ -37,7 +37,7 @@ func NConn() {
 	}
 }
 
-func LoadDataflowValues()(path map[string]map[string]string, err error){
+func LoadDataflowValues()(data map[string]map[string]string, err error){
 	var pingData = map[string]map[string]string{}
     var uniqid string
     var param string
