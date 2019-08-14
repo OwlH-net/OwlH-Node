@@ -71,9 +71,9 @@ func readconf()(err error) {
     }
     defer confFile.Close()
     byteValue, _ := ioutil.ReadAll(confFile)
-    err = json.Unmarshal(byteValue, &config)
+	err = json.Unmarshal(byteValue, &config)
     if err != nil {
-        logs.Error(err.Error())
+		logs.Error(err.Error())
         return err
     }
     return nil
@@ -115,7 +115,7 @@ func Startanalyzer(file string, wkr int) {
     newuuid := utils.Generate()
     logs.Info(newuuid + ": starting analyzer with feed: "+file + " with " + strconv.Itoa(wkr) + " workers")
     Registerchannel(newuuid)
-    IoCs, _ := readLines(file)
+	IoCs, _ := readLines(file)
     for x:=0; x < wkr; x++ {
         go Domystuff(IoCs, newuuid, x, file)
     }
@@ -205,6 +205,23 @@ func InitAnalizer() {
 }
 
 func Init(){
+	// for path := range config.Srcfiles{
+	
+	// 	logs.Notice()
+
+	// 	//open config.Srcfiles[path]
+
+	// 	//leer linea x linea
+
+	// 	var protoportRegexp = regexp.MustCompile(`"id.resp_h":"(\d+\.\d+\.\d+\.\d+)","id.resp_p":(\d+),"proto":"(\w+)"`)
+	// 	portProtocol := protoportRegexp.FindStringSubmatch(line.Text)
+	// 	if portProtocol== nil {continue}
+	// }
+
+
+
+
+
 	go InitAnalizer()
 }
 
