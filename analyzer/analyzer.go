@@ -144,7 +144,7 @@ func Writer(uuid string, wkrid int) {
         logs.Error("AlertLog Error getting data from main.conf: " + err.Error())
         return
     }
-    ofile, err := os.OpenFile(outputfile, os.O_APPEND|os.O_WRONLY, 0644)
+    ofile, err := os.OpenFile(outputfile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
     if err != nil {
         logs.Error("Analyzer Writer: can't open output file: " + outputfile + " -> " + err.Error())
         return
