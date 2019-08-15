@@ -128,7 +128,6 @@ func Mapper(uuid string, wkrid int) {
         line = strings.Replace(line, "src_port", "srcport", -1)
         line = strings.Replace(line, "dest_ip", "dstip", -1)
         line = strings.Replace(line, "dest_port", "dstport", -1)
-        //logs.Info("Mapper -> write -> " + line)
         writeline(line)
     }
 }
@@ -183,7 +182,7 @@ func StartMapper(wkr int) {
 
 func StartWriter(wkr int) {
     newuuid := utils.Generate()
-    logs.Info(newuuid + ": starting Mapper with " + strconv.Itoa(wkr) + " workers")
+    logs.Info(newuuid + ": starting Writer with " + strconv.Itoa(wkr) + " workers")
     RegisterWriter(newuuid)
     for x:=0; x < wkr; x++ {
         go Writer(newuuid, x)
@@ -275,6 +274,7 @@ func InitAnalizer() {
         return
     }
     readconf()
+    StartWriter()
     LoadMapper()
     LoadAnalyzers()
     LoadSources()
