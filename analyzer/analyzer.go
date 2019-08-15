@@ -153,7 +153,7 @@ func Writer(uuid string, wkrid int) {
     defer ofile.Close()
     for {
         line := <- writer[uuid] 
-        logs.Info("Mapper -> writer -> " line)
+        logs.Info("Mapper -> writer -> " + line)
         _, err = fmt.Fprintln(ofile, line)
     }
 }
