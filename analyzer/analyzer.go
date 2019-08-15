@@ -191,7 +191,7 @@ func Starttail(file string) {
     var seekv tail.SeekInfo
     seekv.Offset = 0
     seekv.Whence = os.SEEK_END
-    t, _ := tail.TailFile(file, tail.Config{Follow: true, Location: seekv})
+    t, _ := tail.TailFile(file, tail.Config{Follow: true, Location: *seekv})
     for line := range t.Lines {
         dispatch(line.Text)
     }
