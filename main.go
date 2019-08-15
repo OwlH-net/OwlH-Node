@@ -11,6 +11,7 @@ import (
 	"owlhnode/utils"
 	"owlhnode/analyzer"
 	"owlhnode/knownports"
+	"owlhnode/geolocation"
 )
 
 func main() {
@@ -48,6 +49,7 @@ func main() {
 	stap.StapInit()
 	knownports.Init()
 	analyzer.Init()
+	geolocation.GeoInfo()
     
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
