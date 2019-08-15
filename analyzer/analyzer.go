@@ -149,12 +149,11 @@ func Writer(uuid string, wkrid int) {
         return
     }
     logs.Info("Mapper -> writer -> Started -> " + outputfile)
-    _, err = fmt.Fprintln(ofile, "started 2")
+    _, err = ofile.WriteString("started 2\n")
     defer ofile.Close()
     for {
         line := <- writer[uuid] 
-        logs.Info("Mapper -> writer -> New line to write -> " + line)
-        _, err = fmt.Fprintln(ofile, line)
+        _, err = ofile.WriteString(line+"\n")
         if err != nil {
             logs.Error("Analyzer Writer: can't write line to file: " + outputfile + " -> " + err.Error())
         }
@@ -222,9 +221,7 @@ func dispatch(line string) {
 }
 
 func writeline(line string) {
-    logs.Info("Dispatch line -> send line to channel -> " + line)
     for channel := range writer {
-        logs.Info("Write Line to channel -> " + channel)
         writer[channel] <- line
     }
 }
