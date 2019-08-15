@@ -141,14 +141,14 @@ func Writer(uuid string, wkrid int) {
     AlertLog,err = utils.GetConf(AlertLog)
     outputfile := AlertLog["Node"]["AlertLog"]
     if err != nil {
-        logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
+        logs.Error("AlertLog Error getting data from main.conf: " + err.Error())
         return
     }
     ofile, err := os.OpenFile(outputfile, os.O_APPEND|os.O_WRONLY, 0644)
     if err != nil {
         logs.Error("Analyzer Writer: can't open output file: " + outputfile + " -> " + err.Error())
         return
-    
+    }
     logs.Info("Mapper -> writer -> Started")
     defer ofile.Close()
     for {
