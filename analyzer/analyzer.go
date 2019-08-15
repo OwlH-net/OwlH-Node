@@ -134,10 +134,10 @@ func Mapper(uuid string, wkrid int) {
 func Writer(uuid string, wkrid int) {
     var err error
     AlertLog := map[string]map[string]string{}
-    AlertLog["Node"] = map[string]string{}
-    AlertLog["Node"]["AlertLog"] = ""
+    AlertLog["node"] = map[string]string{}
+    AlertLog["node"]["alertlog"] = ""
     AlertLog,err = utils.GetConf(AlertLog)
-    outputfile := AlertLog["Node"]["AlertLog"]
+    outputfile := AlertLog["node"]["alertLog"]
     if err != nil {
         logs.Error("AlertLog Error getting data from main.conf: " + err.Error())
         return
