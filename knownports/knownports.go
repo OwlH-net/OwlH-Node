@@ -277,8 +277,8 @@ func NewPorts()(){
 		}
 		Status, err = CheckParamKnownports("status")
 		Mode, err = CheckParamKnownports("mode")
-		t.Cleanup()
-		t.Stop()		
+		//t.Cleanup()
+		//t.Stop()
 	}
 	logs.Info("Knownports main loop: Exit")
 }

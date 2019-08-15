@@ -6,7 +6,7 @@ import (
     "net"
 )
 
-func GeoInfo() {
+func Init() {
     db, err := geoip2.Open("conf/GeoLite2-City.mmdb")
     if err != nil {
         logs.Error(err)
@@ -24,4 +24,20 @@ func GeoInfo() {
     logs.Info("ISO country code: %v\n", record.Country.IsoCode)
     logs.Info("Time zone: %v\n", record.Location.TimeZone)
     logs.Info("Coordinates: %v, %v\n", record.Location.Latitude, record.Location.Longitude)
+}
+
+
+
+func GetGeoInfo(ip string)geoinfo string {
+    ip := net.ParseIP(ip)
+    record, err := db.City(ip)
+    if err != nil {
+        logs.Error(err)
+    }
+    geoinfo = map[string]string{}
+    geoinfo["city_name"] = record.City.Names["en"]
+    geoinfo["county"] = record.Subdivisions[0].Names["en"]
+    geoinfo["country"] = record.Country.Names["en"]
+    geoinfo["country_code"] = record.Country.IsoCode
+    geoinfo["continent_code"] = record.Continent.Code
 }
