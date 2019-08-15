@@ -6,8 +6,10 @@ import (
     "net"
 )
 
+var GeoDb geoip2.Reader
+
 func Init() {
-    db, err := geoip2.Open("conf/GeoLite2-City.mmdb")
+    GeoDb, err := geoip2.Open("conf/GeoLite2-City.mmdb")
     if err != nil {
         logs.Error(err)
     }
@@ -16,7 +18,7 @@ func Init() {
 
 func GetGeoInfo(ip string)(geoinfo map[string]string) {
     ip := net.ParseIP(ip)
-    record, err := db.City(ip)
+    record, err := GeoDb.City(ip)
     if err != nil {
         logs.Error(err)
     }

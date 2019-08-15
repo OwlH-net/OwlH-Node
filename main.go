@@ -49,7 +49,7 @@ func main() {
 	stap.StapInit()
 	knownports.Init()
 	analyzer.Init()
-	geolocation.GeoInfo()
+	geolocation.Init()
     
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
