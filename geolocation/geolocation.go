@@ -3,12 +3,13 @@ package geolocation
 import (
     "github.com/astaxie/beego/logs"
     "github.com/oschwald/geoip2-golang"
+    "net"
 )
 
 func GeoInfo() {
-    db, err := Open("conf/GeoLite2-City.mmdb")
+    db, err := geoip2.Open("conf/GeoLite2-City.mmdb")
     if err != nil {
-        log.Fatal(err)
+        logs.Error(err)
     }
     defer db.Close()
     // If you are using strings that may be invalid, check that ip is not nil
