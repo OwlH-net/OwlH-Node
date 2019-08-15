@@ -4,7 +4,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"owlhnode/database"
 	"owlhnode/utils"
-	"github.com/hpcloud/tail"
+	"owlhnode/analyzer
 	"errors"
 	"regexp"
 	"strconv"
@@ -94,7 +94,7 @@ func NewPorts()(){
 
         newuuid := utils.Generate()
         logs.Info(newuuid + ": starting analyzer for Knwon ports")
-        Registerchannel(newuuid)
+        analyzer.Registerchannel(newuuid)
 		
 		portsData, err := LoadPortsData()
 
