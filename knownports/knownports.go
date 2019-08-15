@@ -121,7 +121,7 @@ func NewPorts()(){
 				break
 			}
 			var protoportRegexp = regexp.MustCompile(`"id.resp_h":"(\d+\.\d+\.\d+\.\d+)","id.resp_p":(\d+),"proto":"(\w+)"`)
-			portProtocol := protoportRegexp.FindStringSubmatch(line.Text)
+			portProtocol := protoportRegexp.FindStringSubmatch(line)
 			if portProtocol== nil {continue}
 
 			dstip := portProtocol[1]
