@@ -13,11 +13,11 @@ func Init() {
     if err != nil {
         logs.Error(err)
     }
-    defer db.Close()
+    defer GeoDb.Close()
 }
 
-func GetGeoInfo(ip string)(geoinfo map[string]string) {
-    ip := net.ParseIP(ip)
+func GetGeoInfo(nip string)(geoinfo map[string]string) {
+    ip = net.ParseIP(nip)
     record, err := GeoDb.City(ip)
     if err != nil {
         logs.Error(err)
