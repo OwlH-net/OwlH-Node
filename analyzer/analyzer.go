@@ -117,6 +117,7 @@ func Domystuff(IoCs []string, uuid string, wkrid int, iocsrc string) {
 }
 
 func Mapper(uuid string, wkrid int) {
+    logs.Info("Mapper -> " + uuid + " -> Started")
     for {
         line := <- dispatcher[uuid] 
         strings.Replace(line, "id.orig_h", "srcip", -1)
@@ -127,6 +128,7 @@ func Mapper(uuid string, wkrid int) {
         strings.Replace(line, "src_port", "srcport", -1)
         strings.Replace(line, "dest_ip", "dstip", -1)
         strings.Replace(line, "dest_port", "dstport", -1)
+        logs.Info("Mapper -> write -> " + line)
         writeline(line)
     }
 }
@@ -146,10 +148,12 @@ func Writer(uuid string, wkrid int) {
     if err != nil {
         logs.Error("Analyzer Writer: can't open output file: " + outputfile + " -> " + err.Error())
         return
-    }
+    
+    logs.Info("Mapper -> writer -> Started")
     defer ofile.Close()
     for {
         line := <- writer[uuid] 
+        logs.Info("Mapper -> writer -> " line)
         _, err = fmt.Fprintln(ofile, line)
     }
 }
