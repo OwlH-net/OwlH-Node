@@ -47,8 +47,8 @@ type Feedfile struct {
     Workers		int			`json:"workers"`
 }
 
-var dispatcher = make(map[string]chan string)
-var writer = make(map[string]chan string)
+var Dispatcher = make(map[string]chan string)
+var Writer = make(map[string]chan string)
 
 var config Analyzer
 
@@ -95,7 +95,7 @@ func readLines(path string) ([]string, error) {
 }
 
 func Registerchannel(uuid string) {
-    dispatcher[uuid] = make(chan string)
+    Dispatcher[uuid] = make(chan string)
 }
 
 func RegisterWriter(uuid string) {
@@ -104,7 +104,7 @@ func RegisterWriter(uuid string) {
 
 func Domystuff(IoCs []string, uuid string, wkrid int, iocsrc string) {
     for {
-        line := <- dispatcher[uuid] 
+        line := <- Dispatcher[uuid] 
         for ioc := range IoCs {
             if strings.Contains(line, IoCs[ioc]) {
                 logs.Info("Match -> "+ line +" IoC found -> " + IoCs[ioc]  + " wkrid -> " + strconv.Itoa(wkrid))
@@ -118,7 +118,7 @@ func Domystuff(IoCs []string, uuid string, wkrid int, iocsrc string) {
 func Mapper(uuid string, wkrid int) {
     logs.Info("Mapper -> " + uuid + " -> Started")
     for {
-        line := <- dispatcher[uuid] 
+        line := <- Dispatcher[uuid] 
         line = strings.Replace(line, "id.orig_h", "srcip", -1)
         line = strings.Replace(line, "id.orig_p", "srcport", -1)
         line = strings.Replace(line, "id.resp_h", "dstip", -1)
@@ -219,14 +219,14 @@ func LoadMapper() {
 }
 
 func dispatch(line string) {
-    for channel := range dispatcher {
-        dispatcher[channel] <- line
+    for channel := range Dispatcher {
+        Dispatcher[channel] <- line
     }
 }
 
 func writeline(line string) {
-    for channel := range writer {
-        writer[channel] <- line
+    for channel := range Writer {
+        Writer[channel] <- line
     }
 }
 

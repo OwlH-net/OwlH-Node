@@ -111,7 +111,7 @@ func NewPorts()(){
 			Status = "Disabled"
 		}
 		for {
-		    line := <- dispatcher[newuuid] 
+		    line := <- analyzer.Dispatcher[newuuid] 
 			Status, err = CheckParamKnownports("status")
 			Mode, err = CheckParamKnownports("mode")
 			if err != nil {
