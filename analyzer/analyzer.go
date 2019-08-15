@@ -274,7 +274,7 @@ func InitAnalizer() {
         return
     }
     readconf()
-    StartWriter()
+    StartWriter(1)
     LoadMapper()
     LoadAnalyzers()
     LoadSources()
