@@ -99,7 +99,7 @@ func Registerchannel(uuid string) {
 }
 
 func RegisterWriter(uuid string) {
-    writer[uuid] = make(chan string)
+    Writer[uuid] = make(chan string)
 }
 
 func Domystuff(IoCs []string, uuid string, wkrid int, iocsrc string) {
@@ -131,7 +131,7 @@ func Mapper(uuid string, wkrid int) {
     }
 }
 
-func Writer(uuid string, wkrid int) {
+func Writerproc(uuid string, wkrid int) {
     var err error
     AlertLog := map[string]map[string]string{}
     AlertLog["node"] = map[string]string{}
@@ -151,7 +151,7 @@ func Writer(uuid string, wkrid int) {
     _, err = ofile.WriteString("started 2\n")
     defer ofile.Close()
     for {
-        line := <- writer[uuid] 
+        line := <- Writer[uuid] 
         _, err = ofile.WriteString(line+"\n")
         if err != nil {
             logs.Error("Analyzer Writer: can't write line to file: " + outputfile + " -> " + err.Error())
@@ -183,7 +183,7 @@ func StartWriter(wkr int) {
     logs.Info(newuuid + ": starting Writer with " + strconv.Itoa(wkr) + " workers")
     RegisterWriter(newuuid)
     for x:=0; x < wkr; x++ {
-        go Writer(newuuid, x)
+        go Writerproc(newuuid, x)
     }
 }
 
