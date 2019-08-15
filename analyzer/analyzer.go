@@ -15,11 +15,6 @@ import (
 	"owlhnode/database"
 )
 
-type SeekInfo struct {
-    Offset int64
-    Whence int 
-}
-
 type iocAlert struct {
     Data      Data     `json:"data"`
     Full_log  string   `json:"full_log"`
@@ -193,7 +188,7 @@ func StartWriter(wkr int) {
 }
 
 func Starttail(file string) {
-    var seekv SeekInfo
+    var seekv tail.SeekInfo
     seekv.Offset = 0
     seekv.Whence = os.SEEK_END
     t, _ := tail.TailFile(file, tail.Config{Follow: true, Location: seekv})
