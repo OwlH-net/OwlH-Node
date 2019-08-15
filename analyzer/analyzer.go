@@ -265,6 +265,7 @@ func InitAnalizer() {
         return
     }
     readconf()
+    LoadMapper()
     LoadAnalyzers()
     LoadSources()
     for {
