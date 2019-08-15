@@ -135,7 +135,7 @@ func Writer(uuid string, wkrid int) {
     var err error
     AlertLog := map[string]map[string]string{}
     AlertLog["node"] = map[string]string{}
-    AlertLog["node"]["alertlog"] = ""
+    AlertLog["node"]["alertLog"] = ""
     AlertLog,err = utils.GetConf(AlertLog)
     outputfile := AlertLog["node"]["alertLog"]
     if err != nil {

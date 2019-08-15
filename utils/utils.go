@@ -18,14 +18,14 @@ import (
 //read data from main.conf
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
     confFilePath := "conf/main.conf"
-    jsonPathBpf, err := ioutil.ReadFile(confFilePath)
+    jsonPath, err := ioutil.ReadFile(confFilePath)
     if err != nil {
         logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
         return nil, err
 	}
 
     var anode map[string]map[string]string
-    json.Unmarshal(jsonPathBpf, &anode)
+    json.Unmarshal(jsonPath, &anode)
 
     for k,y := range loadData { 
         for y,_ := range y {
