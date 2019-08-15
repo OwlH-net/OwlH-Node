@@ -15,6 +15,11 @@ import (
 	"owlhnode/database"
 )
 
+type SeekInfo struct {
+    Offset int64
+    Whence int 
+}
+
 type iocAlert struct {
     Data      Data     `json:"data"`
     Full_log  string   `json:"full_log"`
