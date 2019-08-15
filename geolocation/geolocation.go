@@ -17,7 +17,7 @@ func Init() {
 }
 
 func GetGeoInfo(nip string)(geoinfo map[string]string) {
-    ip = net.ParseIP(nip)
+    ip := net.ParseIP(nip)
     record, err := GeoDb.City(ip)
     if err != nil {
         logs.Error(err)
