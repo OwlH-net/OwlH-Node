@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"owlhnode/utils"
 	"owlhnode/database"
-	"fmt"
 )
 
 type iocAlert struct {
