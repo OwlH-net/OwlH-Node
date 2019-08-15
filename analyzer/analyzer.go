@@ -128,7 +128,7 @@ func Mapper(uuid string, wkrid int) {
         line = strings.Replace(line, "src_port", "srcport", -1)
         line = strings.Replace(line, "dest_ip", "dstip", -1)
         line = strings.Replace(line, "dest_port", "dstport", -1)
-        logs.Info("Mapper -> write -> " + line)
+        //logs.Info("Mapper -> write -> " + line)
         writeline(line)
     }
 }
@@ -150,11 +150,11 @@ func Writer(uuid string, wkrid int) {
         return
     }
     logs.Info("Mapper -> writer -> Started -> " + outputfile)
-    _, err = fmt.Fprintln(ofile, "started")
+    _, err = fmt.Fprintln(ofile, "started 2")
     defer ofile.Close()
     for {
         line := <- writer[uuid] 
-        //logs.Info("Mapper -> writer -> " + line)
+        logs.Info("Mapper -> writer -> New line to write -> " + line)
         _, err = fmt.Fprintln(ofile, line)
         if err != nil {
             logs.Error("Analyzer Writer: can't write line to file: " + outputfile + " -> " + err.Error())
@@ -223,7 +223,9 @@ func dispatch(line string) {
 }
 
 func writeline(line string) {
+    logs.Info("Dispatch line -> send line to channel -> " + line)
     for channel := range writer {
+        logs.Info("Write Line to channel -> " + channel)
         writer[channel] <- line
     }
 }
