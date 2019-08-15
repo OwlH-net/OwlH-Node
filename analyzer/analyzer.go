@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"owlhnode/utils"
 	"owlhnode/database"
+	"regexp"
 )
 
 type iocAlert struct {
