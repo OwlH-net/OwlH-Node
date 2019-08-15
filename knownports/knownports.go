@@ -4,7 +4,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"owlhnode/database"
 	"owlhnode/utils"
-	"owlhnode/analyzer
+	"owlhnode/analyzer"
 	"errors"
 	"regexp"
 	"strconv"
