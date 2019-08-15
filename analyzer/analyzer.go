@@ -120,14 +120,14 @@ func Mapper(uuid string, wkrid int) {
     logs.Info("Mapper -> " + uuid + " -> Started")
     for {
         line := <- dispatcher[uuid] 
-        strings.Replace(line, "id.orig_h", "srcip", -1)
-        strings.Replace(line, "id.orig_p", "srcport", -1)
-        strings.Replace(line, "id.resp_h", "dstip", -1)
-        strings.Replace(line, "id.resp_p", "dstport", -1)
-        strings.Replace(line, "src_ip", "srcip", -1)
-        strings.Replace(line, "src_port", "srcport", -1)
-        strings.Replace(line, "dest_ip", "dstip", -1)
-        strings.Replace(line, "dest_port", "dstport", -1)
+        line = strings.Replace(line, "id.orig_h", "srcip", -1)
+        line = strings.Replace(line, "id.orig_p", "srcport", -1)
+        line = strings.Replace(line, "id.resp_h", "dstip", -1)
+        line = strings.Replace(line, "id.resp_p", "dstport", -1)
+        line = strings.Replace(line, "src_ip", "srcip", -1)
+        line = strings.Replace(line, "src_port", "srcport", -1)
+        line = strings.Replace(line, "dest_ip", "dstip", -1)
+        line = strings.Replace(line, "dest_port", "dstport", -1)
         logs.Info("Mapper -> write -> " + line)
         writeline(line)
     }
@@ -155,6 +155,9 @@ func Writer(uuid string, wkrid int) {
         line := <- writer[uuid] 
         logs.Info("Mapper -> writer -> " + line)
         _, err = fmt.Fprintln(ofile, line)
+        if err != nil {
+            logs.Error("Analyzer Writer: can't write line to file: " + outputfile + " -> " + err.Error())
+        }
     }
 }
 
