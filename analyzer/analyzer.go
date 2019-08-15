@@ -130,7 +130,7 @@ func Mapper(uuid string, wkrid int) {
         line = strings.Replace(line, "dest_port", "dstport", -1)
         re := regexp.MustCompile("dstip\":\"([^\"]+)\"")
         match := re.FindStringSubmatch(line)
-        logs.Info("Mapper -> Dstip detected -> "+ match)
+        logs.Info("Mapper -> Dstip detected -> "+ match[0])
         writeline(line)
     }
 }
