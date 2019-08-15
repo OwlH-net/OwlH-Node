@@ -49,7 +49,7 @@ type Feedfile struct {
 }
 
 var dispatcher = make(map[string]chan string)
-var writer= make(map[string]chan string)
+var writer = make(map[string]chan string)
 
 var config Analyzer
 
@@ -215,8 +215,8 @@ func dispatch(line string) {
 }
 
 func writeline(line string) {
-    for channel := range dispatcher {
-        dispatcher[channel] <- line
+    for channel := range writer {
+        writer[channel] <- line
     }
 }
 
