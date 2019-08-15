@@ -92,12 +92,9 @@ func NewPorts()(){
 			ChangeStatus(anode)
 		}
 
-		t, err := tail.TailFile(file, tail.Config{Follow: true, Location: &tail.SeekInfo{0, 2}})
-		if err != nil {
-			logs.Error("TailFile Error: %s", err.Error())
-			Status = "Disabled"
-			break
-		}
+        newuuid := utils.Generate()
+        logs.Info(newuuid + ": starting analyzer for Knwon ports")
+        Registerchannel(newuuid)
 		
 		portsData, err := LoadPortsData()
 
@@ -113,7 +110,8 @@ func NewPorts()(){
 			logs.Error("LoadPortsData NewPorts Error: %s", err.Error())
 			Status = "Disabled"
 		}
-		for line := range t.Lines {
+		for {
+		    line := <- dispatcher[uuid] 
 			Status, err = CheckParamKnownports("status")
 			Mode, err = CheckParamKnownports("mode")
 			if err != nil {
