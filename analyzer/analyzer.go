@@ -3,17 +3,17 @@ package analyzer
 import (
     "encoding/json"
     "os"
-    // "github.com/google/uuid"
     "io/ioutil"
     "strings"
-	"github.com/hpcloud/tail"
-	"github.com/astaxie/beego/logs"
-	"bufio"
-	"time"
-	"strconv"
-	"owlhnode/utils"
-	"owlhnode/database"
-	"regexp"
+    "github.com/hpcloud/tail"
+    "github.com/astaxie/beego/logs"
+    "bufio"
+    "time"
+    "strconv"
+    "owlhnode/utils"
+    "owlhnode/database"
+    "owlhnode/geolocation"
+    "regexp"
 )
 
 type iocAlert struct {
@@ -130,7 +130,35 @@ func Mapper(uuid string, wkrid int) {
         line = strings.Replace(line, "dest_port", "dstport", -1)
         re := regexp.MustCompile("dstip\":\"([^\"]+)\"")
         match := re.FindStringSubmatch(line)
-        logs.Info("Mapper -> Dstip detected -> "+ match[0])
+        if match != nil {
+            logs.Info("Mapper -> Dstip detected -> "+ match[1])
+            geoinfo_dst := geolocation.GetGeoInfo(match[1])
+            logs.Info(geoinfo_dst)
+            if geoinfo_dst != nil {
+                geodstjson, _ := json.Marshal(geoinfo_dst)
+                logs.Info(string(geodstjson))
+                if last := len(line) - 1; last >= 0 && line[last] == '}' && string(geodstjson) != "{}" {
+                    line = line[:last]
+                    line = line + ",\"geolocation_dst\":"+string(geodstjson)+"}"
+                }
+            } 
+            
+        }
+        re = regexp.MustCompile("srcip\":\"([^\"]+)\"")
+        match = re.FindStringSubmatch(line)
+        if match != nil {
+            logs.Info("Mapper -> SRCip detected -> "+ match[1])
+            geoinfo_src := geolocation.GetGeoInfo(match[1])
+            logs.Info(geoinfo_src)
+            if geoinfo_src != nil {
+                geosrcjson, _ := json.Marshal(geoinfo_src)
+                logs.Info(string(geosrcjson))
+                if last := len(line) - 1; last >= 0 && line[last] == '}' && string(geosrcjson) != "{}"{
+                    line = line[:last]
+                    line = line + ",\"geolocation_src\":"+string(geosrcjson)+"}"
+                }
+            } 
+        }
         writeline(line)
     }
 }
