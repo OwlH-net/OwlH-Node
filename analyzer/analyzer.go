@@ -188,7 +188,10 @@ func StartWriter(wkr int) {
 }
 
 func Starttail(file string) {
-    t, _ := tail.TailFile(file, tail.Config{Follow: true})
+    var seek SeekInfo
+    seek.Offset = 0
+    seek.Whence = os.SEEK_END
+    t, _ := tail.TailFile(file, tail.Config{Follow: true, Location: *seek})
     for line := range t.Lines {
         dispatch(line.Text)
     }
