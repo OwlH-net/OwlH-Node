@@ -149,11 +149,12 @@ func Writer(uuid string, wkrid int) {
         logs.Error("Analyzer Writer: can't open output file: " + outputfile + " -> " + err.Error())
         return
     }
-    logs.Info("Mapper -> writer -> Started")
+    logs.Info("Mapper -> writer -> Started -> " + outputfile)
+    _, err = fmt.Fprintln(ofile, "started")
     defer ofile.Close()
     for {
         line := <- writer[uuid] 
-        logs.Info("Mapper -> writer -> " + line)
+        //logs.Info("Mapper -> writer -> " + line)
         _, err = fmt.Fprintln(ofile, line)
         if err != nil {
             logs.Error("Analyzer Writer: can't write line to file: " + outputfile + " -> " + err.Error())
