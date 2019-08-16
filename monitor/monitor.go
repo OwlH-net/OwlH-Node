@@ -4,6 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "runtime"
     "time"
+    "github.com/pbnjay/memory"
 )
 
 func monitor() {
@@ -23,7 +24,7 @@ func PrintMemUsage() {
         var m runtime.MemStats
         runtime.ReadMemStats(&m)
         logs.Info("Monitor -> Mem Stats")
-        logs.Notice("Alloc = %v MiB\tTotalAlloc = %v MiB\tSys = %v MiB\tNumGC = %v", bToMb(m.Alloc),bToMb(m.TotalAlloc),bToMb(m.Sys), m.NumGC)
+        logs.Notice("Alloc = %v MiB\tTotalAlloc = %v MiB\tSys = %v MiB\tNumGC = %v\tTotal system memory: %d", bToMb(m.Alloc),bToMb(m.TotalAlloc),bToMb(m.Sys), m.NumGC,bToMb(memory.TotalMemory()))
 }
 
 func bToMb(b uint64) uint64 {
