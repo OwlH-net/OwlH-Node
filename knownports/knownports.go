@@ -45,47 +45,47 @@ func Init(){
 }
 
 func GetStatus()(){
-	for {
-		_, err := CheckParamKnownports("status")
-		_, err = CheckParamKnownports("mode")
-		if err != nil {
-			logs.Error("CheckParamKnownports Error: "+err.Error())
-		}
-		time.Sleep(time.Second * 20)
-	}
+    for {
+        _, err := CheckParamKnownports("status")
+        _, err = CheckParamKnownports("mode")
+        if err != nil {
+            logs.Error("CheckParamKnownports Error: "+err.Error())
+        }
+        time.Sleep(time.Second * 20)
+    }
 }
 
 func NewPorts()(){
-	var err error
-	loadPorts := map[string]map[string]string{}
-	loadPorts["knownports"] = map[string]string{}
+    var err error
+    loadPorts := map[string]map[string]string{}
+    loadPorts["knownports"] = map[string]string{}
     loadPorts["knownports"]["file"] = ""
     loadPorts["knownports"]["timeToAlert"] = ""
-	loadPorts,err = utils.GetConf(loadPorts)
+    loadPorts,err = utils.GetConf(loadPorts)
     file := loadPorts["knownports"]["file"]
     timeout := loadPorts["knownports"]["timeToAlert"]
-	if err != nil {
-		logs.Error("loadPorts Error getting data from main.conf: "+err.Error())
-		return
-	}
-	
-	Status, err = CheckParamKnownports("status")
-	Mode, err = CheckParamKnownports("mode")
-	if err != nil {
-		logs.Error("CheckParamKnownports Error: "+err.Error())
-	}
+    if err != nil {
+        logs.Error("loadPorts Error getting data from main.conf: "+err.Error())
+        return
+    }
 
-	for{
-		if _,err := os.Stat(file); os.IsNotExist(err){
-			logs.Info("KNOWNPORTS -- Waiting file...")
-			time.Sleep(time.Second * 60) 
-		}else{
-			break
-		}
-	}
+    Status, err = CheckParamKnownports("status")
+    Mode, err = CheckParamKnownports("mode")
+    if err != nil {
+        logs.Error("CheckParamKnownports Error: "+err.Error())
+    }
 
-	for Status != "Disabled"{
-		if Status == "Reload"{
+    for{
+        if _,err := os.Stat(file); os.IsNotExist(err){
+            logs.Info("KNOWNPORTS -- Waiting file...")
+            time.Sleep(time.Second * 60) 
+        }else{
+            break
+        }
+    }
+
+    for Status != "Disabled"{
+        if Status == "Reload"{
 			anode := make(map[string]string)
 			anode["plugin"]="knownports"
 			anode["status"]="Enabled"
