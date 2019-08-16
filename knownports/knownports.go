@@ -18,25 +18,25 @@ var Status string
 var Mode string
 
 type newPortAlert struct {
-    Data      Data `json:"data"`
+    Data             Data         `json:"data"`
 }
 
 type Data struct {
-    Dstport     string `json:"dstport"`
-	Proto       string `json:"proto"`
-	Times		int `json:"times"`
-    Signature   Signature `json:"alert"`
+    Dstport          string       `json:"dstport"`
+    Proto            string       `json:"proto"`
+    Times            int          `json:"times"`
+    Signature        Signature    `json:"alert"`
 }
 
 type Signature struct {
-    Signature       string `json:"signature"`
-    Signature_id    string `json:"signature_id"`
+    Signature        string       `json:"signature"`
+    Signature_id     string       `json:"signature_id"`
 }
 
 type LastAlert struct {
-    PortProto       string 
-    Last		    time.Time
-    Counter		    int
+    PortProto        string 
+    Last             time.Time
+    Counter          int
 }
 
 
