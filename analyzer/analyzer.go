@@ -17,35 +17,35 @@ import (
 )
 
 type iocAlert struct {
-    Data      Data     `json:"data"`
-    Full_log  string   `json:"full_log"`
+    Data            Data        `json:"data"`
+    Full_log        string      `json:"full_log"`
 }
 
 type Data struct {
-    Dstport     string    `json:"dstport"`
-    Srcport     string    `json:"srcport"`
-    Dstip       string    `json:"dstip"`
-    Srcip       string    `json:"srcip"`
-    IoC         string    `json:"ioc"`
-    IoCsource   string    `json:"iocsource"`
-    Signature   Signature `json:"alert"`
+    Dstport         string      `json:"dstport"`
+    Srcport         string      `json:"srcport"`
+    Dstip           string      `json:"dstip"`
+    Srcip           string      `json:"srcip"`
+    IoC             string      `json:"ioc"`
+    IoCsource       string      `json:"iocsource"`
+    Signature       Signature   `json:"alert"`
 }
 
 type Signature struct {
-    Signature       string `json:"signature"`
-    Signature_id    string `json:"signature_id"`
+    Signature       string      `json:"signature"`
+    Signature_id    string      `json:"signature_id"`
 }
 
 
 type Analyzer struct {
-    Enable 	bool 		`json:"enable"`
-    Srcfiles 	[]string 	`json:"srcfiles"`
-    Feedfiles 	[]Feedfile 
+    Enable          bool        `json:"enable"`
+    Srcfiles        []string    `json:"srcfiles"`
+    Feedfiles       []Feedfile
 }
 
 type Feedfile struct {
-    File		string		`json:"feedfile"`
-    Workers		int			`json:"workers"`
+    File            string      `json:"feedfile"`
+    Workers         int         `json:"workers"`
 }
 
 var Dispatcher = make(map[string]chan string)
