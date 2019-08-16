@@ -23,10 +23,7 @@ func PrintMemUsage() {
         var m runtime.MemStats
         runtime.ReadMemStats(&m)
         logs.Info("Monitor -> Mem Stats")
-        logs.Notice("Alloc = %v MiB", bToMb(m.Alloc))
-        logs.Notice("\tTotalAlloc = %v MiB", bToMb(m.TotalAlloc))
-        logs.Notice("\tSys = %v MiB", bToMb(m.Sys))
-        logs.Notice("\tNumGC = %v\n", m.NumGC)
+        logs.Notice("Alloc = %v MiB\tTotalAlloc = %v MiB\tSys = %v MiB\tNumGC = %v", bToMb(m.Alloc),bToMb(m.TotalAlloc),bToMb(m.Sys), m.NumGC)
 }
 
 func bToMb(b uint64) uint64 {
