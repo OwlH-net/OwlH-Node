@@ -1,17 +1,17 @@
 package knownports
 
 import (
-	"github.com/astaxie/beego/logs"
-	"owlhnode/database"
-	"owlhnode/utils"
-	"owlhnode/analyzer"
-	"errors"
-	"regexp"
-	"strconv"
-	"encoding/json"
-	"time"
-	"os"
-	"net"
+    "github.com/astaxie/beego/logs"
+    "owlhnode/database"
+    "owlhnode/utils"
+    "owlhnode/analyzer"
+    "errors"
+    "regexp"
+    "strconv"
+    "encoding/json"
+    "time"
+    "os"
+    "net"
 )
 
 var Status string
