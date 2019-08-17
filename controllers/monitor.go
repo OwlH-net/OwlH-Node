@@ -2,10 +2,7 @@ package controllers
 
 import (
     "owlhnode/models"
-    //"owlhnode/monitor"
     "github.com/astaxie/beego"
-    //"github.com/astaxie/beego/logs"
-    //"encoding/json"
 )
 
 type MonitorController struct {
