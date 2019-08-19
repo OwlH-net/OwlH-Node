@@ -15,7 +15,7 @@ type MonitorController struct {
 // @Success 200 {object} models.monitor
 // @router / [get]
 func (m *MonitorController) GetLastStatus() {	
-    data := models.GetNodeStats()
+	data := models.GetNodeStats()
     m.Data["json"] = data
     m.ServeJSON()
 }

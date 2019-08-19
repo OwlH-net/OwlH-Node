@@ -3,7 +3,8 @@ package monitor
 import (
     "github.com/astaxie/beego/logs"
     "strconv"
-    "runtime"
+	"runtime"
+	"fmt"
     "time"
     "github.com/pbnjay/memory"
     "github.com/shirou/gopsutil/cpu"
@@ -18,27 +19,55 @@ type Monitor struct {
 }
 
 type Memory struct {
-    Alloc          uint64     `json:"alloc"`
-    TotalAlloc     uint64     `json:"totalalloc"`
-    Sys            uint64     `json:"sys"`
-    Gc             uint32     `json:"gc"`
-    TotalMem       uint64     `json:"totalmem"`
-    FreeMem        uint64     `json:"freemem"`
-    UsedMem        uint64     `json:"usedmem"`
-    Percentage     float64    `json:"percentage"`
+    Alloc          string     `json:"alloc"`
+    TotalAlloc     string     `json:"totalalloc"`
+    Sys            string     `json:"sys"`
+    Gc             string     `json:"gc"`
+    TotalMem       string     `json:"totalmem"`
+    FreeMem        string     `json:"freemem"`
+    UsedMem        string     `json:"usedmem"`
+    Percentage     string    `json:"percentage"`
 }
 
 type Disk struct {
-    UsedDisk       uint64     `json:"useddisk"`
-    TotalDisk      uint64     `json:"totaldisk"`
-    FreeDisk       uint64     `json:"freedisk"`
-    Percentage     float64    `json:"percentage"`
+    UsedDisk       string     `json:"useddisk"`
+    TotalDisk      string     `json:"totaldisk"`
+    FreeDisk       string     `json:"freedisk"`
+    Percentage     string    `json:"percentage"`
 }
 
 type Cpu struct {
-    Id             int        `json:"id"`
-    Percentage     float64    `json:"percentage"`
+    Id             string        `json:"id"`
+    Percentage     string    `json:"percentage"`
 }
+// type Monitor struct {
+//     Mem            Memory     `json:"mem"`
+//     HD             Disk       `json:"disk"`
+//     Cpus           []Cpu      `json:"cpus"`
+// }
+
+// type Memory struct {
+//     Alloc          uint64     `json:"alloc"`
+//     TotalAlloc     uint64     `json:"totalalloc"`
+//     Sys            uint64     `json:"sys"`
+//     Gc             uint32     `json:"gc"`
+//     TotalMem       uint64     `json:"totalmem"`
+//     FreeMem        uint64     `json:"freemem"`
+//     UsedMem        uint64     `json:"usedmem"`
+//     Percentage     float64    `json:"percentage"`
+// }
+
+// type Disk struct {
+//     UsedDisk       uint64     `json:"useddisk"`
+//     TotalDisk      uint64     `json:"totaldisk"`
+//     FreeDisk       uint64     `json:"freedisk"`
+//     Percentage     float64    `json:"percentage"`
+// }
+
+// type Cpu struct {
+//     Id             int        `json:"id"`
+//     Percentage     float64    `json:"percentage"`
+// }
 
 var GlobalMonitor Monitor
 
@@ -50,7 +79,8 @@ func doMonitor() {
         PrintCPUUsage()
         testMonitor := GetLastMonitorInfo()
         logs.Notice(" ===== Monitor ===== ")
-        logs.Notice(testMonitor)
+		logs.Notice(testMonitor)
+		
     }
 }
 
@@ -68,26 +98,26 @@ func PrintMemUsage() {
     runtime.ReadMemStats(&m)
     logs.Info("Monitor -> Mem Stats")
     logs.Notice("Alloc = %v MiB\tTotalAlloc = %v MiB\tSys = %v MiB\tNumGC = %v\tTotal system memory: %d MiB", bToMb(m.Alloc),bToMb(m.TotalAlloc),bToMb(m.Sys), m.NumGC,bToMb(memory.TotalMemory()))
-    GlobalMonitor.Mem.Alloc = m.Alloc
-    GlobalMonitor.Mem.TotalAlloc = m.TotalAlloc
-    GlobalMonitor.Mem.Sys = m.Sys
-    GlobalMonitor.Mem.Gc = m.NumGC
+    GlobalMonitor.Mem.Alloc = fmt.Sprintf("%v", bToMb(m.Alloc))
+    GlobalMonitor.Mem.TotalAlloc = fmt.Sprintf("%v", bToMb(m.TotalAlloc))
+    GlobalMonitor.Mem.Sys = fmt.Sprintf("%v", bToMb(m.Sys))
+    GlobalMonitor.Mem.Gc = fmt.Sprintf("%v", m.NumGC)
 
     vmStat, _ := mem.VirtualMemory()
     logs.Notice("Total Mem: %v MiB\t Free Mem: %v MiB\t Used Mem percentage: %s", bToMb(vmStat.Total), bToMb(vmStat.Free),  strconv.FormatFloat(vmStat.UsedPercent, 'f', 2, 64))
-    GlobalMonitor.Mem.Percentage = vmStat.UsedPercent
-    GlobalMonitor.Mem.TotalMem = vmStat.Total
-    GlobalMonitor.Mem.FreeMem = vmStat.Free
-    GlobalMonitor.Mem.UsedMem = vmStat.Used
+    GlobalMonitor.Mem.Percentage = fmt.Sprintf("%v",vmStat.UsedPercent) 
+    GlobalMonitor.Mem.TotalMem = fmt.Sprintf("%v", bToMb(vmStat.Total))
+    GlobalMonitor.Mem.FreeMem = fmt.Sprintf("%v", bToMb(vmStat.Free))
+    GlobalMonitor.Mem.UsedMem = fmt.Sprintf("%v", bToMb(vmStat.Used))
 }
 
 func PrintDiskUsage() {
     diskStat, _ := disk.Usage("/")
     logs.Notice("Total Disk: %v MiB\t Used Disk: %v MiB\t Free Disk: %v MiB\t Used Disk percentage: %s", bToMb(diskStat.Total), bToMb(diskStat.Used), bToMb(diskStat.Free),strconv.FormatFloat(diskStat.UsedPercent, 'f', 2, 64)) 
-    GlobalMonitor.HD.FreeDisk = diskStat.Free
-    GlobalMonitor.HD.Percentage = diskStat.UsedPercent
-    GlobalMonitor.HD.TotalDisk = diskStat.Total
-    GlobalMonitor.HD.UsedDisk = diskStat.Used
+    GlobalMonitor.HD.Percentage = fmt.Sprintf("%v",diskStat.UsedPercent) 
+    GlobalMonitor.HD.FreeDisk = fmt.Sprintf("%v", bToMb(diskStat.Free))
+    GlobalMonitor.HD.TotalDisk = fmt.Sprintf("%v", bToMb(diskStat.Total))
+    GlobalMonitor.HD.UsedDisk = fmt.Sprintf("%v", bToMb(diskStat.Used))
 }
 
 func PrintCPUUsage() {
@@ -98,9 +128,18 @@ func PrintCPUUsage() {
     for idx, cpupercent := range percentage {
         logs.Info( "\t\tCurrent CPU utilization: [" + strconv.Itoa(idx) + "] " + strconv.FormatFloat(cpupercent, 'f', 2, 64) + "%")
         var acpu Cpu
-        acpu.Id = idx
-        acpu.Percentage = cpupercent
-        GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
+        acpu.Id = fmt.Sprintf("%v",idx)
+        acpu.Percentage = fmt.Sprintf("%v",cpupercent) 
+		GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
+		///////////////////////////////
+        acpu.Id = fmt.Sprintf("%v",1)
+        acpu.Percentage = fmt.Sprintf("%v",2) 
+		GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
+        acpu.Id = fmt.Sprintf("%v",2)
+        acpu.Percentage = fmt.Sprintf("%v",4) 
+		GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
+		///////////////////////////////
+
     }
 }
 
