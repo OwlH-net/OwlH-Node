@@ -131,15 +131,6 @@ func PrintCPUUsage() {
         acpu.Id = fmt.Sprintf("%v",idx)
         acpu.Percentage = fmt.Sprintf("%v",cpupercent) 
 		GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
-		///////////////////////////////
-        acpu.Id = fmt.Sprintf("%v",1)
-        acpu.Percentage = fmt.Sprintf("%v",2) 
-		GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
-        acpu.Id = fmt.Sprintf("%v",2)
-        acpu.Percentage = fmt.Sprintf("%v",4) 
-		GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
-		///////////////////////////////
-
     }
 }
 
