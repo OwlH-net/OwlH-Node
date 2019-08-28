@@ -16,6 +16,7 @@ var status bool
 
 
 func AddServer(elem map[string]string) (err error){
+    logs.Warn(elem)
     nodeName:= elem["nodeName"]
     nodeIP:= elem["nodeIP"]
     uuidServer := utils.Generate()
@@ -47,7 +48,7 @@ func AddServer(elem map[string]string) (err error){
     }	
     
     //Load default server data from main.conf
-    jsonDefaultData,err := utils.LoadDefaultServerData("defaults.json")
+    jsonDefaultData,err := utils.LoadDefaultServerData("software TAP PULL mode conf")
     logs.Info("File readed !!!")
     logs.Info(jsonDefaultData)
     jsonData := make(map[string]string)
@@ -62,6 +63,7 @@ func AddServer(elem map[string]string) (err error){
 
     //insert default data into server database
     for z,v := range jsonData{
+        logs.Warn(z+"   ---   "+v)
         insertServerName, err := ndb.Sdb.Prepare("insert into servers (server_uniqueid, server_param, server_value) values (?,?,?);")
         _, err = insertServerName.Exec(&uuidServer, &z, &v)  
         defer insertServerName.Close()
