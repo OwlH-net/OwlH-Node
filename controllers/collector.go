@@ -47,7 +47,8 @@ func (n *CollectorController) StopCollector() {
 // @router /show [get]
 func (n *CollectorController) ShowCollector() {
 	data, err := models.ShowCollector()
-	n.Data["json"] = data
+    n.Data["json"] = data
+
     if err != nil {
         logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

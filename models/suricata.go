@@ -34,3 +34,13 @@ func StopSuricata() (data string, err error) {
     data,err = suricata.StopSuricata()
     return data,err
 }
+
+func GetSuricataServices() (data map[string]map[string]string, err error) {
+    data,err = suricata.GetSuricataServices()
+    return data,err
+}
+
+func AddSuricata(anode map[string]string) (err error) {
+    err = suricata.AddSuricata(anode)
+    return err
+}

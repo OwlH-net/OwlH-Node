@@ -7,6 +7,7 @@ import (
     "strings"
     "regexp"
 	"owlhnode/utils"
+	"owlhnode/database"
 	"errors"
 	"io/ioutil"
 )
@@ -255,9 +256,29 @@ func StopSuricata()(data string, err error){
 	}
 	
     _,err = exec.Command(command, param, cmd).Output()
-    if err != nil {
-        logs.Error("Error stopping suricata: "+err.Error())
-        return "",err
-    }
+    if err != nil {logs.Error("Error stopping suricata: "+err.Error());return "",err}
     return "Suricata stopped ",nil
+}
+
+func AddSuricata(anode map[string]string) (err error) {
+    uuid := utils.Generate()
+    err = ndb.InsertPluginService(uuid, "status", "disable"); if err != nil {logs.Error("InsertPluginService status Error: "+err.Error()); return err}
+    err = ndb.InsertPluginService(uuid, "node", anode["uuid"]); if err != nil {logs.Error("InsertPluginService node Error: "+err.Error()); return err}
+    err = ndb.InsertPluginService(uuid, "name", anode["name"]); if err != nil {logs.Error("InsertPluginService name Error: "+err.Error()); return err}
+    err = ndb.InsertPluginService(uuid, "bpf", "none"); if err != nil {logs.Error("InsertPluginService bpf Error: "+err.Error()); return err}
+    err = ndb.InsertPluginService(uuid, "ruleset", "none"); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}    
+    err = ndb.InsertPluginService(uuid, "type", anode["type"]); if err != nil {logs.Error("InsertPluginService type Error: "+err.Error()); return err}    
+
+    return nil
+}
+
+func GetSuricataServices()(data map[string]map[string]string, err error) {    
+    data,err = ndb.GetServices("suricata")
+    logs.Debug(data)
+    logs.Debug(data)
+    logs.Debug(data)
+    logs.Debug(data)
+    logs.Debug(data)
+    if err != nil {logs.Error("GetSuricataServices Error: "+err.Error()); return nil,err}    
+    return data,nil
 }
