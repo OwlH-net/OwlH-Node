@@ -40,3 +40,15 @@ func (n *PingController) DeployService() {
     }
     n.ServeJSON()
 }
+
+// @Title GetMainconfData
+// @Description get ping for node
+// @router /mainconf [get]
+func (n *PingController) GetMainconfData() {
+	data,err := models.GetMainconfData()
+	n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

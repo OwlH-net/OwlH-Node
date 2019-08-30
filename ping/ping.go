@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os/exec"
 	"owlhnode/utils"
+	"owlhnode/database"
 )
 
 func PingService()(err error) {
@@ -62,4 +63,10 @@ func DeployService()(err error) {
 		logs.Info("OwlHnode service already exists")
 		return nil
 	}
+}
+
+func GetMainconfData()(data map[string]map[string]string, err error) {
+	data,err = ndb.GetMainconfData()
+	if err != nil {logs.Error("ping/GetMainconfData error: "+err.Error()); return nil, err}
+    return data,err
 }

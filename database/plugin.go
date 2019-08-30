@@ -92,12 +92,6 @@ func GetServices(service string)(path map[string]map[string]string, err error){
 	defer rowsQuery.Close()
 	for rowsQuery.Next() {
 		if err = rowsQuery.Scan(&uuidSource); err != nil { logs.Error("GetServices -- Query return error: %s", err.Error()); return nil, err}
-		logs.Warn(uuidSource)
-		logs.Warn(uuidSource)
-		logs.Warn(uuidSource)
-		logs.Warn(uuidSource)
-		logs.Warn(uuidSource)
-		logs.Warn(uuidSource)
 		
 		sql := "select plugin_uniqueid,plugin_param,plugin_value from plugins where plugin_uniqueid='"+uuidSource+"';";
 		
@@ -117,4 +111,53 @@ func GetServices(service string)(path map[string]map[string]string, err error){
 		}
 	} 
 	return serviceValues,nil
+}
+
+func GetMainconfData()(path map[string]map[string]string, err error){
+	var mainconfValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+
+	sql := "select main_uniqueid, main_param, main_value from mainconf;";
+	
+	rows, err := Pdb.Query(sql)
+	if err != nil {
+		logs.Error("GetMainconfData Pdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetMainconfData -- Query return error: %s", err.Error())
+            return nil, err
+		}
+        if mainconfValues[uniqid] == nil { mainconfValues[uniqid] = map[string]string{}}
+        mainconfValues[uniqid][param]=value
+	} 
+	return mainconfValues,nil
+}
+
+func UpdatePluginValue(uuid string, param string, value string)(err error){
+	UpdatePluginValueNode, err := Pdb.Prepare("update plugins set plugin_value = ? where plugin_uniqueid = ? and plugin_param = ?;")
+	if (err != nil){ logs.Error("UpdatePluginValue UPDATE prepare error: "+err.Error()); return err}
+
+	_, err = UpdatePluginValueNode.Exec(&value, &uuid, &param)
+	if (err != nil){ logs.Error("UpdatePluginValue UPDATE exec error: "+err.Error()); return err}
+
+	defer UpdatePluginValueNode.Close()
+	
+	return nil
+}
+
+func UpdateMainconfValue(uuid string, param string, value string)(err error){
+	UpdateMainconfValueNode, err := Pdb.Prepare("update mainconf set main_value = ? where main_uniqueid = ? and main_param = ?;")
+	if (err != nil){ logs.Error("UpdateMainconfValueNode UPDATE prepare error: "+err.Error()); return err}
+
+	_, err = UpdateMainconfValueNode.Exec(&value, &uuid, &param)
+	if (err != nil){ logs.Error("UpdateMainconfValueNode UPDATE exec error: "+err.Error()); return err}
+
+	defer UpdateMainconfValueNode.Close()
+	
+	return nil
 }
