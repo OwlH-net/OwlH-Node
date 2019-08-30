@@ -123,13 +123,11 @@ func Mapper(uuid string, wkrid int) {
         StatClue := regexp.MustCompile("event_type\":\"stats\"")
         isStat := StatClue.FindStringSubmatch(line)
         if isStat != nil {
-            logs.Info("Stats -> "+line)
             continue
         }
         FlowClue := regexp.MustCompile("event_type\":\"flow\"")
         isFlow := FlowClue.FindStringSubmatch(line)
         if isFlow != nil {
-            logs.Info("Stats -> "+line)
             continue
         }
         line = strings.Replace(line, "id.orig_h", "srcip", -1)
