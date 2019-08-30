@@ -37,7 +37,7 @@ func ShowPorts() (data map[string]map[string]string, err error) {
 	return allKnownPorts, nil
 }
 
-func PingPorts() (data map[string]map[string]string ,err error) {
+func PingPluginsNode() (data map[string]map[string]string ,err error) {
 	var uniqueid string
 	var param string
 	var value string
@@ -45,8 +45,8 @@ func PingPorts() (data map[string]map[string]string ,err error) {
 
 	//database connection
 	if ndb.Pdb == nil {
-        logs.Error("ShowPorts knownports -- Can't access to database")
-        return nil,errors.New("ShowPorts knownports -- Can't access to database")
+        logs.Error("PingPluginsNode knownports -- Can't access to database")
+        return nil,errors.New("PingPluginsNode knownports -- Can't access to database")
 	} 
 
 	//query and make map[]map[]
@@ -54,12 +54,12 @@ func PingPorts() (data map[string]map[string]string ,err error) {
 	rows, err := ndb.Pdb.Query(sql)
 	defer rows.Close()
     if err != nil {
-        logs.Error("ShowPorts knownports Error executing query: %s", err.Error())
+        logs.Error("PingPluginsNode knownports Error executing query: %s", err.Error())
         return nil, err
     }
 	for rows.Next() {
         if err = rows.Scan(&uniqueid, &param, &value); err != nil {
-            logs.Error("LoadPorts knownports -- Can't read query result: %s", err.Error())
+            logs.Error("PingPluginsNode knownports -- Can't read query result: %s", err.Error())
             return nil, err
         }
         if allKnownPorts[uniqueid] == nil { allKnownPorts[uniqueid] = map[string]string{}}

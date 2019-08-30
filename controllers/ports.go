@@ -27,15 +27,15 @@ func (m *PortsController) ShowPorts() {
     m.ServeJSON()
 }
 
-// @Title PingPorts
-// @Description PingPorts status
+// @Title PingPluginsNode
+// @Description PingPluginsNode status
 // @Success 200 {object} models.ports
-// @router /PingPorts [get]
-func (m *PortsController) PingPorts() {
-	data, err := models.PingPorts()
+// @router /PingPluginsNode [get]
+func (m *PortsController) PingPluginsNode() {
+	data, err := models.PingPluginsNode()
 	m.Data["json"] = data
 	if err != nil {
-        logs.Info("PingPorts OUT -- ERROR : %s", err.Error())
+        logs.Info("PingPluginsNode OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
 

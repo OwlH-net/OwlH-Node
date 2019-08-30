@@ -9,8 +9,8 @@ func ShowPorts() (data map[string]map[string]string, err error) {
 	return data,err
 }
 
-func PingPorts() (data map[string]map[string]string ,err error) {
-	data, err = knownports.PingPorts()
+func PingPluginsNode() (data map[string]map[string]string ,err error) {
+	data, err = knownports.PingPluginsNode()
 	return data, err
 }
 
