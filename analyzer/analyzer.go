@@ -120,12 +120,16 @@ func Mapper(uuid string, wkrid int) {
     logs.Info("Mapper -> " + uuid + " -> Started")
     for {
         line := <- Dispatcher[uuid] 
-        if strings.Contains(line, "event_type\":\"stats") {
+        StatClue := regexp.MustCompile("event_type\":\"stats\"")
+        isStat := StatClue.FindStringSubmatch(line)
+        if isStat != nil {
             logs.Info("Stats -> "+line)
             continue
         }
-        if strings.Contains(line, "event_type\":\"flow") {
-            logs.Info("Flow -> "+line)
+        FlowClue := regexp.MustCompile("event_type\":\"flow\"")
+        isFlow := FlowClue.FindStringSubmatch(line)
+        if isFlow != nil {
+            logs.Info("Stats -> "+line)
             continue
         }
         line = strings.Replace(line, "id.orig_h", "srcip", -1)
@@ -139,12 +143,9 @@ func Mapper(uuid string, wkrid int) {
         re := regexp.MustCompile("dstip\":\"([^\"]+)\"")
         match := re.FindStringSubmatch(line)
         if match != nil {
-            logs.Info("Mapper -> Dstip detected -> "+ match[1])
             geoinfo_dst := geolocation.GetGeoInfo(match[1])
-            logs.Info(geoinfo_dst)
             if geoinfo_dst != nil {
                 geodstjson, _ := json.Marshal(geoinfo_dst)
-                logs.Info(string(geodstjson))
                 if last := len(line) - 1; last >= 0 && line[last] == '}' && string(geodstjson) != "{}" {
                     line = line[:last]
                     line = line + ",\"geolocation_dst\":"+string(geodstjson)+"}"
@@ -158,7 +159,6 @@ func Mapper(uuid string, wkrid int) {
             geoinfo_src := geolocation.GetGeoInfo(match[1])
             if geoinfo_src != nil {
                 geosrcjson, _ := json.Marshal(geoinfo_src)
-                logs.Info(string(geosrcjson))
                 if last := len(line) - 1; last >= 0 && line[last] == '}' && string(geosrcjson) != "{}"{
                     line = line[:last]
                     line = line + ",\"geolocation_src\":"+string(geosrcjson)+"}"
