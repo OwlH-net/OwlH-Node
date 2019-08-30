@@ -120,6 +120,14 @@ func Mapper(uuid string, wkrid int) {
     logs.Info("Mapper -> " + uuid + " -> Started")
     for {
         line := <- Dispatcher[uuid] 
+        if strings.Contains(line, "event_type\":\"stats") {
+            logs.Info("Stats -> "+line)
+            continue
+        }
+        if strings.Contains(line, "event_type\":\"flow") {
+            logs.Info("Flow -> "+line)
+            continue
+        }
         line = strings.Replace(line, "id.orig_h", "srcip", -1)
         line = strings.Replace(line, "id.orig_p", "srcport", -1)
         line = strings.Replace(line, "id.resp_h", "dstip", -1)
@@ -147,9 +155,7 @@ func Mapper(uuid string, wkrid int) {
         re = regexp.MustCompile("srcip\":\"([^\"]+)\"")
         match = re.FindStringSubmatch(line)
         if match != nil {
-            logs.Info("Mapper -> SRCip detected -> "+ match[1])
             geoinfo_src := geolocation.GetGeoInfo(match[1])
-            logs.Info(geoinfo_src)
             if geoinfo_src != nil {
                 geosrcjson, _ := json.Marshal(geoinfo_src)
                 logs.Info(string(geosrcjson))
@@ -195,7 +201,7 @@ func Startanalyzer(file string, wkr int) {
     newuuid := utils.Generate()
     logs.Info(newuuid + ": starting analyzer with feed: "+file + " with " + strconv.Itoa(wkr) + " workers")
     Registerchannel(newuuid)
-	IoCs, _ := readLines(file)
+    IoCs, _ := readLines(file)
     for x:=0; x < wkr; x++ {
         go Domystuff(IoCs, newuuid, x, file)
     }
