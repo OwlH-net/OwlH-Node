@@ -66,7 +66,27 @@ func DeployService()(err error) {
 }
 
 func GetMainconfData()(data map[string]map[string]string, err error) {
-	data,err = ndb.GetMainconfData()
-	if err != nil {logs.Error("ping/GetMainconfData error: "+err.Error()); return nil, err}
-    return data,err
+	main,err := ndb.GetMainconfData()
+	if err != nil {logs.Error("ping/GetMainconfData error getting GetMainconfData values: "+err.Error()); return nil, err}
+
+    return main,err
+}
+
+func PingPluginsNode() (data map[string]map[string]string ,err error) {
+	//get main conf
+	main,err := ndb.GetMainconfData()
+	if err != nil {logs.Error("ping/GetMainconfData error getting GetMainconfData values: "+err.Error()); return nil, err}
+	//get plugins
+	plugin,err := ndb.GetPlugins()
+	if err != nil {logs.Error("ping/GetMainconfData error getting GetPlugins values: "+err.Error()); return nil, err}
+	//check main conf status
+	for k := range plugin { 
+		for w := range main {
+			if plugin[k]["type"] == w && main[w]["status"] == "disabled"{
+				plugin[k]["status"] = "disabled"
+			}
+		}            
+	}
+	
+	return plugin,err
 }

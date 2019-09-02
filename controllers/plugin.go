@@ -37,3 +37,33 @@ func (n *PluginController) ChangeMainServiceStatus() {
     }
     n.ServeJSON()
 }
+
+// @Title DeleteService
+// @Description delete a specific plugin service
+// @router /deleteService [delete]
+func (n *PluginController) DeleteService() {
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.DeleteService(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title AddPluginService()
+// @Description Add new Suricata service
+// @Success 200 {object} models.suricata
+// @router /addService [put]
+func (n *PluginController) AddPluginService() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.AddPluginService(anode)
+
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

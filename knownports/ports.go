@@ -37,37 +37,6 @@ func ShowPorts() (data map[string]map[string]string, err error) {
 	return allKnownPorts, nil
 }
 
-func PingPluginsNode() (data map[string]map[string]string ,err error) {
-	var uniqueid string
-	var param string
-	var value string
-	var allKnownPorts = map[string]map[string]string{}
-
-	//database connection
-	if ndb.Pdb == nil {
-        logs.Error("PingPluginsNode knownports -- Can't access to database")
-        return nil,errors.New("PingPluginsNode knownports -- Can't access to database")
-	} 
-
-	//query and make map[]map[]
-	sql := "select plugin_uniqueid, plugin_param, plugin_value from plugins;"   
-	rows, err := ndb.Pdb.Query(sql)
-	defer rows.Close()
-    if err != nil {
-        logs.Error("PingPluginsNode knownports Error executing query: %s", err.Error())
-        return nil, err
-    }
-	for rows.Next() {
-        if err = rows.Scan(&uniqueid, &param, &value); err != nil {
-            logs.Error("PingPluginsNode knownports -- Can't read query result: %s", err.Error())
-            return nil, err
-        }
-        if allKnownPorts[uniqueid] == nil { allKnownPorts[uniqueid] = map[string]string{}}
-        allKnownPorts[uniqueid][param]=value
-	} 
-	return allKnownPorts, nil
-}
-
 func ChangeStatus(anode map[string]string) (err error) {
 	value := anode["status"]
 	plugin:= anode["plugin"]

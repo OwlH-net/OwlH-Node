@@ -113,6 +113,26 @@ func GetServices(service string)(path map[string]map[string]string, err error){
 	return serviceValues,nil
 }
 
+func GetPlugins()(path map[string]map[string]string, err error){
+	var serviceValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+	rowsQuery, err := Pdb.Query("select plugin_uniqueid, plugin_param, plugin_value from plugins;")
+	if err != nil {
+		logs.Error("GetPlugins Pdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rowsQuery.Close()
+	for rowsQuery.Next() {
+		if err = rowsQuery.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetPlugins -- Query return error: %s", err.Error()); return nil, err}
+
+		if serviceValues[uniqid] == nil { serviceValues[uniqid] = map[string]string{}}
+		serviceValues[uniqid][param]=value
+	} 
+	return serviceValues,nil
+}
+
 func GetMainconfData()(path map[string]map[string]string, err error){
 	var mainconfValues = map[string]map[string]string{}
     var uniqid string
@@ -152,12 +172,24 @@ func UpdatePluginValue(uuid string, param string, value string)(err error){
 
 func UpdateMainconfValue(uuid string, param string, value string)(err error){
 	UpdateMainconfValueNode, err := Pdb.Prepare("update mainconf set main_value = ? where main_uniqueid = ? and main_param = ?;")
-	if (err != nil){ logs.Error("UpdateMainconfValueNode UPDATE prepare error: "+err.Error()); return err}
+	if (err != nil){ logs.Error("UpdateMainconfValue UPDATE prepare error: "+err.Error()); return err}
 
 	_, err = UpdateMainconfValueNode.Exec(&value, &uuid, &param)
-	if (err != nil){ logs.Error("UpdateMainconfValueNode UPDATE exec error: "+err.Error()); return err}
+	if (err != nil){ logs.Error("UpdateMainconfValue exec error: "+err.Error()); return err}
 
 	defer UpdateMainconfValueNode.Close()
+	
+	return nil
+}
+
+func DeleteService(uuid string)(err error){
+	DeleteServiceNode, err := Pdb.Prepare("delete from plugins where plugin_uniqueid = ?;")
+	if (err != nil){ logs.Error("DeleteService UPDATE prepare error: "+err.Error()); return err}
+
+	_, err = DeleteServiceNode.Exec(&uuid)
+	if (err != nil){ logs.Error("DeleteService exec error: "+err.Error()); return err}
+
+	defer DeleteServiceNode.Close()
 	
 	return nil
 }

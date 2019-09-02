@@ -9,11 +9,6 @@ func ShowPorts() (data map[string]map[string]string, err error) {
 	return data,err
 }
 
-func PingPluginsNode() (data map[string]map[string]string ,err error) {
-	data, err = knownports.PingPluginsNode()
-	return data, err
-}
-
 func ChangeMode(anode map[string]string) (err error) {
 	err = knownports.ChangeMode(anode)
 	return err

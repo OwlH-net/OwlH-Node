@@ -104,23 +104,6 @@ func (n *SuricataController) StopSuricata() {
     n.ServeJSON()
 }
 
-// @Title AddSuricata()
-// @Description Add new Suricata service
-// @Success 200 {object} models.suricata
-// @router /add [put]
-func (n *SuricataController) AddSuricata() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.AddSuricata(anode)
-
-    n.Data["json"] = map[string]string{"ack": "true"}
-    if err != nil {
-        logs.Info("AddSuricata ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
-    n.ServeJSON()
-}
-
 // @Title GetSuricataServices
 // @Description get all Suricata services
 // @Success 200 {object} models.suricata
@@ -128,9 +111,7 @@ func (n *SuricataController) AddSuricata() {
 func (n *SuricataController) GetSuricataServices() {    
     servicesSuricata,err := models.GetSuricataServices()
     n.Data["json"] = servicesSuricata
-    logs.Notice(servicesSuricata)
-	logs.Notice(servicesSuricata)
-	logs.Notice(servicesSuricata)
+
     if err != nil {
         logs.Info("GetSuricataServices ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
