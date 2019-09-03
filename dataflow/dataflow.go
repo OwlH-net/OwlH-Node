@@ -88,7 +88,6 @@ func SaveVxLAN(anode map[string]string)(err error) {
 
 	for x := range data {
 		dbCapitalized := strings.Replace(strings.ToLower(data[x]["name"]), " ", "_", -1)
-		logs.Debug(anodeCapitalized+"  --  "+dbCapitalized)
 		if (data[x]["type"] == "networkvxlan" && anodeCapitalized == dbCapitalized){
 			exists = true
 			break

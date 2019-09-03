@@ -51,3 +51,16 @@ func (n *NetController) UpdateNetworkInterface() {
     }
     n.ServeJSON()
 }
+
+// // @Title LoadNetworkValuesSuricata
+// // @Description get network data
+// // @router /loadNetworkValuesSuricata [get]
+// func (m *NetController) LoadNetworkValuesSuricata() {
+// 	values,err := models.LoadNetworkValuesSuricata()
+	
+// 	m.Data["json"] = values
+// 	if err != nil {
+//         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+// 	}
+//     m.ServeJSON()
+// }

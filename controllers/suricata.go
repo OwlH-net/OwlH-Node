@@ -26,19 +26,19 @@ func (n *SuricataController) Get() {
     n.ServeJSON()
 }
 
-// @Title Get Suricata BPF
-// @Description get Suricata BPF from filter.bpf file
-// @Success 200 {object} models.suricata
-// @router /bpf [get]
-func (n *SuricataController) GetBPF() {
-    bpf,err := models.GetBPF()
-    n.Data["json"] = bpf
-    if err != nil {
-        logs.Info("GetBPF OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
-	n.ServeJSON()
-}
+// // @Title Get Suricata BPF
+// // @Description get Suricata BPF from filter.bpf file
+// // @Success 200 {object} models.suricata
+// // @router /bpf [get]
+// func (n *SuricataController) GetBPF() {
+//     bpf,err := models.GetBPF()
+//     n.Data["json"] = bpf
+//     if err != nil {
+//         logs.Info("GetBPF OUT -- ERROR : %s", err.Error())
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+// 	}
+// 	n.ServeJSON()
+// }
 
 // @Title PUT Suricata BPF
 // @Description Set Suricata BPF into filter.bpf file

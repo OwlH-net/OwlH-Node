@@ -24,3 +24,7 @@ func AddPluginService(anode map[string]string) (err error) {
     return err
 }
 
+func SaveSuricataInterface(anode map[string]string)(err error) {
+	err = plugin.SaveSuricataInterface(anode)
+    return err
+}

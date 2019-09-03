@@ -109,7 +109,6 @@ func GetConfFiles()(loadDataReturn map[string]string, err error) {
     }
     var anode map[string]map[string]string
 	json.Unmarshal(JSONconf, &anode)
-	logs.Debug(anode["files"])
     return anode["files"], nil
 }
 

@@ -3,7 +3,7 @@ package stap
 import (
     "github.com/astaxie/beego/logs"
     "os/exec"
-      "owlhnode/utils"
+    "owlhnode/utils"  
     "io/ioutil"
     "time"
 )
@@ -61,7 +61,6 @@ func Pcap_replay()() {
         
         //if there are files in remote path, use tcpreplay
         for _, f := range files{
-            logs.Debug("Pcap_Replay-->"+f.Name())
             cmd := "tcpreplay -i "+stapInterface+" -t -l 1 "+inQueue+f.Name()
             _, err := exec.Command("bash", "-c", cmd).Output()
             if err != nil{

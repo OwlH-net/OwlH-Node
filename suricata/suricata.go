@@ -101,65 +101,56 @@ func Installed() (isIt map[string]bool, err error){
     }   
 }
 
-func GetBPF()(bpf string, err error) {
-    logs.Info("Set Suricata BPF -- Making Map")
-	loadData := map[string]map[string]string{}
-	loadData["suricataBPF"] = map[string]string{}
-	loadData["suricataBPF"]["pathBPF"] = ""
-	loadData["suricataBPF"]["fileBPF"] = "" 
-    loadData,err = utils.GetConf(loadData)    
-    path := loadData["suricataBPF"]["pathBPF"]
-	file := loadData["suricataBPF"]["fileBPF"]
-	if err != nil {
-		logs.Error("GetBPF Error getting data from main.conf: "+err.Error())
-		return "",err
-	}
+// func GetBPF()(bpf string, err error) {
+//     logs.Info("Set Suricata BPF -- Making Map")
+// 	loadData := map[string]map[string]string{}
+// 	loadData["suricataBPF"] = map[string]string{}
+// 	loadData["suricataBPF"]["pathBPF"] = ""
+// 	loadData["suricataBPF"]["fileBPF"] = "" 
+//     loadData,err = utils.GetConf(loadData)    
+//     path := loadData["suricataBPF"]["pathBPF"]
+// 	file := loadData["suricataBPF"]["fileBPF"]
+// 	if err != nil {
+// 		logs.Error("GetBPF Error getting data from main.conf: "+err.Error())
+// 		return "",err
+// 	}
 
-	//read filter.bpf
-	bpfByte, err := ioutil.ReadFile(path+file) // just pass the file name
-    if err != nil {
-        logs.Error("GetBPF Error getting data from filter.bpf: "+err.Error())
-		return "",err
-    }
-	return string(bpfByte),nil
-}
+// 	//read filter.bpf
+// 	bpfByte, err := ioutil.ReadFile(path+file) // just pass the file name
+//     if err != nil {
+//         logs.Error("GetBPF Error getting data from filter.bpf: "+err.Error())
+// 		return "",err
+//     }
+// 	return string(bpfByte),nil
+// }
 
 //set BPF for suricata
 func SetBPF(n map[string]string)(err error) {
-	textbpf := n["bpf"]
-	loadData := map[string]map[string]string{}
+    loadData := map[string]map[string]string{}
 	loadData["suricataBPF"] = map[string]string{}
 	loadData["suricataBPF"]["pathBPF"] = ""
 	loadData["suricataBPF"]["fileBPF"] = "" 
     loadData,err = utils.GetConf(loadData)    
     path := loadData["suricataBPF"]["pathBPF"]
     file := loadData["suricataBPF"]["fileBPF"]
-	if err != nil {
-		logs.Error("SetBPF Error getting data from main.conf: "+err.Error())
-		return err
-	}
-
+    if err != nil {logs.Error("SetBPF Error getting data from main.conf: "+err.Error()); return err}
+    
+    //save bpf into specific suricata service database
+    err = ndb.UpdatePluginValue(n["service"], "bpf", n["value"])
+    if err != nil {logs.Error("SetBPF Error updating plugin.db: "+err.Error()); return err}
+    
 	//check if exists
-	if _, err = os.Stat(path + file); os.IsNotExist(err) {
-		err = ioutil.WriteFile(path + file, []byte(textbpf), 0644)	
-		if err != nil{
-			logs.Error("Error writting data into BPF file: "+err.Error())
-			return err    
-		}	
-	}else{
+	if _, err = os.Stat(path + n["service"] + " - " + file); os.IsNotExist(err) {
+		err = ioutil.WriteFile(path + n["service"] + " - " + file, []byte(n["value"]), 0644)	
+		if err != nil{logs.Error("Error writting data into BPF file: "+err.Error()); return err}	
+    }else{
 		//make backup file
-		err = utils.BackupFile(path, file)
-		if err != nil{
-			logs.Error("Error creating BPF backup: "+err.Error())
-			return err    
-		}
+		err = utils.BackupFile(path, n["service"]+ " - " +file)
+		if err != nil{logs.Error("Error creating BPF backup: "+err.Error()); return err}
 
 		//write bpf into the file	
-		err = utils.UpdateBPFFile(path, file, textbpf)
-		if err != nil{
-			logs.Error("Error UpdateBPFFile: "+err.Error())
-			return err    
-		}
+		err = utils.UpdateBPFFile(path, n["service"]+ " - " +file, n["value"])
+		if err != nil{logs.Error("Error UpdateBPFFile: "+err.Error()); return err}
 	}
 
     return nil

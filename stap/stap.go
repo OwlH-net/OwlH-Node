@@ -176,7 +176,7 @@ func PingStap(uuid string) (isIt map[string]bool, err error){
             return stap,err
         }
     }
-    logs.Debug("checking stap value "+strconv.FormatBool(stap["stapStatus"]))
+    logs.Info("checking stap value "+strconv.FormatBool(stap["stapStatus"]))
     return stap,nil
 }
 

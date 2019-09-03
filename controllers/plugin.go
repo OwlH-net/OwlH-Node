@@ -67,3 +67,17 @@ func (n *PluginController) AddPluginService() {
     }
     n.ServeJSON()
 }
+
+// @Title SaveSuricataInterface
+// @Description Change a specific plugin service status
+// @router /SaveSuricataInterface [put]
+func (n *PluginController) SaveSuricataInterface() {
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveSuricataInterface(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

@@ -133,6 +133,17 @@ func GetPlugins()(path map[string]map[string]string, err error){
 	return serviceValues,nil
 }
 
+func GetPluginsByParam(uniqueid string, param string)(value string, err error){
+	rowsQuery, err := Pdb.Query("select plugin_value from plugins where plugin_uniqueid = '"+uniqueid+"' and plugin_param = '"+param+"';")
+	if err != nil {logs.Error("GetPlugins Pdb.Query Error : %s", err.Error()); return "", err}
+
+	defer rowsQuery.Close()
+	for rowsQuery.Next() {
+		if err = rowsQuery.Scan(&value); err != nil { logs.Error("GetPluginsByParam -- Query return error: %s", err.Error()); return "error", err} 
+	} 
+	return value,nil
+}
+
 func GetMainconfData()(path map[string]map[string]string, err error){
 	var mainconfValues = map[string]map[string]string{}
     var uniqid string
