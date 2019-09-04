@@ -2,11 +2,11 @@ package monitor
 
 import (
     "github.com/astaxie/beego/logs"
-    "strconv"
+    // "strconv"
 	"runtime"
 	"fmt"
     "time"
-    "github.com/pbnjay/memory"
+    // "github.com/pbnjay/memory"
     "github.com/shirou/gopsutil/cpu"
     "github.com/shirou/gopsutil/disk"
     "github.com/shirou/gopsutil/mem"
@@ -77,9 +77,9 @@ func doMonitor() {
         PrintMemUsage()
         PrintDiskUsage()
         PrintCPUUsage()
-        testMonitor := GetLastMonitorInfo()
-        logs.Notice(" ===== Monitor ===== ")
-		logs.Notice(testMonitor)
+        // testMonitor := GetLastMonitorInfo()
+        // logs.Notice(" ===== Monitor ===== ")
+		// logs.Notice(testMonitor)
 		
     }
 }
@@ -96,15 +96,15 @@ func GetLastMonitorInfo()(GMonitor Monitor) {
 func PrintMemUsage() {
     var m runtime.MemStats
     runtime.ReadMemStats(&m)
-    logs.Info("Monitor -> Mem Stats")
-    logs.Notice("Alloc = %v MiB\tTotalAlloc = %v MiB\tSys = %v MiB\tNumGC = %v\tTotal system memory: %d MiB", bToMb(m.Alloc),bToMb(m.TotalAlloc),bToMb(m.Sys), m.NumGC,bToMb(memory.TotalMemory()))
+    // logs.Info("Monitor -> Mem Stats")
+    // logs.Notice("Alloc = %v MiB\tTotalAlloc = %v MiB\tSys = %v MiB\tNumGC = %v\tTotal system memory: %d MiB", bToMb(m.Alloc),bToMb(m.TotalAlloc),bToMb(m.Sys), m.NumGC,bToMb(memory.TotalMemory()))
     GlobalMonitor.Mem.Alloc = fmt.Sprintf("%v", bToMb(m.Alloc))
     GlobalMonitor.Mem.TotalAlloc = fmt.Sprintf("%v", bToMb(m.TotalAlloc))
     GlobalMonitor.Mem.Sys = fmt.Sprintf("%v", bToMb(m.Sys))
     GlobalMonitor.Mem.Gc = fmt.Sprintf("%v", m.NumGC)
 
     vmStat, _ := mem.VirtualMemory()
-    logs.Notice("Total Mem: %v MiB\t Free Mem: %v MiB\t Used Mem percentage: %s", bToMb(vmStat.Total), bToMb(vmStat.Free),  strconv.FormatFloat(vmStat.UsedPercent, 'f', 2, 64))
+    // logs.Notice("Total Mem: %v MiB\t Free Mem: %v MiB\t Used Mem percentage: %s", bToMb(vmStat.Total), bToMb(vmStat.Free),  strconv.FormatFloat(vmStat.UsedPercent, 'f', 2, 64))
     GlobalMonitor.Mem.Percentage = fmt.Sprintf("%v",vmStat.UsedPercent) 
     GlobalMonitor.Mem.TotalMem = fmt.Sprintf("%v", bToMb(vmStat.Total))
     GlobalMonitor.Mem.FreeMem = fmt.Sprintf("%v", bToMb(vmStat.Free))
@@ -113,7 +113,7 @@ func PrintMemUsage() {
 
 func PrintDiskUsage() {
     diskStat, _ := disk.Usage("/")
-    logs.Notice("Total Disk: %v MiB\t Used Disk: %v MiB\t Free Disk: %v MiB\t Used Disk percentage: %s", bToMb(diskStat.Total), bToMb(diskStat.Used), bToMb(diskStat.Free),strconv.FormatFloat(diskStat.UsedPercent, 'f', 2, 64)) 
+    // logs.Notice("Total Disk: %v MiB\t Used Disk: %v MiB\t Free Disk: %v MiB\t Used Disk percentage: %s", bToMb(diskStat.Total), bToMb(diskStat.Used), bToMb(diskStat.Free),strconv.FormatFloat(diskStat.UsedPercent, 'f', 2, 64)) 
     GlobalMonitor.HD.Percentage = fmt.Sprintf("%v",diskStat.UsedPercent) 
     GlobalMonitor.HD.FreeDisk = fmt.Sprintf("%v", bToMb(diskStat.Free))
     GlobalMonitor.HD.TotalDisk = fmt.Sprintf("%v", bToMb(diskStat.Total))
@@ -121,12 +121,12 @@ func PrintDiskUsage() {
 }
 
 func PrintCPUUsage() {
-    cpuStat, _ := cpu.Info()
+    // cpuStat, _ := cpu.Info()
     percentage, _ := cpu.Percent(0, true)
-    logs.Notice("CPU cores: %v ", int64(cpuStat[0].Cores+1))
+    // logs.Notice("CPU cores: %v ", int64(cpuStat[0].Cores+1))
     GlobalMonitor.Cpus = nil
     for idx, cpupercent := range percentage {
-        logs.Info( "\t\tCurrent CPU utilization: [" + strconv.Itoa(idx) + "] " + strconv.FormatFloat(cpupercent, 'f', 2, 64) + "%")
+        // logs.Info( "\t\tCurrent CPU utilization: [" + strconv.Itoa(idx) + "] " + strconv.FormatFloat(cpupercent, 'f', 2, 64) + "%")
         var acpu Cpu
         acpu.Id = fmt.Sprintf("%v",idx)
         acpu.Percentage = fmt.Sprintf("%v",cpupercent) 
