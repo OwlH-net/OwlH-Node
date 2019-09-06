@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os/exec"
 	"owlhnode/utils"
+	"owlhnode/plugin"
 	"owlhnode/database"
 )
 
@@ -73,20 +74,20 @@ func GetMainconfData()(data map[string]map[string]string, err error) {
 }
 
 func PingPluginsNode() (data map[string]map[string]string ,err error) {
-	//get main conf
-	// main,err := ndb.GetMainconfData()
-	// if err != nil {logs.Error("ping/GetMainconfData error getting GetMainconfData values: "+err.Error()); return nil, err}
-	//get plugins
-	plugin,err := ndb.GetPlugins()
+	allPlugin,err := ndb.GetPlugins()
 	if err != nil {logs.Error("ping/GetMainconfData error getting GetPlugins values: "+err.Error()); return nil, err}
-	// //check main conf status
-	// for k := range plugin { 
-	// 	for w := range main {
-	// 		if plugin[k]["type"] == w && main[w]["status"] == "disabled"{
-	// 			plugin[k]["status"] = "disabled"
-	// 		}
-	// 	}            
-	// }
-	
-	return plugin,err
+
+	for x := range allPlugin {
+		if allPlugin[x]["status"] == "enabled" && allPlugin[x]["type"] == "suricata"{
+			logs.Notice(x)
+			logs.Notice(allPlugin[x])
+			if _, err := os.Stat("/var/run/suricata/"+x+"-pidfile.pid"); os.IsNotExist(err) {		
+				err = plugin.StopSuricataService(x, allPlugin[x]["status"])
+    			if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error stopping suricata for launch again: "+err.Error()); return nil,err}
+				err = plugin.LaunchSuricataService(x, allPlugin[x]["interface"])
+    			if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error launching suricata again: "+err.Error()); return nil, err}
+			}
+		}
+	}
+	return allPlugin,err
 }
