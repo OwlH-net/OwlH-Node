@@ -82,3 +82,31 @@ func (n *PluginController) SaveSuricataInterface() {
     }
     n.ServeJSON()
 }
+
+// @Title DeployStapService
+// @Description Change a specific plugin service status
+// @router /deployStapService [put]
+func (n *PluginController) DeployStapService() {
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.DeployStapService(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ModifyStapValues
+// @Description Change a specific plugin service status
+// @router /modifyStapValues [put]
+func (n *PluginController) ModifyStapValues() {
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.ModifyStapValues(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

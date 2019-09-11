@@ -155,9 +155,9 @@ func AddPluginService(anode map[string]string) (err error) {
     if anode["type"] == "suricata"{
         err = ndb.InsertPluginService(uuid, "status", "disabled"); if err != nil {logs.Error("InsertPluginService status Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "previousStatus", "none"); if err != nil {logs.Error("InsertPluginService previousStatus Error: "+err.Error()); return err}    
-        err = ndb.InsertPluginService(uuid, "interface", "none"); if err != nil {logs.Error("InsertPluginService interface Error: "+err.Error()); return err}
-        err = ndb.InsertPluginService(uuid, "bpf", "none"); if err != nil {logs.Error("InsertPluginService bpf Error: "+err.Error()); return err}
-        err = ndb.InsertPluginService(uuid, "ruleset", "none"); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}    
+        err = ndb.InsertPluginService(uuid, "interface", ""); if err != nil {logs.Error("InsertPluginService interface Error: "+err.Error()); return err}
+        err = ndb.InsertPluginService(uuid, "bpf", ""); if err != nil {logs.Error("InsertPluginService bpf Error: "+err.Error()); return err}
+        err = ndb.InsertPluginService(uuid, "ruleset", ""); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}    
         err = ndb.InsertPluginService(uuid, "pid", "none"); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}    
     }
 
@@ -175,7 +175,7 @@ func LaunchSuricataService(uuid string, iface string)(err error){
     mainConfData, err := ndb.GetMainconfData()
     if (mainConfData["suricata"]["status"] == "disabled"){ return nil }
 
-    cmd := exec.Command("suricata", "-D", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
+    cmd := exec.Command("suricata", "-D", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+" - filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
     var stdBuffer bytes.Buffer
     cmd.Stderr = &stdBuffer
 
@@ -208,6 +208,31 @@ func LaunchSuricataService(uuid string, iface string)(err error){
     return nil
 }
 
+func ModifyStapValues(anode map[string]string)(err error) {
+    logs.Notice(anode)
+    if anode["type"] == "socket-network"{
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"interface",anode["interface"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}    
+    }else if anode["type"] == "socket-pcap"{
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"pcap-path",anode["pcap-path"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"pcap-prefix",anode["pcap-prefix"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"bpf",anode["bpf"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
+    }else if anode["type"] == "network-socket"{
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"])  ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"collector",anode["collector"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"bpf",anode["bpf"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}    
+    }
+
+    return nil
+}
+
 func StopSuricataService(uuid string, status string)(err error){
     //pid
     // currentpid, err := os.Open("/var/run/suricata/"+uuid+"-pidfile.pid")
@@ -237,6 +262,36 @@ func StopSuricataService(uuid string, status string)(err error){
     //change DB status
     err = ndb.UpdatePluginValue(uuid,"status","disabled")
     if err != nil {logs.Error("plugin/StopSuricataService error: "+err.Error()); return err}
+
+    return nil
+}
+
+func DeployStapService(anode map[string]string)(err error) {
+
+    allPlugins,err := ndb.GetPlugins()
+    for x := range allPlugins{
+        if x == anode["service"]{
+            if anode["type"] == "socket-network" {
+                cmd := exec.Command("/usr/bin/socat", "-d", "OPENSSL-LISTEN:",allPlugins[x]["port"],"reuseaddr","pf=ip4","fork","cert="+allPlugins[x]["cert"],"verify=0", "SYSTEM:","tcpreplay -t -i "+allPlugins[x]["interface"], ">>", "/dev/null", "2>&1", "&")
+                var stdBuffer bytes.Buffer
+                cmd.Stderr = &stdBuffer
+                err = cmd.Run()
+            }
+            if anode["type"] == "socket-pcap" {
+                cmd := exec.Command("/usr/bin/socat","-d","OPENSSL-LISTEN:"+allPlugins[x]["port"], "reuseaddr", "pf=ip4", "cert="+allPlugins[x]["cert"], "verify=0", "SYSTEM:","tcpdump", "-n", "-r", "-", "-s", "0", "-g", "50", "-W", "100", "-w", allPlugins[x]["pcap-path"]+allPlugins[x]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap", "/etc/suricata/bpf/"+x+" - filter.bpf", ">>", "/dev/null", "2>&1", "&")
+                var stdBuffer bytes.Buffer
+                cmd.Stderr = &stdBuffer
+                err = cmd.Run()
+            }
+            if anode["type"] == "network-socket" {
+                cmd := exec.Command("/usr/bin/tcpdump", "-n","-i",allPlugins[x]["interface"], "-s", "0", "-w", "-", "/etc/suricata/bpf/"+x+" - filter.bpf", "|", "/usr/bin/socat", "-", "OPENSSL:", allPlugins[x]["collector"]+":"+allPlugins[x]["port"], "cert="+allPlugins[x]["cert"], "verify=0", "forever", "retry=10", "interval=5",">","/dev/null", "2>&1", "&")
+                var stdBuffer bytes.Buffer
+                cmd.Stderr = &stdBuffer
+                err = cmd.Run()
+            }
+        }
+    }
+
 
     return nil
 }

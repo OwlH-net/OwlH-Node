@@ -28,3 +28,13 @@ func SaveSuricataInterface(anode map[string]string)(err error) {
 	err = plugin.SaveSuricataInterface(anode)
     return err
 }
+
+func DeployStapService(anode map[string]string)(err error) {
+	err = plugin.DeployStapService(anode)
+    return err
+}
+
+func ModifyStapValues(anode map[string]string)(err error) {
+	err = plugin.ModifyStapValues(anode)
+    return err
+}
