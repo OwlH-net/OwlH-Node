@@ -266,6 +266,9 @@ func StopSuricataService(uuid string, status string)(err error){
 
 func DeployStapService(anode map[string]string)(err error) {  
     allPlugins,err := ndb.GetPlugins()
+    //if DB.pid == ""
+        //check status
+        //
 
         if anode["type"] == "socket-network" {
             cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
