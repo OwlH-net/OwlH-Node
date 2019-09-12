@@ -1,7 +1,7 @@
 package plugin
 
 import (
-    "github.com/astaxie/beego/logs"	
+    "github.com/astaxie/beego/logs"
 	"owlhnode/database"
     // "owlhnode/suricata"
     "os/exec"
@@ -14,7 +14,7 @@ import (
 	"owlhnode/utils"
 )
 
-func ChangeServiceStatus(anode map[string]string)(err error) {  
+func ChangeServiceStatus(anode map[string]string)(err error) {
     allPlugins,err := ndb.GetPlugins()
     if anode["type"] == "suricata"{
         if anode["status"] == "enabled"{
@@ -38,13 +38,13 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
         if anode["status"] == "enabled"{
             err = ndb.UpdatePluginValue(anode["server"],"previousStatus","none")
             if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
-            
+
             err = ndb.UpdatePluginValue(anode["server"],"status","enabled")
             if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
         } else if anode["status"] == "disabled"{
             err = ndb.UpdatePluginValue(anode["server"],"previousStatus",anode["status"])
             if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
-            
+
             err = ndb.UpdatePluginValue(anode["server"],"status","disabled")
             if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
         }
@@ -53,23 +53,23 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
         //     if allPlugins[anode["server"]]["status"] == "enabled" && allPlugins[anode["server"]]["type"] == "zeek"{
         //         err = ndb.UpdatePluginValue(anode["server"],"previousStatus","none")
         //         if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
-                
+
         //         err = ndb.UpdatePluginValue(anode["server"],"status","enabled")
         //         if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
         //     }else if allPlugins[anode["server"]]["status"] == "disabled" && allPlugins[anode["server"]]["type"] == "zeek"{
         //         err = ndb.UpdatePluginValue(anode["server"],"previousStatus",anode["status"])
         //         if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
-                
+
         //         err = ndb.UpdatePluginValue(anode["server"],"status","disabled")
         //         if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
         //     }
         //     // }
-        // }        
+        // }
     }
     return err
 }
 
-func ChangeMainServiceStatus(anode map[string]string)(err error) {    
+func ChangeMainServiceStatus(anode map[string]string)(err error) {
     err = ndb.UpdateMainconfValue(anode["service"],anode["param"],anode["status"])
     if err != nil {logs.Error("plugin/ChangeMainServiceStatus error: "+err.Error()); return err}
 
@@ -94,7 +94,7 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
                 if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "zeek"{
                     err = ndb.UpdatePluginValue(x,"previousStatus","enabled")
                     if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
-                    
+
                     err = ndb.UpdatePluginValue(x,"status","disabled")
                     if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
                 }
@@ -102,7 +102,7 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
                 if allPlugins[x]["previousStatus"] == "enabled" && allPlugins[x]["type"] == "zeek"{
                     err = ndb.UpdatePluginValue(x,"previousStatus","none")
                     if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
-                    
+
                     err = ndb.UpdatePluginValue(x,"status","enabled")
                     if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
                 }
@@ -129,36 +129,38 @@ func AddPluginService(anode map[string]string) (err error) {
     uuid := utils.Generate()
     err = ndb.InsertPluginService(uuid, "node", anode["uuid"]); if err != nil {logs.Error("InsertPluginService node Error: "+err.Error()); return err}
     err = ndb.InsertPluginService(uuid, "name", anode["name"]); if err != nil {logs.Error("InsertPluginService name Error: "+err.Error()); return err}
-    err = ndb.InsertPluginService(uuid, "type", anode["type"]); if err != nil {logs.Error("InsertPluginService type Error: "+err.Error()); return err}    
+    err = ndb.InsertPluginService(uuid, "type", anode["type"]); if err != nil {logs.Error("InsertPluginService type Error: "+err.Error()); return err}
     if anode["type"] == "socket-network"{
         err = ndb.InsertPluginService(uuid, "interface", anode["interface"]); if err != nil {logs.Error("InsertPluginService interface Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "port", anode["port"]); if err != nil {logs.Error("InsertPluginService port Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "cert", anode["cert"]); if err != nil {logs.Error("InsertPluginService certtificate Error: "+err.Error()); return err}
-    } 
+    }
     if anode["type"] == "socket-pcap"{
+        err = ndb.InsertPluginService(uuid, "interface", anode["interface"]); if err != nil {logs.Error("InsertPluginService interface Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "port", anode["port"]); if err != nil {logs.Error("InsertPluginService port Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "cert", anode["cert"]); if err != nil {logs.Error("InsertPluginService certtificate Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "pcap-path", anode["pcap-path"]); if err != nil {logs.Error("InsertPluginService pcap-path Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "pcap-prefix", anode["pcap-prefix"]); if err != nil {logs.Error("InsertPluginService pcap-prefix Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "bpf", anode["bpf"]); if err != nil {logs.Error("InsertPluginService bpf Error: "+err.Error()); return err}
-    } 
-    if anode["type"] == "network-socket"{    
+    }
+    if anode["type"] == "network-socket"{
+        err = ndb.InsertPluginService(uuid, "interface", anode["interface"]); if err != nil {logs.Error("InsertPluginService interface Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "port", anode["port"]); if err != nil {logs.Error("InsertPluginService port Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "cert", anode["cert"]); if err != nil {logs.Error("InsertPluginService certtificate Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "collector", anode["collector"]); if err != nil {logs.Error("InsertPluginService collector Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "bpf", anode["bpf"]); if err != nil {logs.Error("InsertPluginService bpf Error: "+err.Error()); return err}
-    }     
+    }
     if anode["type"] == "zeek"{
         err = ndb.InsertPluginService(uuid, "status", "disabled"); if err != nil {logs.Error("InsertPluginService status Error: "+err.Error()); return err}
-        err = ndb.InsertPluginService(uuid, "previousStatus", "none"); if err != nil {logs.Error("InsertPluginService previousStatus Error: "+err.Error()); return err}    
+        err = ndb.InsertPluginService(uuid, "previousStatus", "none"); if err != nil {logs.Error("InsertPluginService previousStatus Error: "+err.Error()); return err}
     }
     if anode["type"] == "suricata"{
         err = ndb.InsertPluginService(uuid, "status", "disabled"); if err != nil {logs.Error("InsertPluginService status Error: "+err.Error()); return err}
-        err = ndb.InsertPluginService(uuid, "previousStatus", "none"); if err != nil {logs.Error("InsertPluginService previousStatus Error: "+err.Error()); return err}    
+        err = ndb.InsertPluginService(uuid, "previousStatus", "none"); if err != nil {logs.Error("InsertPluginService previousStatus Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "interface", ""); if err != nil {logs.Error("InsertPluginService interface Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "bpf", ""); if err != nil {logs.Error("InsertPluginService bpf Error: "+err.Error()); return err}
-        err = ndb.InsertPluginService(uuid, "ruleset", ""); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}    
-        err = ndb.InsertPluginService(uuid, "pid", "none"); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}    
+        err = ndb.InsertPluginService(uuid, "ruleset", ""); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}
+        err = ndb.InsertPluginService(uuid, "pid", "none"); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}
     }
 
     return nil
@@ -182,7 +184,7 @@ func LaunchSuricataService(uuid string, iface string)(err error){
     err = cmd.Run()
     if err != nil {
         logs.Error(stdBuffer.String())
-        logs.Error("plugin/LaunchSuricataService error launching Suricata: "+err.Error()); 
+        logs.Error("plugin/LaunchSuricataService error launching Suricata: "+err.Error());
         //delete pid file
         err = os.Remove("/var/run/suricata/"+uuid+"-pidfile.pid")
         if err != nil {logs.Error("plugin/SaveSuricataInterface error deleting a pid file: "+err.Error())}
@@ -196,7 +198,7 @@ func LaunchSuricataService(uuid string, iface string)(err error){
         //save pid to db
         err = ndb.UpdatePluginValue(uuid,"pid",string(pid))
         if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
-        
+
         //change DB status
         err = ndb.UpdatePluginValue(uuid,"previousStatus","none")
         if err != nil {logs.Error("plugin/LaunchSuricataService error: "+err.Error()); return err}
@@ -209,25 +211,21 @@ func LaunchSuricataService(uuid string, iface string)(err error){
 }
 
 func ModifyStapValues(anode map[string]string)(err error) {
-    logs.Notice(anode)
     if anode["type"] == "socket-network"{
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"interface",anode["interface"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
     }else if anode["type"] == "socket-pcap"{
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"pcap-path",anode["pcap-path"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"pcap-prefix",anode["pcap-prefix"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"bpf",anode["bpf"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"pcap-path",anode["pcap-path"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"pcap-prefix",anode["pcap-prefix"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
     }else if anode["type"] == "network-socket"{
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"])  ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"collector",anode["collector"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}    
-        err = ndb.UpdatePluginValue(anode["service"],"bpf",anode["bpf"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}    
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"])  ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"collector",anode["collector"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
     }
 
     return nil
@@ -240,19 +238,19 @@ func StopSuricataService(uuid string, status string)(err error){
     // defer currentpid.Close()
     // pid, err := ioutil.ReadAll(currentpid)
     allPlugin,err := ndb.GetPlugins()
-    
+
     //kill suricata process
     PidInt,_ := strconv.Atoi(strings.Trim(string(allPlugin[uuid]["pid"]), "\n"))
     process, _ := os.FindProcess(PidInt)
     _ = process.Kill()
     // if err != nil {logs.Error("plugin/StopSuricataService error killing Suricata process: "+err.Error()); return err}
-    
+
     //delete pid file
     _ = os.Remove("/var/run/suricata/"+uuid+"-pidfile.pid")
     // if err != nil {logs.Error("plugin/SaveSuricataInterface error deleting a pid file: "+err.Error()); return err}
 
     //change DB pid
-    err = ndb.UpdatePluginValue(uuid,"pid","none") 
+    err = ndb.UpdatePluginValue(uuid,"pid","none")
     if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
 
     //change DB status
@@ -266,31 +264,34 @@ func StopSuricataService(uuid string, status string)(err error){
     return nil
 }
 
-func DeployStapService(anode map[string]string)(err error) {
-
+func DeployStapService(anode map[string]string)(err error) {  
     allPlugins,err := ndb.GetPlugins()
-    for x := range allPlugins{
-        if x == anode["service"]{
-            if anode["type"] == "socket-network" {
-                cmd := exec.Command("/usr/bin/socat", "-d", "OPENSSL-LISTEN:",allPlugins[x]["port"],"reuseaddr","pf=ip4","fork","cert="+allPlugins[x]["cert"],"verify=0", "SYSTEM:","tcpreplay -t -i "+allPlugins[x]["interface"], ">>", "/dev/null", "2>&1", "&")
-                var stdBuffer bytes.Buffer
-                cmd.Stderr = &stdBuffer
-                err = cmd.Run()
-            }
-            if anode["type"] == "socket-pcap" {
-                cmd := exec.Command("/usr/bin/socat","-d","OPENSSL-LISTEN:"+allPlugins[x]["port"], "reuseaddr", "pf=ip4", "cert="+allPlugins[x]["cert"], "verify=0", "SYSTEM:","tcpdump", "-n", "-r", "-", "-s", "0", "-g", "50", "-W", "100", "-w", allPlugins[x]["pcap-path"]+allPlugins[x]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap", "/etc/suricata/bpf/"+x+" - filter.bpf", ">>", "/dev/null", "2>&1", "&")
-                var stdBuffer bytes.Buffer
-                cmd.Stderr = &stdBuffer
-                err = cmd.Run()
-            }
-            if anode["type"] == "network-socket" {
-                cmd := exec.Command("/usr/bin/tcpdump", "-n","-i",allPlugins[x]["interface"], "-s", "0", "-w", "-", "/etc/suricata/bpf/"+x+" - filter.bpf", "|", "/usr/bin/socat", "-", "OPENSSL:", allPlugins[x]["collector"]+":"+allPlugins[x]["port"], "cert="+allPlugins[x]["cert"], "verify=0", "forever", "retry=10", "interval=5",">","/dev/null", "2>&1", "&")
-                var stdBuffer bytes.Buffer
-                cmd.Stderr = &stdBuffer
-                err = cmd.Run()
-            }
+
+        if anode["type"] == "socket-network" {
+            cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
+            cmd.Run()
+            pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep "+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+            if err != nil {logs.Error(err.Error())}
+            if pid != nil {logs.Notice(string(pid))}
+
+            PidInt,_ := strconv.Atoi(strings.Trim(string(pid), "\n"))
+            process, _ := os.FindProcess(PidInt)
+            _ = process.Kill()
         }
-    }
+        //     if anode["type"] == "socket-pcap" {
+        //         cmd := exec.Command("/usr/bin/socat","-d","OPENSSL-LISTEN:"+allPlugins[x]["port"], "reuseaddr", "pf=ip4", "cert="+allPlugins[x]["cert"], "verify=0", "SYSTEM:","tcpdump -n -r - -s 0 -G 50 -W 100 -w"+ allPlugins[x]["pcap-path"]+allPlugins[x]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[x]["bpf"], ">>", "/dev/null", "2>&1", "&")
+        //         var stdBuffer bytes.Buffer
+        //         cmd.Stderr = &stdBuffer
+        //         err = cmd.Run()
+        //     }
+        //     if anode["type"] == "network-socket" {
+        //         cmd := exec.Command("/usr/bin/tcpdump", "-n","-i",allPlugins[x]["interface"], "-s", "0", "-w", "-", allPlugins[x]["bpf"], "|", "/usr/bin/socat", "-", "OPENSSL:", allPlugins[x]["collector"]+":"+allPlugins[x]["port"], "cert="+allPlugins[x]["cert"], "verify=0", "forever", "retry=10", "interval=5",">","/dev/null", "2>&1", "&")
+        //         var stdBuffer bytes.Buffer
+        //         cmd.Stderr = &stdBuffer
+        //         err = cmd.Run()
+        //     }
+        // }
+
 
 
     return nil
