@@ -34,6 +34,11 @@ func DeployStapService(anode map[string]string)(err error) {
     return err
 }
 
+func StopStapService(anode map[string]string)(err error) {
+	err = plugin.StopStapService(anode)
+    return err
+}
+
 func ModifyStapValues(anode map[string]string)(err error) {
 	err = plugin.ModifyStapValues(anode)
     return err

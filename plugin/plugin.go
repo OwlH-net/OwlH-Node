@@ -230,7 +230,6 @@ func ModifyStapValues(anode map[string]string)(err error) {
         err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"])  ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"collector",anode["collector"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
     }
-
     return nil
 }
 
@@ -267,113 +266,88 @@ func StopSuricataService(uuid string, status string)(err error){
     return nil
 }
 
-func DeployStapService(anode map[string]string)(err error) {  
+func DeployStapService(anode map[string]string)(err error) { 
     allPlugins,err := ndb.GetPlugins()
-    portDeployed, err := exec.Command("netstat -nputa| grep "+allPlugins[anode["service"]]["port"]).Output()
-    logs.Warn(string(portDeployed))
-    if portDeployed != "" { logs.Error("DeployStapService checking if port has been deployed: "+err.Error()); return err }
-    if portDeployed == "" { logs.Error("NONONONONONONONO");}
-    // if allPlugins[anode["service"]]["pid"] != "none" && allPlugins[anode["service"]]["pid"] != ""{
-    //     PidInt,err := strconv.Atoi(strings.Trim(string(allPlugins[anode["service"]]["pid"]), "\n")); if err != nil {logs.Error("DeployStapService error getting PID: "+err.Error()); return err}
-
-    //     process, err := os.FindProcess(PidInt)
-    //     if err != nil {logs.Error("DeployStapService pid process not found: "+err.Error()); return err}
-    //     err = process.Kill()
-    //     if err != nil {logs.Error("DeployStapService Kill pid process Error: "+err.Error()); return err}
-
-    //     err = ndb.UpdatePluginValue(anode["service"],"pid","none") ; if err != nil {logs.Error("DeployStapService change pid to nil Error: "+err.Error()); return err}
-    // }
     
     if anode["type"] == "socket-network" {
-        // for x := range allPlugins{
-        //     if allPlugins[x]["pid"] != "none" && allPlugins[x]["type"] == "socket-pcap" {
-        //         logs.Error("DeployStapService socat already in use")
-        //         return errors.New("socat already in use. Service don't deployed.")
-        //     }
-        // }
-        // if allPlugins[anode["service"]]["pid"] != "none" {
-        //     pidToFind,_ := strconv.Atoi(allPlugins[anode["service"]]["pid"])
-        //     process, err := os.FindProcess(pidToFind)
-        //     if err != nil {logs.Error("DeployStapService pid process not found: "+err.Error()); return err}
-        //     _ = process.Kill()
-        //     // if err != nil {logs.Error("DeployStapService Kill pid process Error: "+err.Error()); return err}
-        //     err = ndb.UpdatePluginValue(anode["service"],"pid","none") ; if err != nil {logs.Error("DeployStapService change pid to none Error: "+err.Error()); return err}
-        // }
+        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+        if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
+        pidValue := strings.Split(string(pid), "\n")
+        if pidValue[0] != "" {
+            return nil
+        }
 
-        logs.Debug("/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
         cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
         var errores bytes.Buffer
         cmd.Stdout = &errores
-        err = cmd.Run()
-        if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}
+        err = cmd.Start()
+        if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}        
 
-        logs.Notice("ps -ef | grep socat | grep LISTEN: | grep "+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'")
-        
-        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep LISTEN: | grep "+allPlugins[anode["service"]]["port"]+" | grep "+allPlugins[anode["service"]]["interface"]+" | grep -v bash | awk '{print $2}'").Output()
+
+        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
-        // pidValue := strings.Split(string(pid), "\n")
-        // logs.Notice(pidValue)
-
-        // for x := range allPlugins{
-        //     if allPlugins[x]["pid"] == "none" pidValue[0]{logs.Error("DeployStapService PID already in use"); return errors.New("PID already in use. Service don't deployed.")}
-        // }
-        // err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error: "+err.Error()); return err}
-    }else if anode["type"] == "socket-pcap" {
-        // for x := range allPlugins{
-        //     if allPlugins[x]["pid"] != "none" && allPlugins[x]["type"] == "socket-network" {
-        //         logs.Error("DeployStapService socat already in use")
-        //         return errors.New("socat already in use. Service don't deployed.")
-        //     }
-        // }
-        // if allPlugins[anode["service"]]["pid"] != "none" {
-        //     pidToFind,_ := strconv.Atoi(allPlugins[anode["service"]]["pid"])
-        //     process, err := os.FindProcess(pidToFind)
-        //     if err != nil {logs.Error("DeployStapService pid process not found: "+err.Error()); return err}
-        //     _ = process.Kill()
-        //     // if err != nil {logs.Error("DeployStapService Kill pid process Error: "+err.Error()); return err}
-        //     err = ndb.UpdatePluginValue(anode["service"],"pid","none") ; if err != nil {logs.Error("DeployStapService change pid to none Error: "+err.Error()); return err}
-        // }
-        logs.Debug("/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
-        cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
-        err = cmd.Run()
-        if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}
-
-        logs.Notice("ps -ef | grep socat | grep LISTEN: | grep "+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'")
-
-        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep LISTEN: | grep "+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
-        if err != nil {logs.Error("DeployStapService deploy socket-pcap Error: "+err.Error()); return err}
-        // pidValue := strings.Split(string(pid), "\n")
-        // logs.Notice(pidValue)
-
-        // for x := range allPlugins{
-        //     if allPlugins[x]["pid"] == "none" pidValue[0]{logs.Error("DeployStapService PID already in use"); return errors.New("PID already in use. Service don't deployed.")}
-        // }
-        // err   = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error: "+err.Error()); return err}
-    }else if anode["type"] == "network-socket" {
-        if allPlugins[anode["service"]]["pid"] != "none" {
-            logs.Error("network-socket PID already in use. Service don't deployed.")
-            return errors.New("network-socket PID already in use. Service don't deployed.")
-        //     process, err := os.FindProcess(strconv.Atoi(allPlugins[anode["service"]]["pid"]))
-        //     if err != nil {logs.Error("DeployStapService pid process not found: "+err.Error()); return err}
-        //     err = process.Kill()
-        //     if err != nil {logs.Error("DeployStapService Kill pid process Error: "+err.Error()); return err}
-        //     err = ndb.UpdatePluginValue(anode["service"],"pid","none") ; if err != nil {logs.Error("DeployStapService change pid to none Error: "+err.Error()); return err}
+        pidValue = strings.Split(string(pid), "\n")
+        if pidValue[0] != "" {
+            err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error: "+err.Error()); return err}
+        }else{
+            return nil
         }
-        logs.Warn("/usr/sbin/tcpdump -n -i "+allPlugins[anode["service"]]["interface"]+" -s 0 -w - "+allPlugins[anode["service"]]["bpf"]+" | /usr/bin/socat - OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+",cert="+allPlugins[anode["service"]]["cert"]+",verify=0,forever,retry=10,interval=5 &")
+    }else if anode["type"] == "socket-pcap" {
+        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+        if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
+        pidValue := strings.Split(string(pid), "\n")
+        if pidValue[0] != "" {
+            return nil
+        }
+
+        cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
+        var errores bytes.Buffer
+        cmd.Stdout = &errores
+        err = cmd.Start()
+        if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}        
+
+        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+        if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
+        pidValue = strings.Split(string(pid), "\n")
+        if pidValue[0] != "" {
+            err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error: "+err.Error()); return err}
+        }else{
+            return nil
+        }
+    }else if anode["type"] == "network-socket" {
+        for x := range allPlugins{
+            if allPlugins[x]["type"] == anode["type"] && allPlugins[x]["collector"] == anode["collector"] && allPlugins[x]["port"] == anode["port"] && allPlugins[x]["interface"] == anode["interface"] && allPlugins[x]["pid"] != "none"{
+                logs.Error("This network-socket has been deployed yet.")
+                return errors.New("This network-socket has been deployed yet.")
+            }
+        }
+
         cmd := exec.Command("bash","-c","/usr/sbin/tcpdump -n -i "+allPlugins[anode["service"]]["interface"]+" -s 0 -w - "+allPlugins[anode["service"]]["bpf"]+" | /usr/bin/socat - OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+",cert="+allPlugins[anode["service"]]["cert"]+",verify=0,forever,retry=10,interval=5 &")
-        err = cmd.Run()
+        err = cmd.Start()
         if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}
 
-        pid, err := exec.Command("bash","-c","ps -ef | grep "+allPlugins[anode["service"]]["collector"]+" | grep -v bash | awk '{print $2}'").Output()
+        pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-pcap Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
-        logs.Notice(pidValue)
-
-        // for x := range allPlugins{
-        //     if allPlugins[x]["pid"] == "none" pidValue[0]{logs.Error("DeployStapService PID already in use"); return errors.New("PID already in use. Service don't deployed.")}
-        // }
-        err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error: "+err.Error()); return err}
+        if pidValue[0] != "" {
+            err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error: "+err.Error()); return err}
+        }else{
+            return nil
+        }
     }
     
+    return nil
+}
+
+func StopStapService(anode map[string]string)(err error) {
+    allPlugins,err := ndb.GetPlugins()
+    pidToInt,err := strconv.Atoi(allPlugins[anode["service"]]["pid"])
+    if err != nil {logs.Error("DeployStapService pid to int error: "+err.Error()); return err}
+    process, err := os.FindProcess(pidToInt)
+    if err != nil {logs.Error("DeployStapService pid process not found: "+err.Error()); return err}
+    err = process.Kill()
+    if err != nil {logs.Error("DeployStapService Kill pid process Error: "+err.Error()); return err}
+    err = ndb.UpdatePluginValue(anode["service"],"pid","none") ; if err != nil {logs.Error("DeployStapService change pid to none Error: "+err.Error()); return err}
+
     return nil
 }

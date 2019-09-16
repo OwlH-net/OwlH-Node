@@ -97,6 +97,20 @@ func (n *PluginController) DeployStapService() {
     n.ServeJSON()
 }
 
+// @Title StopStapService
+// @Description Change a specific plugin service status
+// @router /stopStapService [put]
+func (n *PluginController) StopStapService() {
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.StopStapService(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
 // @Title ModifyStapValues
 // @Description Change a specific plugin service status
 // @router /modifyStapValues [put]
