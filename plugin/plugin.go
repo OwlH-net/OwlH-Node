@@ -3,6 +3,7 @@ package plugin
 import (
     "github.com/astaxie/beego/logs"
 	"owlhnode/database"
+	"owlhnode/zeek"
     // "owlhnode/suricata"
     "os/exec"
     "bytes"
@@ -34,37 +35,27 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
         }
     } else if anode["type"] == "zeek"{
         mainConfData, err := ndb.GetMainconfData()
-        if (mainConfData["zeek"]["status"] == "disabled"){ return nil }
+        if (mainConfData["zeek"]["status"] == "disabled"){ return nil }        
         if anode["status"] == "enabled"{
+            err = zeek.DeployZeek()
+            if err != nil {logs.Error("plugin/ChangeServiceStatus error deploying zeek: "+err.Error()); return err}
+
             err = ndb.UpdatePluginValue(anode["server"],"previousStatus","none")
-            if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
+            if err != nil {logs.Error("plugin/ChangeServiceStatus error updating zeek previousStatus to none: "+err.Error()); return err}
 
             err = ndb.UpdatePluginValue(anode["server"],"status","enabled")
-            if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
+            if err != nil {logs.Error("plugin/ChangeServiceStatus error updating zeek status to enabled: "+err.Error()); return err}
         } else if anode["status"] == "disabled"{
+            data, err := zeek.StopZeek(); logs.Error(data)
+            if err != nil {logs.Error("plugin/ChangeServiceStatus error deploying zeek: "+err.Error()); return err}
+
             err = ndb.UpdatePluginValue(anode["server"],"previousStatus",anode["status"])
-            if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
+            if err != nil {logs.Error("plugin/ChangeServiceStatus error updating zeek previousStatus to status: "+err.Error()); return err}
 
             err = ndb.UpdatePluginValue(anode["server"],"status","disabled")
-            if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
+            if err != nil {logs.Error("plugin/ChangeServiceStatus error updating zeek status to disabled: "+err.Error()); return err}
         }
-        // else if (mainConfData["zeek"]["status"] == "enabled"){
-        //     // for x := range allPlugins {
-        //     if allPlugins[anode["server"]]["status"] == "enabled" && allPlugins[anode["server"]]["type"] == "zeek"{
-        //         err = ndb.UpdatePluginValue(anode["server"],"previousStatus","none")
-        //         if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
 
-        //         err = ndb.UpdatePluginValue(anode["server"],"status","enabled")
-        //         if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
-        //     }else if allPlugins[anode["server"]]["status"] == "disabled" && allPlugins[anode["server"]]["type"] == "zeek"{
-        //         err = ndb.UpdatePluginValue(anode["server"],"previousStatus",anode["status"])
-        //         if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
-
-        //         err = ndb.UpdatePluginValue(anode["server"],"status","disabled")
-        //         if err != nil {logs.Error("plugin/ChangeServiceStatus error updating pid at DB: "+err.Error()); return err}
-        //     }
-        //     // }
-        // }
     }
     return err
 }
@@ -93,18 +84,24 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
             if anode["status"] == "disabled"{
                 if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "zeek"{
                     err = ndb.UpdatePluginValue(x,"previousStatus","enabled")
-                    if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
+                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
 
                     err = ndb.UpdatePluginValue(x,"status","disabled")
-                    if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
+                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
+                    
+                    data, err := zeek.StopZeek(); logs.Error(data)
+                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error deploying zeek: "+err.Error()); return err}
                 }
             }else if anode["status"] == "enabled"{
                 if allPlugins[x]["previousStatus"] == "enabled" && allPlugins[x]["type"] == "zeek"{
                     err = ndb.UpdatePluginValue(x,"previousStatus","none")
-                    if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
+                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
 
                     err = ndb.UpdatePluginValue(x,"status","enabled")
-                    if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
+                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
+
+                    err = zeek.DeployZeek()
+                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error deploying zeek: "+err.Error()); return err}
                 }
             }
         }
@@ -214,7 +211,11 @@ func LaunchSuricataService(uuid string, iface string)(err error){
 }
 
 func ModifyStapValues(anode map[string]string)(err error) {
-    if anode["type"] == "socket-network"{
+    if anode["type"] == "zeek"{
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues zeek Error: "+err.Error()); return err}
+        err = zeek.DeployZeek()
+        if err != nil {logs.Error("plugin/ModifyStapValues error deploying zeek: "+err.Error()); return err}
+    }else if anode["type"] == "socket-network"{
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
