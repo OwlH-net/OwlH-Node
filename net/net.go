@@ -5,6 +5,8 @@ import (
 	"github.com/google/gopacket/pcap"
 	"owlhnode/database"
 	"owlhnode/utils"
+	"owlhnode/zeek"
+	"owlhnode/suricata"
 	"io/ioutil"
 	"regexp"
 	"strings"
@@ -78,11 +80,13 @@ func UpdateNetworkInterface(data map[string]string) (err error) {
 	if err != nil {logs.Error("UpdateNetworkInterface Error updating nodeconfig for Node: "+err.Error()); return err}
 	
 	//restart suricata
-	err = utils.RestartSuricata()
-	if err != nil {logs.Error("UpdateNetworkInterface Error restarting Suricata"); return err}
+	_,err = suricata.StopSuricata()
+	if err != nil {logs.Error("UpdateNetworkInterface Error stopping Suricata"); return err}
+	_,err = suricata.RunSuricata()
+	if err != nil {logs.Error("UpdateNetworkInterface Error running Suricata"); return err}
 	
 	//restart zeek
-	err = utils.RestartZeek()
+	err = zeek.DeployZeek()
 	if err != nil {logs.Error("UpdateNetworkInterface Error restarting Zeek"); return err}
 	
     return nil
