@@ -189,38 +189,40 @@ func SaveSuricataInterface(anode map[string]string)(err error) {
 }
 
 func CheckServicesStatus()(){
-    logs.Debug("inside the function")
-    logs.Debug("inside the function")
-    logs.Debug("inside the function")
-    allPlugin,err := ndb.GetPlugins()
+    allPlugin,_ := ndb.GetPlugins()
     for w := range allPlugin {
         if allPlugin[w]["pid"] != "none"{
             if allPlugin[w]["type"] == "suricata" {
-                err = LaunchSuricataService(w, allPlugin[w]["interface"])
-                if err != nil {
-                    logs.Error("plugin/CheckServicesStatus error launching SURICATA after server stops: "+err.Error())
-                    err = StopSuricataService(w, allPlugin[w]["status"])
-                }
-            } else if allPlugin[w]["type"] == "socket-network" || allPlugin[w]["type"] == "socket-pcap" || allPlugin[w]["type"] == "network-socket"{
-                anode := make(map[string]string)
-                for k,y := range allPlugin { 
-                    for y,_ := range y {
-                        logs.Warn(k+"  -->  "+y)
-                        logs.Warn(allPlugin[k][y])
-                        anode[y] = allPlugin[k][y]   
-                        // anode[y] = append(anode[y], allPlugin[k][y])                     
+                pid, err := exec.Command("bash","-c","ps -ef | grep suricata | awk '{print $2}'").Output()
+                if err != nil {logs.Error("CheckServicesStatus Checking previous PID: "+err.Error())}
+                pidValue := strings.Split(string(pid), "\n")
+
+                if pidValue[0] != allPlugin[w]["pid"] && allPlugin[w]["pid"] != "none" && allPlugin[w]["pid"] == "enabled"{
+                    logs.Notice("diff")
+                    err = LaunchSuricataService(w, allPlugin[w]["interface"])
+                    if err != nil {
+                        logs.Error("plugin/CheckServicesStatus error launching SURICATA after server stops: "+err.Error())
+                        err = StopSuricataService(w, allPlugin[w]["status"])
                     }
                 }
-                logs.Notice(anode)
-                logs.Notice(anode)
-                logs.Notice(anode)
-                logs.Notice(anode)
-                // err = DeployStapService()
-                // if err != nil {
-                //     logs.Error("plugin/CheckServicesStatus error launching STAP after server stops: "+err.Error())
-                //     err = StopStapService(w, allPlugin[w]["status"])
-                // }
-            }
+            } 
+            // else if allPlugin[w]["type"] == "socket-network" || allPlugin[w]["type"] == "socket-pcap" || allPlugin[w]["type"] == "network-socket"{
+            //     anode := make(map[string]string)
+            //     for k,y := range allPlugin { 
+            //         for y,_ := range y {
+            //             logs.Warn(k+"  -->  "+y)
+            //             logs.Warn(allPlugin[k][y])
+            //             anode[y] = allPlugin[k][y]   
+            //             // anode[y] = append(anode[y], allPlugin[k][y])                     
+            //         }
+            //     }
+
+            //     // err = DeployStapService()
+            //     // if err != nil {
+            //     //     logs.Error("plugin/CheckServicesStatus error launching STAP after server stops: "+err.Error())
+            //     //     err = StopStapService(w, allPlugin[w]["status"])
+            //     // }
+            // }
         }
     }
 }
@@ -248,9 +250,10 @@ func LaunchSuricataService(uuid string, iface string)(err error){
         if err != nil {logs.Error("plugin/LaunchSuricataService error openning Suricata: "+err.Error()); return err}
         defer currentpid.Close()
         pid, err := ioutil.ReadAll(currentpid)
+        dbValue := strings.Split(string(pid), "\n")
 
         //save pid to db
-        err = ndb.UpdatePluginValue(uuid,"pid",string(pid))
+        err = ndb.UpdatePluginValue(uuid,"pid",dbValue[0])
         if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
 
         //change DB status
