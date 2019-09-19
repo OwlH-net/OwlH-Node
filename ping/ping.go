@@ -79,8 +79,7 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
 
 	for x := range allPlugin {
 		if allPlugin[x]["status"] == "enabled" && allPlugin[x]["type"] == "suricata"{
-			logs.Notice(x)
-			logs.Notice(allPlugin[x])
+
 			if _, err := os.Stat("/var/run/suricata/"+x+"-pidfile.pid"); os.IsNotExist(err) {		
 				err = plugin.StopSuricataService(x, allPlugin[x]["status"])
     			if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error stopping suricata for launch again: "+err.Error()); return nil,err}

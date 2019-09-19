@@ -8,8 +8,9 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhnode/database"
     "owlhnode/stap"
-    "owlhnode/utils"
     "owlhnode/analyzer"
+    "owlhnode/plugin"
+    "owlhnode/utils"
     "owlhnode/knownports"
     "owlhnode/geolocation"
     "owlhnode/monitor"
@@ -59,6 +60,7 @@ func main() {
     // logs.Error("Version: 0.5.190415.0922")
 
     //Launch StapInit for 1st time for check status and go concurrency if status==true
+    plugin.CheckServicesStatus()
     stap.StapInit()
     knownports.Init()
     analyzer.Init()
@@ -80,7 +82,6 @@ func main() {
 
     beego.Run()
 }
-
 
 func OperativeSystemValues()(values map[string]string){
 	if (runtime.GOOS == "linux"){

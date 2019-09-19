@@ -4,7 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
 	"owlhnode/database"
 	"owlhnode/zeek"
-    // "owlhnode/suricata"
+    "owlhnode/suricata"
     "os/exec"
     "bytes"
     "errors"
@@ -188,12 +188,50 @@ func SaveSuricataInterface(anode map[string]string)(err error) {
     return err
 }
 
+func CheckServicesStatus()(){
+    logs.Debug("inside the function")
+    logs.Debug("inside the function")
+    logs.Debug("inside the function")
+    allPlugin,err := ndb.GetPlugins()
+    for w := range allPlugin {
+        if allPlugin[w]["pid"] != "none"{
+            if allPlugin[w]["type"] == "suricata" {
+                err = LaunchSuricataService(w, allPlugin[w]["interface"])
+                if err != nil {
+                    logs.Error("plugin/CheckServicesStatus error launching SURICATA after server stops: "+err.Error())
+                    err = StopSuricataService(w, allPlugin[w]["status"])
+                }
+            } else if allPlugin[w]["type"] == "socket-network" || allPlugin[w]["type"] == "socket-pcap" || allPlugin[w]["type"] == "network-socket"{
+                anode := make(map[string]string)
+                for k,y := range allPlugin { 
+                    for y,_ := range y {
+                        logs.Warn(k+"  -->  "+y)
+                        logs.Warn(allPlugin[k][y])
+                        anode[y] = allPlugin[k][y]   
+                        // anode[y] = append(anode[y], allPlugin[k][y])                     
+                    }
+                }
+                logs.Notice(anode)
+                logs.Notice(anode)
+                logs.Notice(anode)
+                logs.Notice(anode)
+                // err = DeployStapService()
+                // if err != nil {
+                //     logs.Error("plugin/CheckServicesStatus error launching STAP after server stops: "+err.Error())
+                //     err = StopStapService(w, allPlugin[w]["status"])
+                // }
+            }
+        }
+    }
+}
+
 func LaunchSuricataService(uuid string, iface string)(err error){
 
     mainConfData, err := ndb.GetMainconfData()
     if (mainConfData["suricata"]["status"] == "disabled"){ return nil }
 
     cmd := exec.Command("suricata", "-D", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+" - filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
+    // cmd := exec.Command("suricata", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+" - filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
     var stdBuffer bytes.Buffer
     cmd.Stderr = &stdBuffer
 
@@ -222,30 +260,6 @@ func LaunchSuricataService(uuid string, iface string)(err error){
         //change DB status
         err = ndb.UpdatePluginValue(uuid,"status","enabled")
         if err != nil {logs.Error("plugin/LaunchSuricataService error: "+err.Error()); return err}
-    }
-    return nil
-}
-
-func ModifyStapValues(anode map[string]string)(err error) {
-    if anode["type"] == "zeek"{
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues zeek Error: "+err.Error()); return err}
-        err = zeek.DeployZeek()
-        if err != nil {logs.Error("plugin/ModifyStapValues error deploying zeek: "+err.Error()); return err}
-    }else if anode["type"] == "socket-network"{
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
-    }else if anode["type"] == "socket-pcap"{
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"pcap-path",anode["pcap-path"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"pcap-prefix",anode["pcap-prefix"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
-    }else if anode["type"] == "network-socket"{
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"])  ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"collector",anode["collector"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
     }
     return nil
 }
@@ -280,6 +294,36 @@ func StopSuricataService(uuid string, status string)(err error){
     err = ndb.UpdatePluginValue(uuid,"status","disabled")
     if err != nil {logs.Error("plugin/StopSuricataService error: "+err.Error()); return err}
 
+    return nil
+}
+
+func ModifyStapValues(anode map[string]string)(err error) {
+    if anode["type"] == "zeek"{
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues zeek Error: "+err.Error()); return err}
+        err = zeek.DeployZeek()
+        if err != nil {logs.Error("plugin/ModifyStapValues error deploying zeek: "+err.Error()); return err}
+    }else if anode["type"] == "suricata"{
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues suricata Error: "+err.Error()); return err}
+        _,err = suricata.StopSuricata()
+        if err != nil {logs.Error("plugin/ModifyStapValues error stopping suricata: "+err.Error()); return err}
+        _,err = suricata.RunSuricata()
+        if err != nil {logs.Error("plugin/ModifyStapValues error deploying suricata: "+err.Error()); return err}
+    }else if anode["type"] == "socket-network"{
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
+    }else if anode["type"] == "socket-pcap"{
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"pcap-path",anode["pcap-path"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"pcap-prefix",anode["pcap-prefix"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
+    }else if anode["type"] == "network-socket"{
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"])  ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"collector",anode["collector"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
+    }
     return nil
 }
 

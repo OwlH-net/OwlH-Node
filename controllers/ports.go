@@ -59,7 +59,6 @@ func (m *PortsController) ChangeStatus() {
         logs.Info("ChangeStatus OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}else{
-		logs.Notice(anode["status"])
 		knownports.Init()
 	}
 	m.ServeJSON()	

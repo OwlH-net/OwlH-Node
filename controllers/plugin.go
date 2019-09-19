@@ -88,7 +88,7 @@ func (n *PluginController) SaveSuricataInterface() {
 // @router /deployStapService [put]
 func (n *PluginController) DeployStapService() {
 	var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 	err := models.DeployStapService(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {

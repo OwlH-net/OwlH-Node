@@ -39,7 +39,6 @@ func (m *AnalyzerController) ChangeAnalyzerStatus() {
         logs.Info("ChangeAnalyzerStatus OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}else{
-		logs.Notice(anode["status"])
 		analyzer.Init()
 	}
     m.ServeJSON()
