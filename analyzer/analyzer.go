@@ -316,13 +316,13 @@ func InitAnalizer() {
     LoadAnalyzers()
     LoadSources()
     for {
-		status,_ = PingAnalyzer()
+        status,_ = PingAnalyzer()
+        logs.Notice("ANALYZER STATUS: "+status)
 		if status == "Disabled"{
 			break
 		}
-		time.Sleep(time.Second * 60)
-		//check if is active at DB
-		//sleep 1 min
+		time.Sleep(time.Second * 3)
+        logs.Debug("ANALYZER WAITING 3 SECS")
     }
 }
 
