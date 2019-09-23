@@ -4,7 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
 	"owlhnode/database"
 	"owlhnode/zeek"
-    "owlhnode/suricata"
+    // "owlhnode/suricata"
     "os/exec"
     "bytes"
     "errors"
@@ -111,13 +111,26 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
 }
 
 func DeleteService(anode map[string]string)(err error) {
-	err = ndb.DeleteService(anode["server"])
-    if err != nil {logs.Error("plugin/DeleteService error: "+err.Error()); return err}
-
-    if _, err := os.Stat("/etc/suricata/bpf/"+anode["server"]+" - filter.bpf"); !os.IsNotExist(err) {
-        err = os.Remove("/etc/suricata/bpf/"+anode["server"]+" - filter.bpf")
-        if err != nil {logs.Error("plugin/SaveSuricataInterface error deleting a pid file: "+err.Error())}
+    allPlugins,err := ndb.GetPlugins()
+    if allPlugins[anode["server"]]["type"] == "suricata" {
+        if allPlugins[anode["server"]]["status"] == "enabled" {
+            err = StopSuricataService(anode["server"], allPlugins[anode["status"]]["status"])
+            if err != nil {logs.Error("plugin/DeleteService error stopping suricata: "+err.Error()); return err}
+            logs.Error("suricata 3")
+        }
+        if _, err := os.Stat("/etc/suricata/bpf/"+anode["server"]+" - filter.bpf"); !os.IsNotExist(err) {
+            err = os.Remove("/etc/suricata/bpf/"+anode["server"]+" - filter.bpf")
+            if err != nil {logs.Error("plugin/SaveSuricataInterface error deleting a pid file: "+err.Error())}
+        }
+    }else if allPlugins[anode["server"]]["type"] == "zeek" {
+        if allPlugins[anode["server"]]["status"] == "enabled" {
+            _, err := zeek.StopZeek();
+            if err != nil {logs.Error("plugin/DeleteService error stopping Zeek: "+err.Error())}
+        }
     }
+
+    err = ndb.DeleteService(anode["server"])
+    if err != nil {logs.Error("plugin/DeleteService error: "+err.Error()); return err}    
 
     return err
 }
@@ -374,11 +387,16 @@ func ModifyStapValues(anode map[string]string)(err error) {
         err = zeek.DeployZeek()
         if err != nil {logs.Error("plugin/ModifyStapValues error deploying zeek: "+err.Error()); return err}
     }else if anode["type"] == "suricata"{
+        allPlugin,err := ndb.GetPlugins()
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues suricata Error: "+err.Error()); return err}
-        _,err = suricata.StopSuricata()
-        if err != nil {logs.Error("plugin/ModifyStapValues error stopping suricata: "+err.Error()); return err}
-        _,err = suricata.RunSuricata()
-        if err != nil {logs.Error("plugin/ModifyStapValues error deploying suricata: "+err.Error()); return err}
+        if allPlugin[anode["interface"]]["status"] == "enabled" {
+            // _,err = suricata.StopSuricata()
+            err = StopSuricataService(anode["service"], allPlugin[anode["interface"]]["status"])
+            if err != nil {logs.Error("plugin/ModifyStapValues error stopping suricata: "+err.Error()); return err}
+            // _,err = suricata.RunSuricata()
+            err = LaunchSuricataService(anode["service"], allPlugin[anode["interface"]]["interface"])
+            if err != nil {logs.Error("plugin/ModifyStapValues error deploying suricata: "+err.Error()); return err}
+        }
     }else if anode["type"] == "socket-network"{
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
