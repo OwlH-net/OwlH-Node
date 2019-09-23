@@ -67,13 +67,13 @@ func UpdateAnalyzer(uuid string, param string, value string)(err error){
 }
 
 func InsertPluginService(uuid string, param string, value string)(err error){
-	updateAnalyzerNode, err := Pdb.Prepare("insert into plugins(plugin_uniqueid, plugin_param, plugin_value) values (?,?,?);")
+	insertPlugin, err := Pdb.Prepare("insert into plugins(plugin_uniqueid, plugin_param, plugin_value) values (?,?,?);")
 	if (err != nil){ logs.Error("InsertPluginService INSERT prepare error: "+err.Error()); return err}
 
-	_, err = updateAnalyzerNode.Exec(&uuid, &param, &value)
+	_, err = insertPlugin.Exec(&uuid, &param, &value)
 	if (err != nil){ logs.Error("InsertPluginService INSERT exec error: "+err.Error()); return err}
 
-	defer updateAnalyzerNode.Close()
+	defer insertPlugin.Close()
 	
 	return nil
 }

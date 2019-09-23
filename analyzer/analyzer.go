@@ -67,7 +67,7 @@ func readconf()(err error) {
 
     confFile, err := os.Open(analyzerCFG)
     if err != nil {
-        logs.Error(err.Error())
+        logs.Error("Error openning analyzer CFG: "+err.Error())
         return err
     }
     defer confFile.Close()
@@ -224,6 +224,7 @@ func StartWriter(wkr int) {
 }
 
 func Starttail(file string) {
+    logs.Info("Starting tail of file: "+file)
     var seekv tail.SeekInfo
     seekv.Offset = 0
     seekv.Whence = os.SEEK_END
@@ -339,7 +340,7 @@ func PingAnalyzer()(data string ,err error) {
 }
 
 func ChangeAnalyzerStatus(anode map[string]string) (err error) {
-	err = ndb.UpdateAnalyzer(anode["uuid"], "status", anode["status"])
+	err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
 	if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
 
 	return nil
