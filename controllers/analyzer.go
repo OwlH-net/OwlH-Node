@@ -18,8 +18,6 @@ type AnalyzerController struct {
 // @router /pingAnalyzer [get]
 func (m *AnalyzerController) PingAnalyzer() {	
 	data, err := models.PingAnalyzer()
-	logs.Notice("PingAnalyzer controller")
-	logs.Notice(data)
 	m.Data["json"] = map[string]string{"status": data}
 	if err != nil {
         logs.Info("PingAnalyzer OUT -- ERROR : %s", err.Error())

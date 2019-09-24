@@ -389,12 +389,10 @@ func ModifyStapValues(anode map[string]string)(err error) {
     }else if anode["type"] == "suricata"{
         allPlugin,err := ndb.GetPlugins()
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues suricata Error: "+err.Error()); return err}
-        if allPlugin[anode["interface"]]["status"] == "enabled" {
-            // _,err = suricata.StopSuricata()
-            err = StopSuricataService(anode["service"], allPlugin[anode["interface"]]["status"])
+        if allPlugin[anode["service"]]["status"] == "enabled" {
+            err = StopSuricataService(anode["service"], allPlugin[anode["service"]]["status"])
             if err != nil {logs.Error("plugin/ModifyStapValues error stopping suricata: "+err.Error()); return err}
-            // _,err = suricata.RunSuricata()
-            err = LaunchSuricataService(anode["service"], allPlugin[anode["interface"]]["interface"])
+            err = LaunchSuricataService(anode["service"], allPlugin[anode["service"]]["interface"])
             if err != nil {logs.Error("plugin/ModifyStapValues error deploying suricata: "+err.Error()); return err}
         }
     }else if anode["type"] == "socket-network"{
