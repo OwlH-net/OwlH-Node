@@ -140,16 +140,16 @@ func SetBPF(n map[string]string)(err error) {
     if err != nil {logs.Error("SetBPF Error updating plugin.db: "+err.Error()); return err}
     
 	//check if exists
-	if _, err = os.Stat(path + n["service"] + " - " + file); os.IsNotExist(err) {
-		err = ioutil.WriteFile(path + n["service"] + " - " + file, []byte(n["value"]), 0644)	
+	if _, err = os.Stat(path + n["service"] + "-" + file); os.IsNotExist(err) {
+		err = ioutil.WriteFile(path + n["service"] + "-" + file, []byte(n["value"]), 0644)	
 		if err != nil{logs.Error("Error writting data into BPF file: "+err.Error()); return err}	
     }else{
 		//make backup file
-		err = utils.BackupFile(path, n["service"]+ " - " +file)
+		err = utils.BackupFile(path, n["service"]+ "-" +file)
 		if err != nil{logs.Error("Error creating BPF backup: "+err.Error()); return err}
 
 		//write bpf into the file	
-		err = utils.UpdateBPFFile(path, n["service"]+ " - " +file, n["value"])
+		err = utils.UpdateBPFFile(path, n["service"]+ "-" +file, n["value"])
 		if err != nil{logs.Error("Error UpdateBPFFile: "+err.Error()); return err}
 	}
 

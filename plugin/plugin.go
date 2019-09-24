@@ -118,8 +118,8 @@ func DeleteService(anode map[string]string)(err error) {
             if err != nil {logs.Error("plugin/DeleteService error stopping suricata: "+err.Error()); return err}
             logs.Error("suricata 3")
         }
-        if _, err := os.Stat("/etc/suricata/bpf/"+anode["server"]+" - filter.bpf"); !os.IsNotExist(err) {
-            err = os.Remove("/etc/suricata/bpf/"+anode["server"]+" - filter.bpf")
+        if _, err := os.Stat("/etc/suricata/bpf/"+anode["server"]+"-filter.bpf"); !os.IsNotExist(err) {
+            err = os.Remove("/etc/suricata/bpf/"+anode["server"]+"-filter.bpf")
             if err != nil {logs.Error("plugin/SaveSuricataInterface error deleting a pid file: "+err.Error())}
         }
     }else if allPlugins[anode["server"]]["type"] == "zeek" {
@@ -314,8 +314,8 @@ func LaunchSuricataService(uuid string, iface string)(err error){
     if (mainConfData["suricata"]["status"] == "disabled"){ return nil }
 
     _ = os.Remove("/var/run/suricata/"+uuid+"-pidfile.pid")
-    cmd := exec.Command("suricata", "-D", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+" - filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
-    // cmd := exec.Command("suricata", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+" - filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
+    cmd := exec.Command("suricata", "-D", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+"-filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
+    // cmd := exec.Command("suricata", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+"-filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
     var stdBuffer bytes.Buffer
     cmd.Stderr = &stdBuffer
 
