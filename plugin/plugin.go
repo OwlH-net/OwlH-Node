@@ -216,13 +216,6 @@ func CheckServicesStatus()(){
                 if err != nil {logs.Error("plugin/CheckServicesStatus Checking previous PID: "+err.Error())}
                 pidValue := strings.Split(string(pid), "\n")
                 
-                // logs.Notice(w)
-                // logs.Notice(allPlugin[w]["pid"])
-                // if pidValue == nil {
-                //     logs.Notice(pidValue)
-                    
-                // }
-
                 if pidValue[0]!="" && pidValue[0] != allPlugin[w]["pid"] && allPlugin[w]["status"] == "enabled"{                    
                     err = ndb.UpdatePluginValue(w,"pid",pidValue[0])
                     if err != nil {logs.Error("plugin/CheckServicesStatus error updating pid at DB: "+err.Error())}
@@ -236,17 +229,31 @@ func CheckServicesStatus()(){
                     logs.Notice("Launching Suricata Service")
                 }
             }else if allPlugin[w]["type"] == "zeek"{
+                pid, err := exec.Command("bash","-c","zeekctl status | awk '{print $5}'").Output()
+                if err != nil {logs.Error("plugin/CheckServicesStatus Checking Zeek PID: "+err.Error())}
+                
                 if allPlugin[w]["status"] == "enabled"{                    
-                    pid, err := exec.Command("bash","-c","zeekctl status | awk '{print $5}'").Output()
-                    if err != nil {logs.Error("plugin/CheckServicesStatus Checking Zeek PID: "+err.Error())}
-                    pidValue := strings.Split(string(pid), "\n")
-                    if (pidValue[1] == ""){
+                    if (len(pid) == 0){
+                        _,err = zeek.StopZeek()
+                        if err != nil {logs.Error("plugin/CheckServicesStatus error stopping zeek: "+err.Error())}
+                        logs.Notice("Zeek stopped...")
                         err = zeek.DeployZeek()
-                        if err != nil {logs.Error("plugin/CheckServicesStatus error deploying zeek: "+err.Error())}
+                        if err != nil {logs.Error("plugin/CheckQServicesStatus error deploying zeek: "+err.Error())}
                         logs.Notice("Launch Zeek after Node stops")
+                    }else{
+                        pidValue := strings.Split(string(pid), "\n")
+                        if (pidValue != nil && pidValue[1] == ""){
+                            err = zeek.DeployZeek()
+                            if err != nil {logs.Error("plugin/CheckServicesStatus error deploying zeek: "+err.Error())}
+                            logs.Notice("Launch Zeek after Node stops")
+                        }
                     }
-
-
+                }else if (allPlugin[w]["status"] == "disabled") {
+                    if (len(pid) == 0){
+                        _,err = zeek.StopZeek()
+                        if err != nil {logs.Error("plugin/CheckServicesStatus error stopping zeek: "+err.Error())}
+                        logs.Notice("Zeek stopped...")
+                    }
                 }
             }else if allPlugin[w]["type"] == "socket-network" || allPlugin[w]["type"] == "socket-pcap"{
                 // pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugin[w]["port"]+" | grep -v bash | awk '{print $2}'").Output()
@@ -300,8 +307,8 @@ func CheckServicesStatus()(){
                 // if err != nil {logs.Error("plugin/CheckServicesStatus change status to none Error: "+err.Error())}
                 err = StopStapService(anode)
                 if err != nil {logs.Error("plugin/CheckServicesStatus Stop network-socket Error: "+err.Error())}
-                // err = DeployStapService(anode)
-                // if err != nil {logs.Error("plugin/CheckServicesStatus Deploy network-socket Error: "+err.Error())}
+                err = DeployStapService(anode)
+                if err != nil {logs.Error("plugin/CheckServicesStatus Deploy network-socket Error: "+err.Error())}
                 logs.Warn(anode)
             }
         }

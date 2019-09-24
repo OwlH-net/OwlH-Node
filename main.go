@@ -15,6 +15,7 @@ import (
     "owlhnode/geolocation"
     "owlhnode/monitor"
     "os"
+    // "os/exec"
 	"bufio"
 	"strings"
 	"runtime"
@@ -22,11 +23,43 @@ import (
 
 func main() {
 	//operative system values
-	data:=OperativeSystemValues()
+	data := OperativeSystemValues()
 	for x := range data {
-		if (x == "ID" || x == "ID_LIKE" || x == "VERSION_ID"){
-			logs.Info(x +" -- "+data[x])
-		}
+		if (x == "ID" || x == "ID_LIKE" || x == "VERSION_ID"){            
+            logs.Info(x +" -- "+data[x])
+        }
+        // if (x == "ID" && data[x] == "debian") {
+        //     logs.Info("debian")
+        //     socatOutput, err := exec.Command("bash","-c","dpkg -l socat | grep socat").Output()
+        //     if err != nil {logs.Error("Error checking socat for debian: "+err.Error())}
+        //     logs.Info(socatOutput)
+
+        //     tcpdumpOutput, err := exec.Command("bash","-c","dpkg -l tcpdump  | grep tcpdump").Output()
+        //     if err != nil {logs.Error("Error checking tcpdump for debian: "+err.Error())}
+        //     logs.Info(tcpdumpOutput)
+        //     //check socat
+        //         //install socat 
+        //     //check tcpdump
+        //         //install tcpdump
+
+        // }else if (data[x] != "debian") { 
+        //     logs.Info("not debian")
+        //     // socatOutput, err := exec.Command("bash","-c","yum list socat | grep socat").Output()
+        //     socatOutput, err := exec.Command("yum","list", "socat", "|", "grep", "socat").Output()
+        //     if err != nil {logs.Error("Error checking socat for centos/redhat: "+err.Error())}
+        //     logs.Info(socatOutput)
+
+        //     // tcpdumpOutput, err := exec.Command("bash","-c","yum list tcpdump | grep tcpdump").Output()
+        //     tcpdumpOutput, err := exec.Command("yum","list", "tcpdump", "|", "grep", "tcpdump").Output()
+        //     if err != nil {logs.Error("Error checking tcpdump for centos/redhat: "+err.Error())}
+        //     logs.Info(tcpdumpOutput)
+            
+        //     //check socat
+        //         //install socat 
+        //     //check tcpdump
+        //         //install tcpdump
+        // }
+        
 	}
 	
     var err error
