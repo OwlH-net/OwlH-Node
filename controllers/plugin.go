@@ -17,11 +17,11 @@ func (n *PluginController) ChangeServiceStatus() {
 	var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 	err := models.ChangeServiceStatus(anode)
-	n.Data["json"] = err
-	// n.Data["json"] = map[string]string{"ack": "true"}
-    // if err != nil {
-    //     n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    // }
+	// n.Data["json"] = err
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     n.ServeJSON()
 }
 

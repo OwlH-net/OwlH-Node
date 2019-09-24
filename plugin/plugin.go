@@ -236,7 +236,7 @@ func CheckServicesStatus()(){
                 }
             }else if allPlugin[w]["type"] == "zeek"{
                 if allPlugin[w]["status"] == "enabled"{                    
-                    pid, err := exec.Command("bash","-c","broctl status | awk '{print $5}'").Output()
+                    pid, err := exec.Command("bash","-c","zeekctl status | awk '{print $5}'").Output()
                     if err != nil {logs.Error("plugin/CheckServicesStatus Checking Zeek PID: "+err.Error())}
                     pidValue := strings.Split(string(pid), "\n")
                     if (pidValue[1] == ""){
