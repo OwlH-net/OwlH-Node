@@ -255,7 +255,7 @@ func CheckServicesStatus()(){
                         logs.Notice("Zeek stopped...")
                     }
                 }
-            }else if allPlugin[w]["type"] == "socket-network" || allPlugin[w]["type"] == "socket-pcap"{
+            }else if allPlugin[w]["type"] == "socket-network" {
                 // pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugin[w]["port"]+" | grep -v bash | awk '{print $2}'").Output()
                 // if err != nil {logs.Error("plugin/CheckServicesStatus Checking previous PID: "+err.Error())}
                 // pidValue := strings.Split(string(pid), "\n")
@@ -267,7 +267,9 @@ func CheckServicesStatus()(){
                 anode := make(map[string]string)
                 for k,y := range allPlugin { 
                     for y,_ := range y {
-                        anode[y] = allPlugin[k][y]   
+                        if (y == "type" && allPlugin[k][y] == "socket-network"){
+                            anode[y] = allPlugin[k][y]   
+                        }
                     }
                 }
                                 
@@ -283,6 +285,21 @@ func CheckServicesStatus()(){
                 //     logs.Error("plugin/CheckServicesStatus error launching STAP after server stops: "+err.Error())
                 //     err = StopStapService(w, allPlugin[w]["status"])
                 // }
+            }else if  allPlugin[w]["type"] == "socket-pcap"{
+                anode := make(map[string]string)
+                for k,y := range allPlugin { 
+                    for y,_ := range y {
+                        if (y == "type" && allPlugin[k][y] == "socket-network"){
+                            anode[y] = allPlugin[k][y]   
+                        }
+                    }
+                }
+                                
+                err := ndb.UpdatePluginValue(w,"pid","none")
+                if err != nil {logs.Error("plugin/CheckServicesStatus change pid to none Error: "+err.Error())}
+                err = DeployStapService(anode)
+                if err != nil {logs.Error("plugin/CheckServicesStatus Deploy network-socket Error: "+err.Error())}
+
             }else if  allPlugin[w]["type"] == "network-socket"{
                 // pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugin[w]["collector"]+":"+allPlugin[w]["port"]+" | grep -v bash | awk '{print $2}'").Output()
                 // if err != nil {logs.Error("plugin/CheckServicesStatus Checking previous PID: "+err.Error())}
@@ -390,10 +407,13 @@ func StopSuricataService(uuid string, status string)(err error){
 }
 
 func ModifyStapValues(anode map[string]string)(err error) {
+    allPlugins,err := ndb.GetPlugins()
     if anode["type"] == "zeek"{
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues zeek Error: "+err.Error()); return err}
-        err = zeek.DeployZeek()
-        if err != nil {logs.Error("plugin/ModifyStapValues error deploying zeek: "+err.Error()); return err}
+        if allPlugins[anode["service"]]["status"] == "enabled" {
+            err = zeek.DeployZeek()
+            if err != nil {logs.Error("plugin/ModifyStapValues error deploying zeek: "+err.Error()); return err}
+        }
     }else if anode["type"] == "suricata"{
         allPlugin,err := ndb.GetPlugins()
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues suricata Error: "+err.Error()); return err}
