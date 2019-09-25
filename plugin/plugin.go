@@ -439,7 +439,7 @@ func ModifyStapValues(anode map[string]string)(err error) {
                 }
             }
         }
-        if allPlugins[anode["service"]]["status"] == "enabled" {
+        if allPlugins[anode["service"]]["pid"] != "none" {
             err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}
             err = DeployStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network deploying error: "+err.Error()); return err}
         }
@@ -450,8 +450,6 @@ func ModifyStapValues(anode map[string]string)(err error) {
         err = ndb.UpdatePluginValue(anode["service"],"pcap-path",anode["pcap-path"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"pcap-prefix",anode["pcap-prefix"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
         for x := range allPlugins{
-            logs.Warn(anode["port"])
-            logs.Warn(allPlugins[x]["port"])
             if ((allPlugins[x]["type"] == "socket-network" || allPlugins[x]["type"] == "socket-pcap") && (anode["service"] != x)){
                 if allPlugins[x]["port"] == anode["port"] {
                     err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}        
@@ -460,7 +458,7 @@ func ModifyStapValues(anode map[string]string)(err error) {
                 }
             }
         }
-        if allPlugins[anode["service"]]["status"] == "enabled" {
+        if allPlugins[anode["service"]]["pid"] != "none" {
             err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-pcap stopping error: "+err.Error()); return err}
             err = DeployStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-pcap deploying error: "+err.Error()); return err}
         }
