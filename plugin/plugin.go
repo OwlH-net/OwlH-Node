@@ -432,6 +432,7 @@ func ModifyStapValues(anode map[string]string)(err error) {
             err = zeek.DeployZeek()
             if err != nil {logs.Error("plugin/ModifyStapValues error deploying zeek: "+err.Error()); return err}
         }
+        logs.Notice(allPlugins[anode["service"]]["name"]+" service updated!!!")
     }else if anode["type"] == "suricata"{
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues suricata Error: "+err.Error()); return err}
         if allPlugins[anode["service"]]["status"] == "enabled" {
@@ -440,43 +441,47 @@ func ModifyStapValues(anode map[string]string)(err error) {
             err = LaunchSuricataService(anode["service"], allPlugins[anode["service"]]["interface"])
             if err != nil {logs.Error("plugin/ModifyStapValues error deploying suricata: "+err.Error()); return err}
         }
-    }else if anode["type"] == "socket-network"{        
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
+        logs.Notice(allPlugins[anode["service"]]["name"]+" service updated!!!")
+    // }else if anode["type"] == "socket-network"{        
+    //     err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
+    //     err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
+    //     err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
+    //     for x := range allPlugins{
+    //         logs.Warn(anode["port"])
+    //         logs.Warn(allPlugins[x]["port"])
+    //         if ((allPlugins[x]["type"] == "socket-network" || allPlugins[x]["type"] == "socket-pcap") && (anode["service"] != x)){
+    //             if allPlugins[x]["port"] == anode["port"] {
+    //                 err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}        
+    //                 logs.Error("Can't deploy socket-network or socket-pcap with the same port")
+    //                 return errors.New("Can't deploy socket-network or socket-pcap with the same port")
+    //             }
+    //         }
+    //     }
+    //     if allPlugins[anode["service"]]["pid"] != "none" {
+    //         err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}
+    //         err = DeployStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network deploying error: "+err.Error()); return err}
+    //     }
+    }else if anode["type"] == "socket-pcap" || anode["type"] == "socket-network"{
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
+        if anode["type"] == "socket-pcap"{
+            err = ndb.UpdatePluginValue(anode["service"],"pcap-path",anode["pcap-path"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
+            err = ndb.UpdatePluginValue(anode["service"],"pcap-prefix",anode["pcap-prefix"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
+        }
         for x := range allPlugins{
-            logs.Warn(anode["port"])
-            logs.Warn(allPlugins[x]["port"])
             if ((allPlugins[x]["type"] == "socket-network" || allPlugins[x]["type"] == "socket-pcap") && (anode["service"] != x)){
                 if allPlugins[x]["port"] == anode["port"] {
                     err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}        
-                    logs.Error("Can't deploy socket-network or socket-pcap with the same port")
-                    return errors.New("Can't deploy socket-network or socket-pcap with the same port")
+                    logs.Error("Can't deploy socket-network or "+anode["type"]+" with the same port")
+                    return errors.New("Can't deploy socket-network or "+anode["type"]+" with the same port")
                 }
             }
         }
         if allPlugins[anode["service"]]["pid"] != "none" {
-            err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}
-            err = DeployStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network deploying error: "+err.Error()); return err}
-        }
-    }else if anode["type"] == "socket-pcap"{
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"pcap-path",anode["pcap-path"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"pcap-prefix",anode["pcap-prefix"]) ; if err != nil {logs.Error("ModifyStapValues socket-pcap Error: "+err.Error()); return err}
-        for x := range allPlugins{
-            if ((allPlugins[x]["type"] == "socket-network" || allPlugins[x]["type"] == "socket-pcap") && (anode["service"] != x)){
-                if allPlugins[x]["port"] == anode["port"] {
-                    err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}        
-                    logs.Error("Can't deploy socket-network or socket-pcap with the same port")
-                    return errors.New("Can't deploy socket-network or socket-pcap with the same port")
-                }
-            }
-        }
-        if allPlugins[anode["service"]]["pid"] != "none" {
-            err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-pcap stopping error: "+err.Error()); return err}
-            err = DeployStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-pcap deploying error: "+err.Error()); return err}
+            err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" stopping error: "+err.Error()); return err}
+            err = DeployStapService(anode); if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" deploying error: "+err.Error()); return err}
+            logs.Notice(allPlugins[anode["service"]]["name"]+" service updated!!!")
         }
     }else if anode["type"] == "network-socket"{
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
@@ -484,21 +489,6 @@ func ModifyStapValues(anode map[string]string)(err error) {
         err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"])  ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"collector",anode["collector"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
         for x := range allPlugins{
-        
-            // var grepPIDS string
-            // for x := range allPlugins{
-            //     if allPlugins[x]["type"] == "network-socket" && allPlugins[x]["pid"] != "none"{
-            //         grepPIDS = grepPIDS + "| grep -v "+allPlugins[x]["pid"]+" "
-            //     }
-            // }
-
-            // // pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
-            // pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" "+grepPIDS+" | awk '{print $2}'").Output()
-            // if err != nil {logs.Error("DeployStapService deploy socket-pcap Error: "+err.Error()); return err}
-            // pidValue := strings.Split(string(pid), "\n")
-            // logs.Error(pidValue[0])
-            // logs.Error(pidValue[0])
-
             if x != anode["service"] && allPlugins[x]["type"] == anode["type"] && allPlugins[x]["collector"] == anode["collector"] && allPlugins[x]["port"] == anode["port"] && allPlugins[x]["interface"] == anode["interface"]{
                 logs.Error("This network-socket has been deployed yet. Can't update")
                 err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues error stopping duplicated network-socket: "+err.Error()); return err}
@@ -540,9 +530,8 @@ func DeployStapService(anode map[string]string)(err error) {
         logs.Notice(pidValue[0])
         if pidValue[0] != "" {
             err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error: "+err.Error()); return err}
-        }else{
-            return nil
         }
+        logs.Notice("Deploy successful --> Type: "+allPlugins[anode["service"]]["type"]+" Description: "+allPlugins[anode["service"]]["name"]+"  --  SOCAT: "+pidValue[0])
     }else if anode["type"] == "socket-pcap" {
         pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
@@ -563,9 +552,8 @@ func DeployStapService(anode map[string]string)(err error) {
         pidValue = strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
             err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error: "+err.Error()); return err}
-        }else{
-            return nil
         }
+        logs.Notice("Deploy successful --> Type: "+allPlugins[anode["service"]]["type"]+" Description: "+allPlugins[anode["service"]]["name"]+"  --  SOCAT: "+pidValue[0])
     }else if anode["type"] == "network-socket" {
         for x := range allPlugins{
             if x != anode["service"] && allPlugins[x]["type"] == anode["type"] && allPlugins[x]["collector"] == anode["collector"] && allPlugins[x]["port"] == anode["port"] && allPlugins[x]["interface"] == anode["interface"]{
@@ -587,10 +575,10 @@ func DeployStapService(anode map[string]string)(err error) {
         }
         pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" "+grepPIDS+" | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy network-socket getting socat error: "+err.Error()); return err}
-        pidValue := strings.Split(string(pid), "\n")
+        pidValueSocat := strings.Split(string(pid), "\n")
 
-        if pidValue[0] != "" {
-            err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService update DB pid to value Error: "+err.Error()); return err}
+        if pidValueSocat[0] != "" {
+            err = ndb.UpdatePluginValue(anode["service"],"pid",pidValueSocat[0]); if err != nil {logs.Error("DeployStapService update DB pid to value Error: "+err.Error()); return err}
         }
 
         //get tcpdump
@@ -603,11 +591,13 @@ func DeployStapService(anode map[string]string)(err error) {
         pid, err = exec.Command("bash","-c","ps -ef | grep tcpdump "+grepTCPDUMP+" | awk '{print $2}'").Output()
         // pid, err = exec.Command("bash","-c","ps -ef | grep tcpdump | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy network-socket getting tcpdump pid error: "+err.Error()); return err}
-        pidValue = strings.Split(string(pid), "\n")
+        pidValueTcpdump := strings.Split(string(pid), "\n")
 
-        if pidValue[0] != "" {
-            err = ndb.UpdatePluginValue(anode["service"],"tcpdump",pidValue[0]); if err != nil {logs.Error("DeployStapService update DB tcpdump to value Error: "+err.Error()); return err}
+        if pidValueTcpdump[0] != "" {
+            err = ndb.UpdatePluginValue(anode["service"],"tcpdump",pidValueTcpdump[0]); if err != nil {logs.Error("DeployStapService update DB tcpdump to value Error: "+err.Error()); return err}
         }
+
+        logs.Notice("Deploy successful --> Type: "+allPlugins[anode["service"]]["type"]+" Description: "+allPlugins[anode["service"]]["name"]+"  --  SOCAT: "+pidValueSocat[0]+"  --  TCPDUMP: "+pidValueTcpdump[0])
     }
     
     return nil
@@ -615,26 +605,28 @@ func DeployStapService(anode map[string]string)(err error) {
 
 func StopStapService(anode map[string]string)(err error) {
     allPlugins,err := ndb.GetPlugins()
-    pidToInt,err := strconv.Atoi(allPlugins[anode["service"]]["pid"])
-    if err != nil {logs.Error("DeployStapService socat pid to int error: "+err.Error())}
-    process, err := os.FindProcess(pidToInt)
-    if err != nil {logs.Error("DeployStapService socat process not found: "+err.Error())}
-    err = process.Kill()
-    if err != nil {logs.Error("DeployStapService Kill socat process Error: "+err.Error())}
-    logs.Warn("ERROR 1 -->"+anode["service"])
+    if err != nil {logs.Error("Error! can't read database for stop the service: "+err.Error())}
+    logs.Warn("Description: "+allPlugins[anode["service"]]["name"]+"  --  SOCAT: "+allPlugins[anode["service"]]["pid"]+"  --  TCPDUMP: "+allPlugins[anode["service"]]["tcpdump"])
+    pidToInt,_ := strconv.Atoi(allPlugins[anode["service"]]["pid"])
+    // if err != nil {logs.Error("DeployStapService socat pid to int error: "+err.Error())}
+    process, _ := os.FindProcess(pidToInt)
+    // if err != nil {logs.Error("DeployStapService socat process not found: "+err.Error())}
+    _ = process.Kill()
+    // if err != nil {logs.Error("DeployStapService Kill socat process Error: "+err.Error())}
     err = ndb.UpdatePluginValue(anode["service"],"pid","none") ; if err != nil {logs.Error("DeployStapService update DB pid to none Error: "+err.Error()); return err}
-    logs.Warn("ERROR 2 -->"+anode["service"])
 
     if allPlugins[anode["service"]]["type"] == "network-socket" {
         //kill tcpdump
-        tcpdumpToInt,err := strconv.Atoi(allPlugins[anode["service"]]["tcpdump"])
-        if err != nil {logs.Error("DeployStapService tcpdump pid to int error: "+err.Error())}
-        processTcpdump, err := os.FindProcess(tcpdumpToInt)
-        if err != nil {logs.Error("DeployStapService tcpdump process not found: "+err.Error())}
-        err = processTcpdump.Kill()
-        if err != nil {logs.Error("DeployStapService Kill tcpdump process Error: "+err.Error())}
+        tcpdumpToInt,_ := strconv.Atoi(allPlugins[anode["service"]]["tcpdump"])
+        // if err != nil {logs.Error("DeployStapService tcpdump pid to int error: "+err.Error())}
+        processTcpdump, _ := os.FindProcess(tcpdumpToInt)
+        // if err != nil {logs.Error("DeployStapService tcpdump process not found: "+err.Error())}
+        _ = processTcpdump.Kill()
+        // if err != nil {logs.Error("DeployStapService Kill tcpdump process Error: "+err.Error())}
         err = ndb.UpdatePluginValue(anode["service"],"tcpdump","none") ; if err != nil {logs.Error("DeployStapService update DB tcpdump to none Error: "+err.Error()); return err}
     }
+
+    logs.Notice(allPlugins[anode["service"]]["type"]+" service stopped successfuly!")
 
     return nil
 }
