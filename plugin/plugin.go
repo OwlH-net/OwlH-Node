@@ -219,7 +219,7 @@ func CheckServicesStatus()(){
     for w := range allPlugins {
         if allPlugins[w]["pid"] != "none"{
             if allPlugins[w]["type"] == "suricata" {
-                pid, err := exec.Command("bash","-c","ps -ef | grep suricata | grep "+w+" | grep -v bash | awk '{print $2}'").Output()
+                pid, err := exec.Command("bash","-c","ps -ef | grep suricata | grep "+w+" | grep -v grep | awk '{print $2}'").Output()
                 if err != nil {logs.Error("plugin/CheckServicesStatus Checking previous PID: "+err.Error())}
                 pidValue := strings.Split(string(pid), "\n")
                 
@@ -264,7 +264,7 @@ func CheckServicesStatus()(){
                 }
             }else if allPlugins[w]["type"] == "socket-network" {
                 if allPlugins[w]["pid"] != "none" {                  
-                    pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+                    pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
                     if err != nil {logs.Error("plugin/CheckServicesStatus Checking previous PID for socket-network: "+err.Error())}
                     pidValue := strings.Split(string(pid), "\n")
                     
@@ -275,7 +275,7 @@ func CheckServicesStatus()(){
                         err = cmd.Start()
                         if err != nil {logs.Error("DeployStapService deploying Error socket-network: "+err.Error())}        
     
-                        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+                        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
                         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error())}
                         pidValue = strings.Split(string(pid), "\n")
                         if pidValue[0] != "" {
@@ -285,7 +285,7 @@ func CheckServicesStatus()(){
                 }
             }else if  allPlugins[w]["type"] == "socket-pcap"{
                 if allPlugins[w]["pid"] != "none" {                  
-                    pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+                    pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
                     // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
                     if err != nil {logs.Error("plugin/CheckServicesStatus Checking previous PID for socket-pcap: "+err.Error())}
                     pidValue := strings.Split(string(pid), "\n")
@@ -297,7 +297,7 @@ func CheckServicesStatus()(){
                         err = cmd.Start()
                         if err != nil {logs.Error("DeployStapService deploying Error socket-pcap: "+err.Error())}        
     
-                        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+                        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
                         if err != nil {logs.Error("DeployStapService deploy socket-pcap Error: "+err.Error())}
                         pidValue = strings.Split(string(pid), "\n")
                         if pidValue[0] != "" {
@@ -505,7 +505,7 @@ func DeployStapService(anode map[string]string)(err error) {
     allPlugins,err := ndb.GetPlugins()
     
     if anode["type"] == "socket-network" {
-        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
@@ -520,7 +520,7 @@ func DeployStapService(anode map[string]string)(err error) {
         err = cmd.Start()
         if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}        
 
-        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue = strings.Split(string(pid), "\n")
         logs.Notice(pidValue[0])
@@ -530,7 +530,7 @@ func DeployStapService(anode map[string]string)(err error) {
             return nil
         }
     }else if anode["type"] == "socket-pcap" {
-        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
@@ -544,7 +544,7 @@ func DeployStapService(anode map[string]string)(err error) {
         err = cmd.Start()
         if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}        
 
-        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v bash | awk '{print $2}'").Output()
+        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue = strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
