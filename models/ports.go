@@ -28,3 +28,8 @@ func DeleteAllPorts() (err error) {
 	err = knownports.DeleteAllPorts()
 	return err
 }
+
+func PingPorts() (data map[string]map[string]string ,err error) {
+	data, err = knownports.PingPorts()
+	return data, err
+}
