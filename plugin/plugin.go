@@ -175,6 +175,7 @@ func AddPluginService(anode map[string]string) (err error) {
         err = ndb.InsertPluginService(uuid, "collector", anode["collector"]); if err != nil {logs.Error("InsertPluginService collector Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "bpf", anode["bpf"]); if err != nil {logs.Error("InsertPluginService bpf Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "pid", "none"); if err != nil {logs.Error("InsertPluginService pid Error: "+err.Error()); return err}
+        err = ndb.InsertPluginService(uuid, "tcpdump", "none"); if err != nil {logs.Error("InsertPluginService pid Error: "+err.Error()); return err}
     }
     if anode["type"] == "zeek"{
         allPlugins,err := ndb.GetPlugins()
@@ -273,13 +274,13 @@ func CheckServicesStatus()(){
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
-                        if err != nil {logs.Error("DeployStapService deploying Error socket-network: "+err.Error())}        
+                        if err != nil {logs.Error("CheckServicesStatus deploying Error socket-network: "+err.Error())}        
     
                         pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
-                        if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error())}
+                        if err != nil {logs.Error("CheckServicesStatus deploy socket-network Error: "+err.Error())}
                         pidValue = strings.Split(string(pid), "\n")
                         if pidValue[0] != "" {
-                            err = ndb.UpdatePluginValue(w,"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error socket-network: "+err.Error())}
+                            err = ndb.UpdatePluginValue(w,"pid",pidValue[0]); if err != nil {logs.Error("CheckServicesStatus change pid to value Error socket-network: "+err.Error())}
                         }
                     }
                 }
@@ -295,39 +296,54 @@ func CheckServicesStatus()(){
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
-                        if err != nil {logs.Error("DeployStapService deploying Error socket-pcap: "+err.Error())}        
+                        if err != nil {logs.Error("CheckServicesStatus deploying Error socket-pcap: "+err.Error())}        
     
                         pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
-                        if err != nil {logs.Error("DeployStapService deploy socket-pcap Error: "+err.Error())}
+                        if err != nil {logs.Error("CheckServicesStatus deploy socket-pcap Error: "+err.Error())}
                         pidValue = strings.Split(string(pid), "\n")
                         if pidValue[0] != "" {
-                            err = ndb.UpdatePluginValue(w,"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error socket-pcap: "+err.Error())}
+                            err = ndb.UpdatePluginValue(w,"pid",pidValue[0]); if err != nil {logs.Error("CheckServicesStatus change pid to value Error socket-pcap: "+err.Error())}
                         }
                     }
                 }
 
-            }else if  allPlugins[w]["type"] == "network-socket"{
-                if allPlugins[w]["pid"] != "none" {
-                    pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[w]["collector"]+":"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
-                    if err != nil {logs.Error("DeployStapService deploying Error network-socket: "+err.Error())}
-                    pidValue := strings.Split(string(pid), "\n")
+            }else if allPlugins[w]["type"] == "network-socket"{
+                if allPlugins[w]["pid"] != "none" && allPlugins[w]["tcpdump"] != "none" {             
                     
-                    if pidValue[0] == ""{
-                        cmd := exec.Command("bash","-c","/usr/sbin/tcpdump -n -i "+allPlugins[w]["interface"]+" -s 0 -w - "+allPlugins[w]["bpf"]+" | /usr/bin/socat - OPENSSL:"+allPlugins[w]["collector"]+":"+allPlugins[w]["port"]+",cert="+allPlugins[w]["cert"]+",verify=0,forever,retry=10,interval=5 &")
-                        var errores bytes.Buffer
-                        cmd.Stdout = &errores
-                        err = cmd.Start()
-                        if err != nil {logs.Error("DeployStapService deploying network-socket Error: "+err.Error())}
-                
-                        pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[w]["collector"]+":"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
-                        if err != nil {logs.Error("DeployStapService deploy network-socket Error: "+err.Error())}
-                        pidValue := strings.Split(string(pid), "\n")
-                        if pidValue[0] != "" {
-                            err = ndb.UpdatePluginValue(w,"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error network-socket: "+err.Error())}
-                        }
+                    pidSocat, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[w]["collector"]+":"+allPlugins[w]["port"]+" | awk '{print $2}'").Output()
+                    if err != nil {logs.Error("CheckServicesStatus get socat pid at network-socket Error: "+err.Error())}
+                    pidTcpdump, err := exec.Command("bash","-c","ps -ef | grep tcpdump | grep -v grep | awk '{print $2}'").Output()
+                    if err != nil {logs.Error("CheckServicesStatus get tcpdump at network-socket Error: "+err.Error())}
 
+                    isRunningProcess := false
+                    socatValue := strings.Split(string(pidSocat), "\n")
+                    tcpdumpValue := strings.Split(string(pidTcpdump), "\n")
+                    for _,value1 := range socatValue {
+                        if allPlugins[w]["pid"] == value1 {
+                            for _,value2 := range tcpdumpValue {
+                                if allPlugins[w]["tcpdump"] == value2 {
+                                    isRunningProcess = true                                    
+                                }
+                            }                            
+                        }
                     }
-                    
+
+                    if !isRunningProcess {
+                        anode := make(map[string]string)
+                        for x,y := range allPlugins{
+                            for y,_ := range y{
+                                if x == w {
+                                    anode[y] = allPlugins[x][y]
+                                }
+                            }
+                        }
+                        anode["service"] = w
+
+                        err = StopStapService(anode)
+                        if err != nil {logs.Error("CheckServicesStatus error stopping node: "+err.Error())}                                    
+                        err = DeployStapService(anode)
+                        if err != nil {logs.Error("CheckServicesStatus error launching node: "+err.Error())}                                    
+                    }                   
                 }
             }
         }
@@ -485,13 +501,11 @@ func ModifyStapValues(anode map[string]string)(err error) {
 
             if x != anode["service"] && allPlugins[x]["type"] == anode["type"] && allPlugins[x]["collector"] == anode["collector"] && allPlugins[x]["port"] == anode["port"] && allPlugins[x]["interface"] == anode["interface"]{
                 logs.Error("This network-socket has been deployed yet. Can't update")
-                logs.Error("This network-socket has been deployed yet. Can't update")
-                logs.Error("This network-socket has been deployed yet. Can't update")
                 err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues error stopping duplicated network-socket: "+err.Error()); return err}
                 return errors.New("This network-socket has been deployed yet. Can't update")
             }
         }        
-        if allPlugins[anode["service"]]["pid"] != "none" {
+        if allPlugins[anode["service"]]["pid"] != "none" && allPlugins[anode["service"]]["tcpdump"] != "none"{
             logs.Notice("Updating "+allPlugins[anode["service"]]["name"]+" service...")
             err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues network-socket stopping error: "+err.Error()); return err}
             err = DeployStapService(anode); if err != nil {logs.Error("ModifyStapValues network-socket deploying error: "+err.Error()); return err}
@@ -564,25 +578,35 @@ func DeployStapService(anode map[string]string)(err error) {
         err = cmd.Start()
         if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}
 
-
+        //get socat pid
         var grepPIDS string
         for x := range allPlugins{
             if allPlugins[x]["type"] == "network-socket" && allPlugins[x]["pid"] != "none"{
                 grepPIDS = grepPIDS + "| grep -v "+allPlugins[x]["pid"]+" "
             }
         }
-        logs.Notice("ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" "+grepPIDS+" | awk '{print $2}'")
-
-        // pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
         pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" "+grepPIDS+" | awk '{print $2}'").Output()
-        if err != nil {logs.Error("DeployStapService deploy socket-pcap Error: "+err.Error()); return err}
+        if err != nil {logs.Error("DeployStapService deploy network-socket getting socat error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
-        logs.Error(pidValue)
 
         if pidValue[0] != "" {
-            err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService change pid to value Error: "+err.Error()); return err}
-        }else{
-            return nil
+            err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0]); if err != nil {logs.Error("DeployStapService update DB pid to value Error: "+err.Error()); return err}
+        }
+
+        //get tcpdump
+        var grepTCPDUMP string
+        for x := range allPlugins{
+            if allPlugins[x]["type"] == "network-socket" && allPlugins[x]["tcpdump"] != "none"{
+                grepTCPDUMP = grepTCPDUMP + "| grep -v "+allPlugins[x]["tcpdump"]+" "
+            }
+        }
+        pid, err = exec.Command("bash","-c","ps -ef | grep tcpdump "+grepTCPDUMP+" | awk '{print $2}'").Output()
+        // pid, err = exec.Command("bash","-c","ps -ef | grep tcpdump | grep -v grep | awk '{print $2}'").Output()
+        if err != nil {logs.Error("DeployStapService deploy network-socket getting tcpdump pid error: "+err.Error()); return err}
+        pidValue = strings.Split(string(pid), "\n")
+
+        if pidValue[0] != "" {
+            err = ndb.UpdatePluginValue(anode["service"],"tcpdump",pidValue[0]); if err != nil {logs.Error("DeployStapService update DB tcpdump to value Error: "+err.Error()); return err}
         }
     }
     
@@ -592,12 +616,25 @@ func DeployStapService(anode map[string]string)(err error) {
 func StopStapService(anode map[string]string)(err error) {
     allPlugins,err := ndb.GetPlugins()
     pidToInt,err := strconv.Atoi(allPlugins[anode["service"]]["pid"])
-    if err != nil {logs.Error("DeployStapService pid to int error: "+err.Error())}
+    if err != nil {logs.Error("DeployStapService socat pid to int error: "+err.Error())}
     process, err := os.FindProcess(pidToInt)
-    if err != nil {logs.Error("DeployStapService pid process not found: "+err.Error())}
+    if err != nil {logs.Error("DeployStapService socat process not found: "+err.Error())}
     err = process.Kill()
-    if err != nil {logs.Error("DeployStapService Kill pid process Error: "+err.Error())}
-    err = ndb.UpdatePluginValue(anode["service"],"pid","none") ; if err != nil {logs.Error("DeployStapService change pid to none Error: "+err.Error()); return err}
+    if err != nil {logs.Error("DeployStapService Kill socat process Error: "+err.Error())}
+    logs.Warn("ERROR 1 -->"+anode["service"])
+    err = ndb.UpdatePluginValue(anode["service"],"pid","none") ; if err != nil {logs.Error("DeployStapService update DB pid to none Error: "+err.Error()); return err}
+    logs.Warn("ERROR 2 -->"+anode["service"])
+
+    if allPlugins[anode["service"]]["type"] == "network-socket" {
+        //kill tcpdump
+        tcpdumpToInt,err := strconv.Atoi(allPlugins[anode["service"]]["tcpdump"])
+        if err != nil {logs.Error("DeployStapService tcpdump pid to int error: "+err.Error())}
+        processTcpdump, err := os.FindProcess(tcpdumpToInt)
+        if err != nil {logs.Error("DeployStapService tcpdump process not found: "+err.Error())}
+        err = processTcpdump.Kill()
+        if err != nil {logs.Error("DeployStapService Kill tcpdump process Error: "+err.Error())}
+        err = ndb.UpdatePluginValue(anode["service"],"tcpdump","none") ; if err != nil {logs.Error("DeployStapService update DB tcpdump to none Error: "+err.Error()); return err}
+    }
 
     return nil
 }
