@@ -570,8 +570,8 @@ func DeployStapService(anode map[string]string)(err error) {
                 grepPIDS = grepPIDS + "| grep -v "+allPlugins[x]["pid"]+" "
             }
         }
-        logs.Debug("ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" "+grepPIDS+" | awk '{print $2}'")
-        pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" "+grepPIDS+" | awk '{print $2}'").Output()
+        logs.Debug("ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" "+grepPIDS+" | grep -v grep | awk '{print $2}'")
+        pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" "+grepPIDS+" | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy network-socket getting socat error: "+err.Error()); return err}
         pidValueSocat := strings.Split(string(pid), "\n")
 
@@ -586,8 +586,8 @@ func DeployStapService(anode map[string]string)(err error) {
                 grepTCPDUMP = grepTCPDUMP + "| grep -v "+allPlugins[x]["tcpdump"]+" "
             }
         }
-        logs.Debug("ps -ef | grep tcpdump "+grepTCPDUMP+" | awk '{print $2}'")
-        pid, err = exec.Command("bash","-c","ps -ef | grep tcpdump "+grepTCPDUMP+" | awk '{print $2}'").Output()
+        logs.Debug("ps -ef | grep -v grep | grep tcpdump "+grepTCPDUMP+" | awk '{print $2}'")
+        pid, err = exec.Command("bash","-c","ps -ef | grep -v grep | grep tcpdump "+grepTCPDUMP+" | awk '{print $2}'").Output()
         // pid, err = exec.Command("bash","-c","ps -ef | grep tcpdump | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy network-socket getting tcpdump pid error: "+err.Error()); return err}
         pidValueTcpdump := strings.Split(string(pid), "\n")
