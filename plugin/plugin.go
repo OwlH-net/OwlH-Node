@@ -442,25 +442,6 @@ func ModifyStapValues(anode map[string]string)(err error) {
             if err != nil {logs.Error("plugin/ModifyStapValues error deploying suricata: "+err.Error()); return err}
         }
         logs.Notice(allPlugins[anode["service"]]["name"]+" service updated!!!")
-    // }else if anode["type"] == "socket-network"{        
-    //     err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
-    //     err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
-    //     err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues socket-network Error: "+err.Error()); return err}
-    //     for x := range allPlugins{
-    //         logs.Warn(anode["port"])
-    //         logs.Warn(allPlugins[x]["port"])
-    //         if ((allPlugins[x]["type"] == "socket-network" || allPlugins[x]["type"] == "socket-pcap") && (anode["service"] != x)){
-    //             if allPlugins[x]["port"] == anode["port"] {
-    //                 err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}        
-    //                 logs.Error("Can't deploy socket-network or socket-pcap with the same port")
-    //                 return errors.New("Can't deploy socket-network or socket-pcap with the same port")
-    //             }
-    //         }
-    //     }
-    //     if allPlugins[anode["service"]]["pid"] != "none" {
-    //         err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}
-    //         err = DeployStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network deploying error: "+err.Error()); return err}
-    //     }
     }else if anode["type"] == "socket-pcap" || anode["type"] == "socket-network"{
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
@@ -513,8 +494,8 @@ func DeployStapService(anode map[string]string)(err error) {
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
-            logs.Info("Socket to network deployed. Exiting DeployStapService")
-            return nil
+            logs.Error("Socket to network deployed. Exiting DeployStapService")
+            return errors.New("Can't deploy more than one socket at the same port")            
         }
 
         cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
@@ -536,7 +517,8 @@ func DeployStapService(anode map[string]string)(err error) {
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
-            return nil
+            logs.Error("Socket to pcap deployed. Exiting DeployStapService")
+            return errors.New("Can't deploy more than one socket at the same port")            
         }
 
         cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
