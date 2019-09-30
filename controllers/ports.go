@@ -12,6 +12,20 @@ type PortsController struct {
 	beego.Controller
 }
 
+// @Title PingPorts
+// @Description PingPorts status
+// @Success 200 {object} models.ports
+// @router /PingPorts [get]
+func (m *PortsController) PingPorts() {
+	data, err := models.PingPorts()
+	m.Data["json"] = data
+	if err != nil {
+        logs.Info("PingPorts OUT -- ERROR : %s", err.Error())
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    m.ServeJSON()
+}
+
 // @Title ShowPorts
 // @Description get ports
 // @Success 200 {object} models.ports
@@ -24,21 +38,6 @@ func (m *PortsController) ShowPorts() {
         logs.Info("ShowPorts OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
-    m.ServeJSON()
-}
-
-// @Title PingPorts
-// @Description PingPorts status
-// @Success 200 {object} models.ports
-// @router /PingPorts [get]
-func (m *PortsController) PingPorts() {
-	data, err := models.PingPorts()
-	m.Data["json"] = data
-	if err != nil {
-        logs.Info("PingPorts OUT -- ERROR : %s", err.Error())
-        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
-
     m.ServeJSON()
 }
 
@@ -74,7 +73,6 @@ func (m *PortsController) ChangeStatus() {
         logs.Info("ChangeStatus OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}else{
-		logs.Notice(anode["status"])
 		knownports.Init()
 	}
 	m.ServeJSON()	

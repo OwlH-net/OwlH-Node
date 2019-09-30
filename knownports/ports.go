@@ -6,37 +6,6 @@ import (
 	"owlhnode/database"
 )
 
-func ShowPorts() (data map[string]map[string]string, err error) {
-
-	var uniqueid string
-	var param string
-	var value string
-	var allKnownPorts = map[string]map[string]string{}
-
-	//database connection
-	if ndb.Pdb == nil {
-        logs.Error("ShowPorts knownports -- Can't access to database")
-        return nil,errors.New("ShowPorts knownports -- Can't access to database")
-	} 
-	//query and make map[]map[]
-	sql := "select kp_uniqueid, kp_param, kp_value from knownports;"   
-	rows, err := ndb.Pdb.Query(sql)
-	defer rows.Close()
-    if err != nil {
-        logs.Error("ShowPorts knownports Error executing query: %s", err.Error())
-        return nil, err
-    }
-	for rows.Next() {
-        if err = rows.Scan(&uniqueid, &param, &value); err != nil {
-            logs.Error("ShowPorts knownports -- Can't read query result: %s", err.Error())
-			return nil, err
-        }
-        if allKnownPorts[uniqueid] == nil { allKnownPorts[uniqueid] = map[string]string{}}
-        allKnownPorts[uniqueid][param]=value
-	} 
-	return allKnownPorts, nil
-}
-
 func PingPorts() (data map[string]map[string]string ,err error) {
 	var uniqueid string
 	var param string
@@ -61,6 +30,37 @@ func PingPorts() (data map[string]map[string]string ,err error) {
         if err = rows.Scan(&uniqueid, &param, &value); err != nil {
             logs.Error("LoadPorts knownports -- Can't read query result: %s", err.Error())
             return nil, err
+        }
+        if allKnownPorts[uniqueid] == nil { allKnownPorts[uniqueid] = map[string]string{}}
+        allKnownPorts[uniqueid][param]=value
+	} 
+	return allKnownPorts, nil
+}
+
+
+func ShowPorts() (data map[string]map[string]string, err error) {
+	var uniqueid string
+	var param string
+	var value string
+	var allKnownPorts = map[string]map[string]string{}
+
+	//database connection
+	if ndb.Pdb == nil {
+        logs.Error("ShowPorts knownports -- Can't access to database")
+        return nil,errors.New("ShowPorts knownports -- Can't access to database")
+	} 
+	//query and make map[]map[]
+	sql := "select kp_uniqueid, kp_param, kp_value from knownports;"   
+	rows, err := ndb.Pdb.Query(sql)
+	defer rows.Close()
+    if err != nil {
+        logs.Error("ShowPorts knownports Error executing query: %s", err.Error())
+        return nil, err
+    }
+	for rows.Next() {
+        if err = rows.Scan(&uniqueid, &param, &value); err != nil {
+            logs.Error("ShowPorts knownports -- Can't read query result: %s", err.Error())
+			return nil, err
         }
         if allKnownPorts[uniqueid] == nil { allKnownPorts[uniqueid] = map[string]string{}}
         allKnownPorts[uniqueid][param]=value

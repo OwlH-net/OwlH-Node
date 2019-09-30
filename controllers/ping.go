@@ -40,3 +40,28 @@ func (n *PingController) DeployService() {
     }
     n.ServeJSON()
 }
+
+// @Title GetMainconfData
+// @Description get ping for node
+// @router /mainconf [get]
+func (n *PingController) GetMainconfData() {
+	data,err := models.GetMainconfData()
+	n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title PingPluginsNode
+// @Description PingPluginsNode status
+// @Success 200 {object} models.ports
+// @router /PingPluginsNode [get]
+func (m *PingController) PingPluginsNode() {
+	data, err := models.PingPluginsNode()
+	m.Data["json"] = data
+	if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    m.ServeJSON()
+}

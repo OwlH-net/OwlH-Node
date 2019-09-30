@@ -15,7 +15,7 @@ type AnalyzerController struct {
 // @Title PingAnalyzer
 // @Description PingAnalyzer status
 // @Success 200 {object} models.analyzer
-// @router /pingAnalyzer [put]
+// @router /pingAnalyzer [get]
 func (m *AnalyzerController) PingAnalyzer() {	
 	data, err := models.PingAnalyzer()
 	m.Data["json"] = map[string]string{"status": data}
@@ -39,7 +39,6 @@ func (m *AnalyzerController) ChangeAnalyzerStatus() {
         logs.Info("ChangeAnalyzerStatus OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}else{
-		logs.Notice(anode["status"])
 		analyzer.Init()
 	}
     m.ServeJSON()

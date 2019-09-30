@@ -5,7 +5,7 @@ import (
 )
 
 func PingAnalyzer()(data string ,err error) {
-	data, err = analyzer.PingAnalyzer()
+	data, err = analyzer.PingAnalyzer()	
 	return data, err
 }
 

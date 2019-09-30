@@ -7,47 +7,98 @@ import (
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
     "owlhnode/database"
-	"owlhnode/stap"
-	"owlhnode/utils"
-	"owlhnode/analyzer"
-	"owlhnode/knownports"
+    "owlhnode/stap"
+    "owlhnode/analyzer"
+    "owlhnode/plugin"
+    "owlhnode/utils"
+    "owlhnode/knownports"
+    "owlhnode/geolocation"
+    "owlhnode/monitor"
+    "os"
+    // "os/exec"
+	"bufio"
+	"strings"
+	"runtime"
 )
 
 func main() {
-	var err error
-	loadDataLogger := map[string]map[string]string{}
-	loadDataLogger["logs"] = map[string]string{}
-	loadDataLogger["logs"]["filename"] = ""
-	loadDataLogger["logs"]["maxlines"] = ""
-	loadDataLogger["logs"]["maxsize"] = ""
-	loadDataLogger["logs"]["daily"] = ""
-	loadDataLogger["logs"]["maxdays"] = ""
-	loadDataLogger["logs"]["rotate"] = ""
-	loadDataLogger["logs"]["level"] = ""
-	loadDataLogger, err = utils.GetConf(loadDataLogger)    
-    filename := loadDataLogger["logs"]["filename"]
-	maxlines := loadDataLogger["logs"]["maxlines"]
-	maxsize := loadDataLogger["logs"]["maxsize"]
-	daily := loadDataLogger["logs"]["daily"]
-	maxdays := loadDataLogger["logs"]["maxdays"]
-	rotate := loadDataLogger["logs"]["rotate"]
-	level := loadDataLogger["logs"]["level"]
-	if err != nil {
-		logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())
+	//operative system values
+	data := OperativeSystemValues()
+	for x := range data {
+		if (x == "ID" || x == "ID_LIKE" || x == "VERSION_ID"){            
+            logs.Info(x +" -- "+data[x])
+        }
+        // if (x == "ID" && data[x] == "debian") {
+        //     logs.Info("debian")
+        //     socatOutput, err := exec.Command("bash","-c","dpkg -l socat | grep socat").Output()
+        //     if err != nil {logs.Error("Error checking socat for debian: "+err.Error())}
+        //     logs.Info(socatOutput)
+
+        //     tcpdumpOutput, err := exec.Command("bash","-c","dpkg -l tcpdump  | grep tcpdump").Output()
+        //     if err != nil {logs.Error("Error checking tcpdump for debian: "+err.Error())}
+        //     logs.Info(tcpdumpOutput)
+        //     //check socat
+        //         //install socat 
+        //     //check tcpdump
+        //         //install tcpdump
+
+        // }else if (data[x] != "debian") { 
+        //     logs.Info("not debian")
+        //     // socatOutput, err := exec.Command("bash","-c","yum list socat | grep socat").Output()
+        //     socatOutput, err := exec.Command("yum","list", "socat", "|", "grep", "socat").Output()
+        //     if err != nil {logs.Error("Error checking socat for centos/redhat: "+err.Error())}
+        //     logs.Info(socatOutput)
+
+        //     // tcpdumpOutput, err := exec.Command("bash","-c","yum list tcpdump | grep tcpdump").Output()
+        //     tcpdumpOutput, err := exec.Command("yum","list", "tcpdump", "|", "grep", "tcpdump").Output()
+        //     if err != nil {logs.Error("Error checking tcpdump for centos/redhat: "+err.Error())}
+        //     logs.Info(tcpdumpOutput)
+            
+        //     //check socat
+        //         //install socat 
+        //     //check tcpdump
+        //         //install tcpdump
+        // }
+        
 	}
-	logs.NewLogger(10000)
-	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
+	
+    var err error
+    loadDataLogger := map[string]map[string]string{}
+    loadDataLogger["logs"] = map[string]string{}
+    loadDataLogger["logs"]["filename"] = ""
+    loadDataLogger["logs"]["maxlines"] = ""
+    loadDataLogger["logs"]["maxsize"] = ""
+    loadDataLogger["logs"]["daily"] = ""
+    loadDataLogger["logs"]["maxdays"] = ""
+    loadDataLogger["logs"]["rotate"] = ""
+    loadDataLogger["logs"]["level"] = ""
+    loadDataLogger, err = utils.GetConf(loadDataLogger)    
+    filename := loadDataLogger["logs"]["filename"]
+    maxlines := loadDataLogger["logs"]["maxlines"]
+    maxsize := loadDataLogger["logs"]["maxsize"]
+    daily := loadDataLogger["logs"]["daily"]
+    maxdays := loadDataLogger["logs"]["maxdays"]
+    rotate := loadDataLogger["logs"]["rotate"]
+    level := loadDataLogger["logs"]["level"]
+    if err != nil {
+        logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())
+    }
+    logs.NewLogger(10000)
+    logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     ndb.SConn()
     ndb.PConn()
     ndb.NConn()
 
-	// logs.Error("Version: 0.5.190415.0922")
+    // logs.Error("Version: 0.5.190415.0922")
 
     //Launch StapInit for 1st time for check status and go concurrency if status==true
-	stap.StapInit()
-	knownports.Init()
-	analyzer.Init()
+    plugin.CheckServicesStatus()
+    stap.StapInit()
+    knownports.Init()
+    analyzer.Init()
+    geolocation.Init()
+    monitor.Init()
     
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
@@ -63,4 +114,26 @@ func main() {
     }))
 
     beego.Run()
+}
+
+func OperativeSystemValues()(values map[string]string){
+	if (runtime.GOOS == "linux"){
+		logs.Info("============"+runtime.GOOS+"============")
+		var OSmap = make(map[string]string)
+		file, err := os.Open("/etc/os-release")
+		if err != nil {logs.Error("No os-release file")}
+		defer file.Close()
+		
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			if (scanner.Text() != ""){
+				sidsSplit := strings.Split(scanner.Text(), "=")
+				str := strings.Replace(sidsSplit[1], "\"", "", -1)
+				OSmap[sidsSplit[0]] = str
+			}			
+		}
+		return OSmap
+	}else{
+		return nil
+	}
 }

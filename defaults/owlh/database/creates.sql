@@ -43,3 +43,9 @@ CREATE TABLE dataflow (
     flow_param text NOT NULL,
     flow_value text NOT NULL
 );
+CREATE TABLE mainconf (
+    main_id integer PRIMARY KEY AUTOINCREMENT,
+    main_uniqueid text NOT NULL,
+    main_param text NOT NULL,
+    main_value text NOT NULL
+);

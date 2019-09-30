@@ -74,6 +74,16 @@ func init() {
 				&controllers.NetController{},
 			),
 		),
+		beego.NSNamespace("/monitor",
+			beego.NSInclude(
+				&controllers.MonitorController{},
+			),
+		),
+		beego.NSNamespace("/plugin",
+			beego.NSInclude(
+				&controllers.PluginController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

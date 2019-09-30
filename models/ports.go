@@ -9,11 +9,6 @@ func ShowPorts() (data map[string]map[string]string, err error) {
 	return data,err
 }
 
-func PingPorts() (data map[string]map[string]string ,err error) {
-	data, err = knownports.PingPorts()
-	return data, err
-}
-
 func ChangeMode(anode map[string]string) (err error) {
 	err = knownports.ChangeMode(anode)
 	return err
@@ -32,4 +27,9 @@ func DeletePorts(anode map[string]string) (err error) {
 func DeleteAllPorts() (err error) {
 	err = knownports.DeleteAllPorts()
 	return err
+}
+
+func PingPorts() (data map[string]map[string]string ,err error) {
+	data, err = knownports.PingPorts()
+	return data, err
 }

@@ -18,14 +18,14 @@ import (
 //read data from main.conf
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
     confFilePath := "conf/main.conf"
-    jsonPathBpf, err := ioutil.ReadFile(confFilePath)
+    jsonPath, err := ioutil.ReadFile(confFilePath)
     if err != nil {
         logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
         return nil, err
 	}
 
     var anode map[string]map[string]string
-    json.Unmarshal(jsonPathBpf, &anode)
+    json.Unmarshal(jsonPath, &anode)
 
     for k,y := range loadData { 
         for y,_ := range y {
@@ -109,7 +109,6 @@ func GetConfFiles()(loadDataReturn map[string]string, err error) {
     }
     var anode map[string]map[string]string
 	json.Unmarshal(JSONconf, &anode)
-	logs.Debug(anode["files"])
     return anode["files"], nil
 }
 
@@ -223,43 +222,6 @@ func GetConfArray(loadData map[string]map[string][]string)(loadDataReturn map[st
         }
     }
     return loadData, nil
-}
-
-func RestartSuricata()(err error){
-	//stop suricata
-	suricataStop := map[string]map[string]string{}
-	suricataStop["suriStop"] = map[string]string{}
-	suricataStop["suriStop"]["stop"] = ""
-	suricataStop["suriStop"]["param"] = ""
-	suricataStop["suriStop"]["command"] = ""
-	suricataStop,err = GetConf(suricataStop)
-	if err != nil {logs.Error("RestartSuricata Error readding GetConf for stop: "+err.Error()); return err}
-	
-	_,err = exec.Command(suricataStop["suriStop"]["command"], suricataStop["suriStop"]["param"], suricataStop["suriStop"]["stop"]).Output()
-	if err != nil{logs.Error("RestartSuricata Error exec cmd command: "+err.Error()); return err}
-
-	//run suricata
-	suricatastart := map[string]map[string]string{}
-	suricatastart["suriStart"] = map[string]string{}
-	suricatastart["suriStart"]["start"] = ""
-	suricatastart["suriStart"]["param"] = ""
-	suricatastart["suriStart"]["command"] = ""
-	suricatastart,err = GetConf(suricatastart)
-	if err != nil {logs.Error("RestartSuricata Error readding GetConf for start: "+err.Error()); return err}
-	
-	_,err = exec.Command(suricatastart["suriStart"]["command"], suricatastart["suriStart"]["param"], suricatastart["suriStart"]["start"]).Output()
-	if err != nil{logs.Error("RestartSuricata Error exec cmd command: "+err.Error()); return err}
-
-	return nil
-}
-
-func RestartZeek()(err error){
-    err = RunCommand("/usr/local/zeek/bin/zeekctl","deploy")
-    if err != nil {
-        logs.Error("utils run command -> "+err.Error())
-        return err
-    }
-    return err
 }
 
 func RunCommand(cmdtxt, params string)(err error){

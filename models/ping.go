@@ -13,3 +13,13 @@ func DeployService()(err error) {
 	err = ping.DeployService()
     return err
 }
+
+func GetMainconfData()(data map[string]map[string]string, err error) {
+	data,err = ping.GetMainconfData()
+    return data,err
+}
+
+func PingPluginsNode()(data map[string]map[string]string ,err error) {
+	data, err = ping.PingPluginsNode()
+	return data, err
+}

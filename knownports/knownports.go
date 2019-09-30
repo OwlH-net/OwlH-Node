@@ -1,42 +1,42 @@
 package knownports
 
 import (
-	"github.com/astaxie/beego/logs"
-	"owlhnode/database"
-	"owlhnode/utils"
-	"github.com/hpcloud/tail"
-	"errors"
-	"regexp"
-	"strconv"
-	"encoding/json"
-	"time"
-	"os"
-	"net"
+    "github.com/astaxie/beego/logs"
+    "owlhnode/database"
+    "owlhnode/utils"
+    "owlhnode/analyzer"
+    "errors"
+    "regexp"
+    "strconv"
+    "encoding/json"
+    "time"
+    "os"
+    "net"
 )
 
 var Status string
 var Mode string
 
 type newPortAlert struct {
-    Data      Data `json:"data"`
+    Data             Data         `json:"data"`
 }
 
 type Data struct {
-    Dstport     string `json:"dstport"`
-	Proto       string `json:"proto"`
-	Times		int `json:"times"`
-    Signature   Signature `json:"alert"`
+    Dstport          string       `json:"dstport"`
+    Proto            string       `json:"proto"`
+    Times            int          `json:"times"`
+    Signature        Signature    `json:"alert"`
 }
 
 type Signature struct {
-    Signature       string `json:"signature"`
-    Signature_id    string `json:"signature_id"`
+    Signature        string       `json:"signature"`
+    Signature_id     string       `json:"signature_id"`
 }
 
 type LastAlert struct {
-    PortProto       string 
-    Last		    time.Time
-    Counter		    int
+    PortProto        string 
+    Last             time.Time
+    Counter          int
 }
 
 
@@ -45,59 +45,56 @@ func Init(){
 }
 
 func GetStatus()(){
-	for {
-		_, err := CheckParamKnownports("status")
-		_, err = CheckParamKnownports("mode")
-		if err != nil {
-			logs.Error("CheckParamKnownports Error: "+err.Error())
-		}
-		time.Sleep(time.Second * 20)
-	}
+    for {
+        _, err := CheckParamKnownports("status")
+        _, err = CheckParamKnownports("mode")
+        if err != nil {
+            logs.Error("CheckParamKnownports Error: "+err.Error())
+        }
+        time.Sleep(time.Second * 20)
+    }
 }
 
 func NewPorts()(){
-	var err error
-	loadPorts := map[string]map[string]string{}
-	loadPorts["knownports"] = map[string]string{}
+    var err error
+    loadPorts := map[string]map[string]string{}
+    loadPorts["knownports"] = map[string]string{}
     loadPorts["knownports"]["file"] = ""
     loadPorts["knownports"]["timeToAlert"] = ""
-	loadPorts,err = utils.GetConf(loadPorts)
+    loadPorts,err = utils.GetConf(loadPorts)
     file := loadPorts["knownports"]["file"]
     timeout := loadPorts["knownports"]["timeToAlert"]
-	if err != nil {
-		logs.Error("loadPorts Error getting data from main.conf: "+err.Error())
-		return
-	}
-	
-	Status, err = CheckParamKnownports("status")
-	Mode, err = CheckParamKnownports("mode")
-	if err != nil {
-		logs.Error("CheckParamKnownports Error: "+err.Error())
-	}
+    if err != nil {
+        logs.Error("loadPorts Error getting data from main.conf: "+err.Error())
+        return
+    }
 
-	for{
-		if _,err := os.Stat(file); os.IsNotExist(err){
-			logs.Info("KNOWNPORTS -- Waiting file...")
-			time.Sleep(time.Second * 60) 
-		}else{
-			break
-		}
-	}
+    Status, err = CheckParamKnownports("status")
+    Mode, err = CheckParamKnownports("mode")
+    if err != nil {
+        logs.Error("CheckParamKnownports Error: "+err.Error())
+    }
 
-	for Status != "Disabled"{
-		if Status == "Reload"{
+    for{
+        if _,err := os.Stat(file); os.IsNotExist(err){
+            logs.Info("KNOWNPORTS -- Waiting file...")
+            time.Sleep(time.Second * 60) 
+        }else{
+            break
+        }
+    }
+
+    for Status != "Disabled"{
+        if Status == "Reload"{
 			anode := make(map[string]string)
 			anode["plugin"]="knownports"
 			anode["status"]="Enabled"
 			ChangeStatus(anode)
 		}
 
-		t, err := tail.TailFile(file, tail.Config{Follow: true, Location: &tail.SeekInfo{0, 2}})
-		if err != nil {
-			logs.Error("TailFile Error: %s", err.Error())
-			Status = "Disabled"
-			break
-		}
+        newuuid := utils.Generate()
+        logs.Info(newuuid + ": starting analyzer for Knwon ports")
+        analyzer.Registerchannel(newuuid)
 		
 		portsData, err := LoadPortsData()
 
@@ -113,7 +110,8 @@ func NewPorts()(){
 			logs.Error("LoadPortsData NewPorts Error: %s", err.Error())
 			Status = "Disabled"
 		}
-		for line := range t.Lines {
+		for {
+		    line := <- analyzer.Dispatcher[newuuid] 
 			Status, err = CheckParamKnownports("status")
 			Mode, err = CheckParamKnownports("mode")
 			if err != nil {
@@ -123,7 +121,7 @@ func NewPorts()(){
 				break
 			}
 			var protoportRegexp = regexp.MustCompile(`"id.resp_h":"(\d+\.\d+\.\d+\.\d+)","id.resp_p":(\d+),"proto":"(\w+)"`)
-			portProtocol := protoportRegexp.FindStringSubmatch(line.Text)
+			portProtocol := protoportRegexp.FindStringSubmatch(line)
 			if portProtocol== nil {continue}
 
 			dstip := portProtocol[1]
@@ -277,8 +275,8 @@ func NewPorts()(){
 		}
 		Status, err = CheckParamKnownports("status")
 		Mode, err = CheckParamKnownports("mode")
-		t.Cleanup()
-		t.Stop()		
+		//t.Cleanup()
+		//t.Stop()
 	}
 	logs.Info("Knownports main loop: Exit")
 }
