@@ -237,29 +237,36 @@ func CheckServicesStatus()(){
                     logs.Notice("Launching Suricata Service")
                 }
             }else if allPlugins[w]["type"] == "zeek"{
-                pid, err := exec.Command("bash","-c","zeekctl status | awk '{print $5}'").Output()
+                StopZeek := map[string]map[string]string{}
+                StopZeek["zeek"] = map[string]string{}
+                StopZeek["zeek"]["zeekctl"] = ""
+                StopZeek,err := utils.GetConf(StopZeek)    
+                if err != nil {logs.Error("StopZeek Error getting data from main.conf: "+err.Error())}
+                zeekBinary := StopZeek["zeek"]["zeekctl"]
+
+                // pid, err := exec.Command("bash","-c","zeekctl status | grep running | awk '{print $5}'").Output()
+                pid, err := exec.Command("bash","-c",zeekBinary+" status | grep running | awk '{print $5}'").Output()
                 if err != nil {logs.Error("plugin/CheckServicesStatus Checking Zeek PID: "+err.Error())}
                 
                 if allPlugins[w]["status"] == "enabled"{                    
                     if (len(pid) == 0){
-                        _,err = zeek.StopZeek()
-                        if err != nil {logs.Error("plugin/CheckServicesStatus error stopping zeek: "+err.Error())}
                         logs.Notice("Zeek stopped...")
-                        err = zeek.DeployZeek()
+                        err = zeek.DeployZeek()                        
                         if err != nil {logs.Error("plugin/CheckQServicesStatus error deploying zeek: "+err.Error())}
+                        // err = ndb.UpdatePluginValue(w,"pid",string(pid))
                         logs.Notice("Launch Zeek after Node stops")
-                    }else{
-                        pidValue := strings.Split(string(pid), "\n")
-                        if (pidValue != nil && pidValue[1] == ""){
-                            err = zeek.DeployZeek()
-                            if err != nil {logs.Error("plugin/CheckServicesStatus error deploying zeek: "+err.Error())}
-                            logs.Notice("Launch Zeek after Node stops")
-                        }
                     }
+                    // else{
+                    //     if (allPlugins[w]["pid"] != string(pid)){
+                    //         // err = ndb.UpdatePluginValue(w,"pid",string(pid))
+                    //         logs.Notice("Zeek updated after Node stops")
+                    //     }
+                    // }
                 }else if (allPlugins[w]["status"] == "disabled") {
-                    if (len(pid) == 0){
+                    if (len(pid) != 0){
                         _,err = zeek.StopZeek()
                         if err != nil {logs.Error("plugin/CheckServicesStatus error stopping zeek: "+err.Error())}
+                        // err = ndb.UpdatePluginValue(w,"pid","none")                        
                         logs.Notice("Zeek stopped...")
                     }
                 }

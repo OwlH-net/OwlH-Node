@@ -257,6 +257,7 @@ func LoadMapper() {
 
 func dispatch(line string) {
     for channel := range Dispatcher {
+        // logs.Notice("Metiendo channel: "+channel+" --> línea: "+line)
         Dispatcher[channel] <- line
     }
 }

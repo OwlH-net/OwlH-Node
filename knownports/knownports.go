@@ -55,7 +55,7 @@ func GetStatus()(){
     }
 }
 
-func NewPorts()(){
+func NewPorts()(){	
     var err error
     loadPorts := map[string]map[string]string{}
     loadPorts["knownports"] = map[string]string{}
@@ -74,29 +74,35 @@ func NewPorts()(){
     if err != nil {
         logs.Error("CheckParamKnownports Error: "+err.Error())
     }
-
+	logs.Debug("1")
     for{
         if _,err := os.Stat(file); os.IsNotExist(err){
-            logs.Info("KNOWNPORTS -- Waiting file...")
+			logs.Info("KNOWNPORTS -- Waiting file...")
+
+			logs.Debug("WAITING FILE KNOWNPORTS")
             time.Sleep(time.Second * 60) 
         }else{
             break
         }
     }
-
+	logs.Debug("2")
     for Status != "Disabled"{
+		logs.Debug("3")
         if Status == "Reload"{
+			logs.Notice("I AM RELOAD!!!!")
 			anode := make(map[string]string)
 			anode["plugin"]="knownports"
 			anode["status"]="Enabled"
-			ChangeStatus(anode)
+			err = ChangeStatus(anode)
+			if err!=nil {logs.Error("Error changing status from Realod status: "+err.Error())}
 		}
-
+		
         newuuid := utils.Generate()
         logs.Info(newuuid + ": starting analyzer for Knwon ports")
         analyzer.Registerchannel(newuuid)
-		
+		logs.Debug("ch UUID -> "+newuuid+"registered")
 		portsData, err := LoadPortsData()
+		if err!=nil {logs.Error("Error LoadPortsData: "+err.Error())}
 
 		alertList := map[string]LastAlert{}
 
@@ -109,15 +115,18 @@ func NewPorts()(){
 		if err != nil {
 			logs.Error("LoadPortsData NewPorts Error: %s", err.Error())
 			Status = "Disabled"
+			logs.Debug("4.1")
 		}
 		for {
-		    line := <- analyzer.Dispatcher[newuuid] 
-			Status, err = CheckParamKnownports("status")
-			Mode, err = CheckParamKnownports("mode")
-			if err != nil {
-				logs.Error("CheckParamKnownports Error: "+err.Error())
-			}
+			logs.Debug("wait line for ch uuid -> "+newuuid)
+			
+			line := <- analyzer.Dispatcher[newuuid] 
+			logs.Debug("4.3")
+			Status, err = CheckParamKnownports("status"); if err != nil {logs.Error("CheckParamKnownports Error: "+err.Error())}
+			Mode, err = CheckParamKnownports("mode"); if err != nil {logs.Error("CheckParamKnownports Error: "+err.Error())}
+			logs.Notice("STATUS knownports: "+Status+"   //   Mode: "+Mode)
 			if Status != "Enabled"{
+				logs.Debug("5")
 				break
 			}
 			var protoportRegexp = regexp.MustCompile(`"id.resp_h":"(\d+\.\d+\.\d+\.\d+)","id.resp_p":(\d+),"proto":"(\w+)"`)
@@ -131,7 +140,9 @@ func NewPorts()(){
 			var protoport = dstport+"/"+proto
 
 			netLocal := false
+			logs.Debug("5.1")
 			for currentNet := range IpNet{
+				logs.Debug("6")
 				_, localNet, err := net.ParseCIDR(IpNet[currentNet])
 				if err != nil {
 					logs.Error("localNet currentNet Error: "+err.Error())
@@ -148,6 +159,8 @@ func NewPorts()(){
 
 			logs.Info("dstip is NOT local: "+dstip)
 			if Mode == "Learning"{
+				logs.Debug("7")
+				logs.Warn("LEARNING MODE")
 				notPortprotLearn := false
 				for x := range portsData {
 
@@ -166,6 +179,7 @@ func NewPorts()(){
 					// if notPortprotLearn == true {break}
 				}
 				if !notPortprotLearn{
+					logs.Debug("8")
 					uuid := utils.Generate()
 					timeNow := time.Now() 
 					value := strconv.FormatInt(timeNow.Unix(), 10)
@@ -191,6 +205,7 @@ func NewPorts()(){
 					}
 				}
 			}else{
+				logs.Warn("not LEARNING MODE")
 				notPortprotProd := false
 				for x := range portsData { 
 					if portsData[x]["portprot"] == protoport{
