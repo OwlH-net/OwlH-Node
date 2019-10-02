@@ -4,6 +4,7 @@ import (
 	"owlhnode/models"
 	"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
+    "encoding/json"
 )
 
 type WazuhController struct {
@@ -56,5 +57,33 @@ func (n *WazuhController) StopWazuh() {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     logs.Info("StopWazuh -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}
+
+// @Title PingWazuhFiles
+// @Description get Wazuh status
+// @Success 200 {object} models.wazuh
+// @router /pingWazuhFiles [get]
+func (m *WazuhController) PingWazuhFiles() {
+	files, err := models.PingWazuhFiles()
+	m.Data["json"] = files
+	if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    m.ServeJSON()
+}
+
+// @Title DeleteWazuhFile
+// @Description Run wazuh system
+// @Success 200 {object} models.wazuh
+// @Failure 403 body is empty
+// @router /deleteWazuhFile [delete]
+func (n *WazuhController) DeleteWazuhFile() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.DeleteWazuhFile(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    
+    if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
     n.ServeJSON()
 }

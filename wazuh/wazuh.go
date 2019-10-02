@@ -4,8 +4,11 @@ import (
     "github.com/astaxie/beego/logs"
     "os"
     "os/exec"
+    "regexp"
     "strings"
-	"errors"
+    "errors"
+    "bufio"
+    "io/ioutil"
     "owlhnode/utils"
 )
 
@@ -78,6 +81,7 @@ func Installed() (isIt map[string]bool, err error){
     wazuh["path"] = WazuhPath()
     wazuh["bin"] = WazuhBin()
     wazuh["running"] = WazuhRunning()
+
     if wazuh["path"] || wazuh["bin"] || wazuh["running"]  {
         logs.Info("Wazuh installed and running")
         return wazuh, nil
@@ -134,4 +138,93 @@ func StopWazuh()(data string, err error){
         return "",err
     }
     return "Wazuh stopped ",nil
+}
+
+func PingWazuhFiles() (files map[string]string, err error) {    
+    file, err := os.Open("/var/ossec/etc/ossec.conf")
+    if err != nil {logs.Error(err)}
+    defer file.Close()
+
+    scanner := bufio.NewScanner(file)
+    isInit := false
+    isEnd := false
+    filesPath := make(map[string]string)
+    for scanner.Scan() {
+        var init = regexp.MustCompile(`<!-- OWLH INIT -->`)
+        var end = regexp.MustCompile(`<!-- OWLH END -->`)
+        owlhInit := init.FindStringSubmatch(scanner.Text())
+        owlhEnd := end.FindStringSubmatch(scanner.Text())
+        if owlhInit != nil{ isInit = true; continue}
+        if owlhEnd != nil{ isEnd = true}
+        if isInit && !isEnd {
+            var locationPath = regexp.MustCompile(`<location>([^"]+)<\/location>`)
+            locationFound := locationPath.FindStringSubmatch(scanner.Text())
+            if locationFound != nil {
+                // logs.Warn(scanner.Text())
+                logs.Warn(locationFound[1])
+                filesPath[locationFound[1]] = locationFound[1]
+            }
+        }
+    }
+    if err := scanner.Err(); err != nil {logs.Error(err)}
+
+    return filesPath ,err
+}
+
+func DeleteWazuhFile(anode map[string]string)(err error) {
+
+    fullFile, err := ioutil.ReadFile("/var/ossec/etc/ossec.conf")
+    var locationPath = regexp.MustCompile(`
+                            <localfile>
+                                <log_format>syslog</log_format>
+                                <location>`+anode["path"]+`</location>
+                            </localfile>`)
+
+    locationFound := locationPath.FindStringSubmatch(string(fullFile))
+    if locationFound != nil {
+        logs.Warn(locationFound[1])
+    }
+
+
+
+
+
+
+
+    // file, err := os.Open("/var/ossec/etc/ossec.conf")
+    // if err != nil {logs.Error(err)}
+    // defer file.Close()
+
+    // scanner := bufio.NewScanner(file)
+    // isInit := false
+    // isEnd := false
+    // // filesPath := make(map[string]string)
+    // for scanner.Scan() {
+    //     var init = regexp.MustCompile(`<!-- OWLH INIT -->`)
+    //     var end = regexp.MustCompile(`<!-- OWLH END -->`)
+    //     owlhInit := init.FindStringSubmatch(scanner.Text())
+    //     owlhEnd := end.FindStringSubmatch(scanner.Text())
+    //     if owlhInit != nil{ isInit = true; continue}
+    //     if owlhEnd != nil{ isEnd = true}
+    //     if isInit && !isEnd {
+    //     var locationPath = regexp.MustCompile(`
+    //                             <localfile>
+    //                                 <log_format>syslog</log_format>
+    //                                 <location>`+anode["path"]+`</location>
+    //                             </localfile>`)
+
+            
+            
+    //         // <location>`+anode["path"]+`<\/location>`)
+    //         locationFound := locationPath.FindStringSubmatch(scanner.Text())
+    //         if locationFound != nil {
+    //             logs.Warn(scanner.Text())
+    //             // logs.Warn(locationFound[1])
+    //             // filesPath[locationFound[1]] = locationFound[1]
+    //         }
+    //     }
+    // }
+    // if err := scanner.Err(); err != nil {logs.Error(err)}
+
+    return err
 }

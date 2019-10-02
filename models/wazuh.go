@@ -21,3 +21,13 @@ func StopWazuh() (data string, err error) {
     data,err = wazuh.StopWazuh()
     return data,err
 }
+
+func PingWazuhFiles() (files map[string]string, err error) {
+    files, err = wazuh.PingWazuhFiles()
+    return files ,err
+}
+
+func DeleteWazuhFile(file map[string]string)(err error) {
+    err = wazuh.DeleteWazuhFile(file)
+    return err
+}
