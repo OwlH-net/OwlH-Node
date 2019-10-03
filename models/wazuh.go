@@ -27,7 +27,7 @@ func PingWazuhFiles() (files map[string]string, err error) {
     return files ,err
 }
 
-func DeleteWazuhFile(file map[string]string)(err error) {
+func DeleteWazuhFile(file map[string]interface{})(err error) {
     err = wazuh.DeleteWazuhFile(file)
     return err
 }

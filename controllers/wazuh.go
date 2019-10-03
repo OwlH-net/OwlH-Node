@@ -79,7 +79,7 @@ func (m *WazuhController) PingWazuhFiles() {
 // @Failure 403 body is empty
 // @router /deleteWazuhFile [delete]
 func (n *WazuhController) DeleteWazuhFile() {
-    var anode map[string]string
+    var anode map[string]interface{}
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.DeleteWazuhFile(anode)
     n.Data["json"] = map[string]string{"ack": "true"}

@@ -67,8 +67,17 @@ func DeployService()(err error) {
 }
 
 func GetMainconfData()(data map[string]map[string]string, err error) {
-	main,err := ndb.GetMainconfData()
-	if err != nil {logs.Error("ping/GetMainconfData error getting GetMainconfData values: "+err.Error()); return nil, err}
+	main,err := ndb.GetMainconfData(); if err != nil {logs.Error("ping/GetMainconfData error getting GetMainconfData values: "+err.Error()); return nil, err}
+	logs.Notice(main["suricata"]["status"])
+	if main["suricata"]["status"] == "" {
+		err = ndb.InsertGetMainconfData("suricata","status","disabled"); if err != nil {logs.Error("ping/GetMainconfData error creating Suricata main data: "+err.Error()); return nil, err}
+	}
+	logs.Warn(main["zeek"]["status"])
+	if main["zeek"]["status"] == "" {
+ 		err = ndb.InsertGetMainconfData("zeek","status","disabled"); if err != nil {logs.Error("ping/GetMainconfData error creating Zeek main data: "+err.Error()); return nil, err}
+	}
+	
+	main,err = ndb.GetMainconfData(); if err != nil {logs.Error("ping/GetMainconfData error getting GetMainconfData values: "+err.Error()); return nil, err}
 
     return main,err
 }

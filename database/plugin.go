@@ -169,6 +169,18 @@ func GetMainconfData()(path map[string]map[string]string, err error){
 	return mainconfValues,nil
 }
 
+func InsertGetMainconfData(uuid string, param string, value string)(err error){
+	insertPlugin, err := Pdb.Prepare("insert into mainconf(main_uniqueid, main_param, main_value) values (?,?,?);")
+	if (err != nil){ logs.Error("InsertGetMainconfData INSERT prepare error: "+err.Error()); return err}
+
+	_, err = insertPlugin.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("InsertGetMainconfData INSERT exec error: "+err.Error()); return err}
+
+	defer insertPlugin.Close()
+	
+	return nil
+}
+
 func UpdatePluginValue(uuid string, param string, value string)(err error){
 	UpdatePluginValueNode, err := Pdb.Prepare("update plugins set plugin_value = ? where plugin_uniqueid = ? and plugin_param = ?;")
 	if (err != nil){ logs.Error("UpdatePluginValue UPDATE prepare error: "+err.Error()); return err}

@@ -8,7 +8,7 @@ import (
     "strings"
     "errors"
     "bufio"
-    "io/ioutil"
+    // "io/ioutil"
     "owlhnode/utils"
 )
 
@@ -129,14 +129,11 @@ func StopWazuh()(data string, err error){
     cmd := StopWazuh["wazuhStop"]["stop"]
     param := StopWazuh["wazuhStop"]["param"]
     command := StopWazuh["wazuhStop"]["command"]
-	if err != nil {
-		logs.Error("RunWazuh Error getting data from main.conf")
-	}
+    if err != nil {logs.Error("RunWazuh Error getting data from main.conf")}
+    
     _,err = exec.Command(command, param, cmd).Output()
-    if err != nil {
-        logs.Error("Error stopping Wazuh: "+err.Error())
-        return "",err
-    }
+    if err != nil {logs.Error("Error stopping Wazuh: "+err.Error()); return "",err}
+
     return "Wazuh stopped ",nil
 }
 
@@ -160,8 +157,6 @@ func PingWazuhFiles() (files map[string]string, err error) {
             var locationPath = regexp.MustCompile(`<location>([^"]+)<\/location>`)
             locationFound := locationPath.FindStringSubmatch(scanner.Text())
             if locationFound != nil {
-                // logs.Warn(scanner.Text())
-                logs.Warn(locationFound[1])
                 filesPath[locationFound[1]] = locationFound[1]
             }
         }
@@ -171,60 +166,17 @@ func PingWazuhFiles() (files map[string]string, err error) {
     return filesPath ,err
 }
 
-func DeleteWazuhFile(anode map[string]string)(err error) {
-
-    fullFile, err := ioutil.ReadFile("/var/ossec/etc/ossec.conf")
-    var locationPath = regexp.MustCompile(`
-                            <localfile>
-                                <log_format>syslog</log_format>
-                                <location>`+anode["path"]+`</location>
-                            </localfile>`)
-
-    locationFound := locationPath.FindStringSubmatch(string(fullFile))
-    if locationFound != nil {
-        logs.Warn(locationFound[1])
-    }
-
-
-
-
-
-
-
-    // file, err := os.Open("/var/ossec/etc/ossec.conf")
-    // if err != nil {logs.Error(err)}
-    // defer file.Close()
-
-    // scanner := bufio.NewScanner(file)
-    // isInit := false
-    // isEnd := false
-    // // filesPath := make(map[string]string)
-    // for scanner.Scan() {
-    //     var init = regexp.MustCompile(`<!-- OWLH INIT -->`)
-    //     var end = regexp.MustCompile(`<!-- OWLH END -->`)
-    //     owlhInit := init.FindStringSubmatch(scanner.Text())
-    //     owlhEnd := end.FindStringSubmatch(scanner.Text())
-    //     if owlhInit != nil{ isInit = true; continue}
-    //     if owlhEnd != nil{ isEnd = true}
-    //     if isInit && !isEnd {
-    //     var locationPath = regexp.MustCompile(`
-    //                             <localfile>
-    //                                 <log_format>syslog</log_format>
-    //                                 <location>`+anode["path"]+`</location>
-    //                             </localfile>`)
-
-            
-            
-    //         // <location>`+anode["path"]+`<\/location>`)
-    //         locationFound := locationPath.FindStringSubmatch(scanner.Text())
-    //         if locationFound != nil {
-    //             logs.Warn(scanner.Text())
-    //             // logs.Warn(locationFound[1])
-    //             // filesPath[locationFound[1]] = locationFound[1]
-    //         }
-    //     }
+func DeleteWazuhFile(anode map[string]interface{})(err error) {
+    // for key,value := range anode["paths"] {
+    //     logs.Notice(value)
     // }
-    // if err := scanner.Err(); err != nil {logs.Error(err)}
+    // fullFile, err := ioutil.ReadFile("/var/ossec/etc/ossec.conf")
+    // if err != nil {logs.Error("Error redding Wazuh file: "+err.Error()); return err}
+    // var locationPath = regexp.MustCompile(`\t<localfile>\n\t\t<log_format>syslog</log_format>\n\t\t<location>`+anode["path"]+`</location>\n\t</localfile>`)
+
+    // locationFound := locationPath.FindStringSubmatch(string(fullFile))
+    // logs.Notice(string(fullFile))
+    // logs.Warn(locationFound)
 
     return err
 }
