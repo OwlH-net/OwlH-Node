@@ -60,7 +60,8 @@ func GetStatus()(){
     }
 }
 
-func NewPorts()(){	
+func NewPorts()(){
+    return
     var err error
     loadPorts := map[string]map[string]string{}
     loadPorts["knownports"] = map[string]string{}

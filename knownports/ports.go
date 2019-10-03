@@ -71,6 +71,9 @@ func ShowPorts() (data map[string]map[string]string, err error) {
 func ChangeStatus(anode map[string]string) (err error) {
 	value := anode["status"]
 	plugin:= anode["plugin"]
+	if value == "Enable" {
+        Init()
+	}
 	protoportUpdate, err := ndb.Pdb.Prepare("update plugins set plugin_value = ? where plugin_param = ? and plugin_uniqueid = ?")
 	defer protoportUpdate.Close()
 	_, err = protoportUpdate.Exec(&value, "status", &plugin)
