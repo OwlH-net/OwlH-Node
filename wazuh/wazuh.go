@@ -9,6 +9,8 @@ import (
     "errors"
     "bufio"
     // "io/ioutil"
+    "encoding/json"
+    // "bytes"
     "owlhnode/utils"
 )
 
@@ -166,17 +168,87 @@ func PingWazuhFiles() (files map[string]string, err error) {
     return filesPath ,err
 }
 
-func DeleteWazuhFile(anode map[string]interface{})(err error) {
-    // for key,value := range anode["paths"] {
-    //     logs.Notice(value)
-    // }
-    // fullFile, err := ioutil.ReadFile("/var/ossec/etc/ossec.conf")
-    // if err != nil {logs.Error("Error redding Wazuh file: "+err.Error()); return err}
-    // var locationPath = regexp.MustCompile(`\t<localfile>\n\t\t<log_format>syslog</log_format>\n\t\t<location>`+anode["path"]+`</location>\n\t</localfile>`)
+type AllFiles struct {
+    UUID string `json:"uuid"`
+    Paths []string `json:"paths"`
+}
 
-    // locationFound := locationPath.FindStringSubmatch(string(fullFile))
-    // logs.Notice(string(fullFile))
-    // logs.Warn(locationFound)
+
+func DeleteWazuhFile(anode map[string]interface{})(err error) {
+    receivedWazuhFiles := AllFiles{}
+    byteData, _ := json.Marshal(anode)
+    json.Unmarshal(byteData, &receivedWazuhFiles)
+
+    file, err := os.Open("/var/ossec/etc/ossec.conf")
+    if err != nil {logs.Error("Error DeleteWazuhFile readding file: "+err.Error()); return err}
+    defer file.Close()
+
+    // var buf bytes.Buffer
+    isInit := false
+    isEnd := false
+    isSecondEnd := false
+    scanner := bufio.NewScanner(file)
+    var h int 
+    h = 0
+    fileContent := make(map[int]string)
+    for scanner.Scan() {
+        // var init = regexp.MustCompile(`<!-- OWLH INIT -->\n<ossec_config>`)
+        // var end = regexp.MustCompile(`</ossec_config>\n<!-- OWLH END -->`)
+        var init = regexp.MustCompile(`<!-- OWLH INIT -->`)
+        var end = regexp.MustCompile(`<!-- OWLH END -->`)
+        owlhInit := init.FindStringSubmatch(scanner.Text())
+        owlhEnd := end.FindStringSubmatch(scanner.Text())
+           
+        if owlhInit != nil{
+            isInit = true
+            fileContent[h] = "<!-- OWLH INIT -->"
+            h++
+            fileContent[h] = "<ossec_config>"
+            h++ 
+        }
+        if owlhEnd != nil{isEnd = true}
+        if isInit && !isEnd {
+            
+            for x := range receivedWazuhFiles.Paths{
+                logs.Emergency(receivedWazuhFiles.Paths[x])
+                fileContent[h] = "\t<localfile>"; h++
+                fileContent[h] = "\t\t<log_format>syslog</log_format>"; h++
+                fileContent[h] = "\t\t<location>"+receivedWazuhFiles.Paths[x]+"</location>  "; h++
+                fileContent[h] = "\t</localfile>"; h++
+            }
+            isEnd = true
+            fileContent[h] = "<ossec_config>"
+            h++
+            fileContent[h] = "<!-- OWLH END -->"
+        }else if isInit && isEnd && !isSecondEnd{
+            var secondEnd = regexp.MustCompile(`<!-- OWLH END -->`)
+            secondOwlhEnd := secondEnd.FindStringSubmatch(scanner.Text())
+            if secondOwlhEnd == nil{
+                continue
+            }else if secondOwlhEnd != nil && !isSecondEnd {
+                isSecondEnd = true
+                // h++
+                continue
+            }
+            
+        }else{
+            fileContent[h] = scanner.Text()
+        }
+        h++
+    }
+    if err := scanner.Err(); err != nil {logs.Error("DeleteWazuhFile. Scanner file error: "+err.Error()); return err}
+
+    // saveIntoFile, err := os.Open("/var/ossec/etc/ossec.conf")
+    saveIntoFile, err := os.OpenFile("/var/ossec/etc/ossec.conf", os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+    if err != nil {logs.Error("Error DeleteWazuhFile readding file: "+err.Error()); return err}
+    defer saveIntoFile.Close()
+    saveIntoFile.Truncate(0)
+    saveIntoFile.Seek(0,0)
+    for x:=0 ; x < h ; x++{
+        // _, err := file.WriteString(fileContent[x])
+        _, err = saveIntoFile.WriteAt([]byte(fileContent[x]+"\n"), 0) // Write at 0 beginning
+        if err != nil {logs.Error("DeleteWazuhFile failed writing to file: %s", err); return err}
+    }
 
     return err
-}
+}   
