@@ -257,7 +257,7 @@ func LoadMapper() {
 
 func dispatch(line string) {
     for channel := range Dispatcher {
-        // logs.Notice("Metiendo channel: "+channel+" --> línea: "+line)
+        logs.Notice("Metiendo channel: "+channel+" --> línea: "+line)
         Dispatcher[channel] <- line
     }
 }
@@ -319,28 +319,29 @@ func InitAnalizer() {
     LoadSources()
     for {
         status,_ = PingAnalyzer()
-		if status == "Disabled"{
-			break
-		}
-		time.Sleep(time.Second * 3)
+        if status == "Disabled"{
+            break
+        }
+        time.Sleep(time.Second * 3)
     }
 }
 
 func Init(){
-
     go InitAnalizer()
 }
 
 func PingAnalyzer()(data string ,err error) {
-	analyzerData,err := ndb.GetStatusAnalyzer()
-	if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return "",err}
+    analyzerData,err := ndb.GetStatusAnalyzer()
+    logs.Info("ANALYZER STATUS - "+analyzerData)
+    if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return "",err}
 
-	return analyzerData	, nil
+    return analyzerData, nil
 }
 
 func ChangeAnalyzerStatus(anode map[string]string) (err error) {
-	err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
-	if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
+    logs.Info("ANALYZER STATUS - NEW STATUS - "+anode["status"])
+    err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
+    if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
 
-	return nil
+    return nil
 }

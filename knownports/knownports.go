@@ -45,11 +45,16 @@ func Init(){
 }
 
 func GetStatus()(){
+    logs.Info("KNOWN PORTS GETSTATUS --- ")
+    return
     for {
         _, err := CheckParamKnownports("status")
+        if err != nil {
+            logs.Error("CheckParamKnownports Status Error: "+err.Error())
+        }
         _, err = CheckParamKnownports("mode")
         if err != nil {
-            logs.Error("CheckParamKnownports Error: "+err.Error())
+            logs.Error("CheckParamKnownports Mode Error: "+err.Error())
         }
         time.Sleep(time.Second * 20)
     }
@@ -328,6 +333,7 @@ func LoadPortsData()(data map[string]map[string]string, err error){
 
 func CheckParamKnownports(param string)(data string, err error){
 	var res string
+	res = "Disabled"
 	sql := "select plugin_value from plugins where plugin_uniqueid = 'knownports' and plugin_param='"+param+"'"
 	rows, err := ndb.Pdb.Query(sql)
 	defer rows.Close()
