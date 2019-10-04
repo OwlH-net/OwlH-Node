@@ -10,6 +10,7 @@ import (
     "bufio"
     // "io/ioutil"
     "encoding/json"
+    "strconv"
     // "bytes"
     "owlhnode/utils"
 )
@@ -139,7 +140,7 @@ func StopWazuh()(data string, err error){
     return "Wazuh stopped ",nil
 }
 
-func PingWazuhFiles() (files map[string]string, err error) {    
+func PingWazuhFiles() (files map[int]map[string]string, err error) {    
     file, err := os.Open("/var/ossec/etc/ossec.conf")
     if err != nil {logs.Error(err)}
     defer file.Close()
@@ -147,7 +148,9 @@ func PingWazuhFiles() (files map[string]string, err error) {
     scanner := bufio.NewScanner(file)
     isInit := false
     isEnd := false
-    filesPath := make(map[string]string)
+    filesPath := make(map[int]map[string]string)
+    count := 0;
+    var size int64
     for scanner.Scan() {
         var init = regexp.MustCompile(`<!-- OWLH INIT -->`)
         var end = regexp.MustCompile(`<!-- OWLH END -->`)
@@ -159,9 +162,20 @@ func PingWazuhFiles() (files map[string]string, err error) {
             var locationPath = regexp.MustCompile(`<location>([^"]+)<\/location>`)
             locationFound := locationPath.FindStringSubmatch(scanner.Text())
             if locationFound != nil {
-                filesPath[locationFound[1]] = locationFound[1]
+                fi, err := os.Stat(locationFound[1]);
+                if err != nil {
+                    logs.Error("Error PingWazuhFiles checking file size: "+err.Error()); size = 0
+                }else{
+                    size = fi.Size()
+                }
+                
+                if filesPath[count] == nil { filesPath[count] = map[string]string{}}
+                logs.Warn(locationFound[1])
+                filesPath[count]["path"] = locationFound[1]
+                filesPath[count]["size"] = strconv.FormatInt(size, 10)
             }
         }
+        count++ 
     }
     if err := scanner.Err(); err != nil {logs.Error(err)}
 
@@ -174,13 +188,13 @@ type AllFiles struct {
 }
 
 
-func DeleteWazuhFile(anode map[string]interface{})(err error) {
+func ModifyWazuhFile(anode map[string]interface{})(err error) {
     receivedWazuhFiles := AllFiles{}
     byteData, _ := json.Marshal(anode)
     json.Unmarshal(byteData, &receivedWazuhFiles)
 
     file, err := os.Open("/var/ossec/etc/ossec.conf")
-    if err != nil {logs.Error("Error DeleteWazuhFile readding file: "+err.Error()); return err}
+    if err != nil {logs.Error("Error ModifyWazuhFile readding file: "+err.Error()); return err}
     defer file.Close()
 
     // var buf bytes.Buffer
@@ -192,8 +206,6 @@ func DeleteWazuhFile(anode map[string]interface{})(err error) {
     h = 0
     fileContent := make(map[int]string)
     for scanner.Scan() {
-        // var init = regexp.MustCompile(`<!-- OWLH INIT -->\n<ossec_config>`)
-        // var end = regexp.MustCompile(`</ossec_config>\n<!-- OWLH END -->`)
         var init = regexp.MustCompile(`<!-- OWLH INIT -->`)
         var end = regexp.MustCompile(`<!-- OWLH END -->`)
         owlhInit := init.FindStringSubmatch(scanner.Text())
@@ -210,14 +222,13 @@ func DeleteWazuhFile(anode map[string]interface{})(err error) {
         if isInit && !isEnd {
             
             for x := range receivedWazuhFiles.Paths{
-                logs.Emergency(receivedWazuhFiles.Paths[x])
                 fileContent[h] = "\t<localfile>"; h++
                 fileContent[h] = "\t\t<log_format>syslog</log_format>"; h++
                 fileContent[h] = "\t\t<location>"+receivedWazuhFiles.Paths[x]+"</location>  "; h++
                 fileContent[h] = "\t</localfile>"; h++
             }
             isEnd = true
-            fileContent[h] = "<ossec_config>"
+            fileContent[h] = "</ossec_config>"
             h++
             fileContent[h] = "<!-- OWLH END -->"
         }else if isInit && isEnd && !isSecondEnd{
@@ -236,19 +247,41 @@ func DeleteWazuhFile(anode map[string]interface{})(err error) {
         }
         h++
     }
-    if err := scanner.Err(); err != nil {logs.Error("DeleteWazuhFile. Scanner file error: "+err.Error()); return err}
 
-    // saveIntoFile, err := os.Open("/var/ossec/etc/ossec.conf")
+    if !isInit {
+        fileContent[h] = "<!-- OWLH INIT -->"; h++
+        fileContent[h] = "<ossec_config>"; h++ 
+        for d := range receivedWazuhFiles.Paths{
+            fileContent[h] = "\t<localfile>"; h++
+            fileContent[h] = "\t\t<log_format>syslog</log_format>"; h++
+            fileContent[h] = "\t\t<location>"+receivedWazuhFiles.Paths[d]+"</location>  "; h++
+            fileContent[h] = "\t</localfile>"; h++
+        }
+        fileContent[h] = "</ossec_config>"; h++ 
+        fileContent[h] = "<!-- OWLH END -->"; h++
+    }
+
+
+    if err := scanner.Err(); err != nil {logs.Error("ModifyWazuhFile. Scanner file error: "+err.Error()); return err}
+
     saveIntoFile, err := os.OpenFile("/var/ossec/etc/ossec.conf", os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-    if err != nil {logs.Error("Error DeleteWazuhFile readding file: "+err.Error()); return err}
+    if err != nil {logs.Error("Error ModifyWazuhFile readding file: "+err.Error()); return err}
     defer saveIntoFile.Close()
     saveIntoFile.Truncate(0)
     saveIntoFile.Seek(0,0)
     for x:=0 ; x < h ; x++{
-        // _, err := file.WriteString(fileContent[x])
         _, err = saveIntoFile.WriteAt([]byte(fileContent[x]+"\n"), 0) // Write at 0 beginning
-        if err != nil {logs.Error("DeleteWazuhFile failed writing to file: %s", err); return err}
+        if err != nil {logs.Error("ModifyWazuhFile failed writing to file: %s", err); return err}
     }
 
     return err
 }   
+
+func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
+    lines,err := exec.Command("bash", "-c", "tail -"+file["number"]+" "+file["path"]).Output()
+    if err != nil{logs.Error("LoadFileLastLines Error retrieving last lines of the path "+file["path"]+": "+err.Error()); return nil,err}
+
+    linesResult := make(map[string]string)
+    linesResult["result"] = string(lines)
+    return linesResult, err
+}

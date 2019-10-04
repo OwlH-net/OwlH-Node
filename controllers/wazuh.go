@@ -68,7 +68,7 @@ func (m *WazuhController) PingWazuhFiles() {
 	files, err := models.PingWazuhFiles()
 	m.Data["json"] = files
 	if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        m.Data["json"] = map[int]map[string]string{0:{"ack": "false", "error": err.Error()}}
     }
     m.ServeJSON()
 }
@@ -83,6 +83,36 @@ func (n *WazuhController) DeleteWazuhFile() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.DeleteWazuhFile(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
+    
+    if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+    n.ServeJSON()
+}
+
+// @Title AddWazuhFile
+// @Description Run wazuh system
+// @Success 200 {object} models.wazuh
+// @Failure 403 body is empty
+// @router /addWazuhFile [put]
+func (n *WazuhController) AddWazuhFile() {
+    var anode map[string]interface{}
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.AddWazuhFile(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    
+    if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+    n.ServeJSON()
+}
+
+// @Title LoadFileLastLines
+// @Description Run wazuh system
+// @Success 200 {object} models.wazuh
+// @Failure 403 body is empty
+// @router /loadFileLastLines [put]
+func (n *WazuhController) LoadFileLastLines() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    data,err := models.LoadFileLastLines(anode)
+    n.Data["json"] = data
     
     if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
     n.ServeJSON()

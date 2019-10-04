@@ -22,12 +22,22 @@ func StopWazuh() (data string, err error) {
     return data,err
 }
 
-func PingWazuhFiles() (files map[string]string, err error) {
+func PingWazuhFiles() (files map[int]map[string]string, err error) {
     files, err = wazuh.PingWazuhFiles()
     return files ,err
 }
 
 func DeleteWazuhFile(file map[string]interface{})(err error) {
-    err = wazuh.DeleteWazuhFile(file)
+    err = wazuh.ModifyWazuhFile(file)
     return err
+}
+
+func AddWazuhFile(file map[string]interface{})(err error) {
+    err = wazuh.ModifyWazuhFile(file)
+    return err
+}
+
+func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
+    data, err = wazuh.LoadFileLastLines(file)
+    return data, err
 }

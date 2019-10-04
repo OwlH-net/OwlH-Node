@@ -21,7 +21,7 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
         if anode["status"] == "enabled"{
             for x := range allPlugins {
                 //get all db values and check if any
-                if allPlugins[x]["pid"] != "none" && allPlugins[x]["interface"] == anode["interface"] && allPlugins[x]["status"] == "enabled" && x != anode["service"]{
+                if allPlugins[x]["type"] == "suricata" && allPlugins[x]["pid"] != "none" && allPlugins[x]["interface"] == anode["interface"] && allPlugins[x]["status"] == "enabled" && x != anode["service"]{
                     logs.Error("Can't launch more than one suricata with same interface. Please, select other interface.")
                     return errors.New("Can't launch more than one suricata with same interface. Please, select other interface.")
                 }
@@ -55,7 +55,6 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
             err = ndb.UpdatePluginValue(anode["service"],"status","disabled")
             if err != nil {logs.Error("plugin/ChangeServiceStatus error updating zeek status to disabled: "+err.Error()); return err}
         }
-
     }
     return err
 }
