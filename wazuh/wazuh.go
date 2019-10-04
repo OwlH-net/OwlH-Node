@@ -8,7 +8,7 @@ import (
     "strings"
     "errors"
     "bufio"
-    // "io/ioutil"
+    "io/ioutil"
     "encoding/json"
     "strconv"
     // "bytes"
@@ -278,10 +278,37 @@ func ModifyWazuhFile(anode map[string]interface{})(err error) {
 }   
 
 func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
-    lines,err := exec.Command("bash", "-c", "tail -"+file["number"]+" "+file["path"]).Output()
-    if err != nil{logs.Error("LoadFileLastLines Error retrieving last lines of the path "+file["path"]+": "+err.Error()); return nil,err}
-
     linesResult := make(map[string]string)
-    linesResult["result"] = string(lines)
+    logs.Notice(file)
+
+    if file["number"] != "none"{
+        lines,err := exec.Command("bash", "-c", "tail -"+file["number"]+" "+file["path"]).Output()
+        if err != nil{logs.Error("LoadFileLastLines Error retrieving last lines of the path "+file["path"]+": "+err.Error()); return nil,err}
+    
+        linesResult["result"] = string(lines)
+    }else{
+        fileReaded, err := ioutil.ReadFile(file["path"]) // just pass the file name
+        if err != nil {logs.Error("Error reading file for path: "+file["path"]); return nil,err}
+
+        linesResult["result"] = string(fileReaded)
+    }
+
     return linesResult, err
+}
+
+func SaveFileContentWazuh(file map[string]string)(err error) {
+    err = utils.BackupFullPath(file["path"])
+    if err != nil {
+        logs.Info("SaveFileContentWazuh. Error doing backup with function BackupFullPath: "+err.Error())
+        return err
+    }
+
+    //make byte array for save the file modified
+    bytearray := []byte(file["content"])
+    err = utils.WriteNewDataOnFile(file["path"], bytearray)
+    if err != nil {
+		logs.Info("SaveFileContentWazuh error doing backup with function WriteNewDataOnFile: "+err.Error())
+        return err
+    }
+    return nil
 }

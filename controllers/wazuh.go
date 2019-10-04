@@ -117,3 +117,18 @@ func (n *WazuhController) LoadFileLastLines() {
     if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
     n.ServeJSON()
 }
+
+// @Title SaveFileContentWazuh
+// @Description Run wazuh system
+// @Success 200 {object} models.wazuh
+// @Failure 403 body is empty
+// @router /saveFileContentWazuh [put]
+func (n *WazuhController) SaveFileContentWazuh() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.SaveFileContentWazuh(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    
+    if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+    n.ServeJSON()
+}

@@ -41,3 +41,8 @@ func LoadFileLastLines(file map[string]string)(data map[string]string, err error
     data, err = wazuh.LoadFileLastLines(file)
     return data, err
 }
+
+func SaveFileContentWazuh(file map[string]string)(err error) {
+     err = wazuh.SaveFileContentWazuh(file)
+    return  err
+}
