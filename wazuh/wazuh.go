@@ -164,7 +164,7 @@ func PingWazuhFiles() (files map[int]map[string]string, err error) {
             if locationFound != nil {
                 fi, err := os.Stat(locationFound[1]);
                 if err != nil {
-                    logs.Error("Error PingWazuhFiles checking file size: "+err.Error()); size = 0
+                    logs.Error("Error PingWazuhFiles checking file size: "+err.Error()); size = -1
                 }else{
                     size = fi.Size()
                 }
