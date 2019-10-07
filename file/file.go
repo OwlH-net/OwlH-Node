@@ -3,7 +3,10 @@ package file
 import (
     "github.com/astaxie/beego/logs"
     "owlhnode/utils"
+    "owlhnode/wazuh"
     "io/ioutil"
+    "os"
+    "strconv"
 )
 
 //read file and send back to webpage
@@ -45,7 +48,7 @@ func SaveFile(file map[string]string)(err error){
     //make file backup before overwrite
     err = utils.BackupFullPath(loadData["files"][file["file"]])
     if err != nil {
-        logs.Info("SaveFile. Error doing backup with function BackupFullPath: "+err.Error())
+        logs.Error("SaveFile. Error doing backup with function BackupFullPath: "+err.Error())
         return err
     }
 
@@ -53,7 +56,7 @@ func SaveFile(file map[string]string)(err error){
     bytearray := []byte(file["content"])
     err = utils.WriteNewDataOnFile(loadData["files"][file["file"]], bytearray)
     if err != nil {
-		logs.Info("SaveFile. Error doing backup with function WriteNewDataOnFile: "+err.Error())
+		logs.Error("SaveFile. Error doing backup with function WriteNewDataOnFile: "+err.Error())
         return err
     }
     return nil
@@ -68,5 +71,33 @@ func GetAllFiles()(data map[string]string, err error){
     }
     logs.Info("GetAllFiles -> returing file names")
     return returnedData, err
+}
 
+func ReloadFilesData() (data map[string]map[string]string, err error) {
+    sendBackArray := map[string]map[string]string{}
+    sendBackArray["wazuh"] = map[string]string{}
+    sendBackArray["analyzer"] = map[string]string{}
+    
+    //ANALYZER
+    loadData := map[string]map[string]string{}
+	loadData["node"] = map[string]string{}
+	loadData["node"]["alertLog"] = ""
+    loadData,err = utils.GetConf(loadData)
+    alertLog := loadData["node"]["alertLog"]
+	if err != nil { logs.Error("ReloadFilesData Error getting data from main.conf"); return nil,err}
+    
+    // size = fi.Size()
+    fi, err := os.Stat(alertLog);
+    if err != nil { logs.Error("ReloadFilesData.Error reading analyzer file: "+err.Error())}
+    sendBackArray["analyzer"]["size"] = strconv.FormatInt(fi.Size(), 10)
+    sendBackArray["analyzer"]["path"] = alertLog
+    
+    //WAZUH
+    wazuhFiles,err := wazuh.PingWazuhFiles()
+    for x,_ := range wazuhFiles{
+        sendBackArray["wazuh"][wazuhFiles[x]["path"]] = wazuhFiles[x]["size"]
+    }
+
+    logs.Notice(sendBackArray)
+    return sendBackArray,nil
 }

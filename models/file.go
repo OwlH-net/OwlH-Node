@@ -22,3 +22,8 @@ func GetAllFiles() (data map[string]string, err error) {
 	data,err = file.GetAllFiles()
     return data,err
 }
+
+func ReloadFilesData() (data map[string]map[string]string, err error) {
+	data,err = file.ReloadFilesData()
+    return data,err
+}

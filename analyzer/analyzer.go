@@ -308,8 +308,8 @@ func IoCtoAlert(line, ioc, iocsrc string) {
 
 func InitAnalizer() {
     logs.Info("starting analyzer")
-    status,_ := PingAnalyzer()
-    if status == "Disabled"{
+    analyzer,_ := PingAnalyzer()
+    if analyzer["status"] == "Disabled"{
         return
     }
     readconf()
@@ -318,8 +318,8 @@ func InitAnalizer() {
     LoadAnalyzers()
     LoadSources()
     for {
-        status,_ = PingAnalyzer()
-        if status == "Disabled"{
+        analyzer,_ = PingAnalyzer()
+        if analyzer["status"] == "Disabled"{
             break
         }
         time.Sleep(time.Second * 3)
@@ -330,10 +330,27 @@ func Init(){
     go InitAnalizer()
 }
 
-func PingAnalyzer()(data string ,err error) {
-    analyzerData,err := ndb.GetStatusAnalyzer()
-    logs.Info("ANALYZER STATUS - "+analyzerData)
-    if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return "",err}
+func PingAnalyzer()(data map[string]string ,err error) {
+    wazuhFile := map[string]map[string]string{}
+	wazuhFile["node"] = map[string]string{}
+    wazuhFile["node"]["alertLog"] = ""
+    wazuhFile,err = utils.GetConf(wazuhFile)    
+    filePath := wazuhFile["node"]["alertLog"]
+    if err != nil {logs.Error("PingAnalyzer Error getting data from main.conf")}
+
+    analyzerData := make(map[string]string)
+    analyzerStatus,err := ndb.GetStatusAnalyzer()
+    logs.Info("ANALYZER STATUS - "+analyzerStatus)
+    if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return nil,err}
+
+    fi, err := os.Stat(filePath);
+    size := fi.Size()
+
+    analyzerData["status"] = analyzerStatus
+    analyzerData["path"] = filePath
+    analyzerData["size"] = strconv.FormatInt(size, 10)
+
+
 
     return analyzerData, nil
 }

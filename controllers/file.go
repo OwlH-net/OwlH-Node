@@ -64,3 +64,18 @@ func (n *FileController) GetAllFiles() {
     logs.Info("GetAllFiles return %s", n.Data["json"])
     n.ServeJSON()
 }
+
+// @Title ReloadFilesData
+// @Description load new files size
+// @Success 200 {object} models.file
+// @Failure 403 body is empty
+// @router /reloadFilesData [get]
+func (n *FileController) ReloadFilesData() {
+    data,err := models.ReloadFilesData()
+
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

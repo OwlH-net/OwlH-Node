@@ -4,7 +4,7 @@ import (
     "owlhnode/analyzer"
 )
 
-func PingAnalyzer()(data string ,err error) {
+func PingAnalyzer()(data map[string]string ,err error) {
 	data, err = analyzer.PingAnalyzer()	
 	return data, err
 }

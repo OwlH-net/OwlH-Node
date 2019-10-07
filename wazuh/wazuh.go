@@ -170,7 +170,6 @@ func PingWazuhFiles() (files map[int]map[string]string, err error) {
                 }
                 
                 if filesPath[count] == nil { filesPath[count] = map[string]string{}}
-                logs.Warn(locationFound[1])
                 filesPath[count]["path"] = locationFound[1]
                 filesPath[count]["size"] = strconv.FormatInt(size, 10)
             }
@@ -279,7 +278,6 @@ func ModifyWazuhFile(anode map[string]interface{})(err error) {
 
 func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
     linesResult := make(map[string]string)
-    logs.Notice(file)
 
     if file["number"] != "none"{
         lines,err := exec.Command("bash", "-c", "tail -"+file["number"]+" "+file["path"]).Output()
