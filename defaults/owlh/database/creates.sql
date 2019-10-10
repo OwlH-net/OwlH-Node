@@ -49,3 +49,9 @@ CREATE TABLE mainconf (
     main_param text NOT NULL,
     main_value text NOT NULL
 );
+CREATE TABLE files (
+    file_id integer PRIMARY KEY AUTOINCREMENT,
+    file_uniqueid text NOT NULL,
+    file_param text NOT NULL,
+    file_value text NOT NULL
+);

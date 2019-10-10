@@ -9,6 +9,14 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
     return err
 }
 
+// curl -X PUT \
+//   https://52.47.197.22:50002/node/plugin/ChangeMainServiceStatus \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "service": "suricata",
+//     "param": "status",
+//     "status": "enabled"
+// }
 func ChangeMainServiceStatus(anode map[string]string)(err error) {
 	err = plugin.ChangeMainServiceStatus(anode)
     return err
