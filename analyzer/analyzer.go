@@ -339,16 +339,20 @@ func PingAnalyzer()(data map[string]string ,err error) {
     if err != nil {logs.Error("PingAnalyzer Error getting data from main.conf")}
 
     analyzerData := make(map[string]string)
+    analyzerData["status"] = "Disabled"
+
+
     analyzerStatus,err := ndb.GetStatusAnalyzer()
     logs.Info("ANALYZER STATUS - "+analyzerStatus)
     if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return nil,err}
 
-    fi, err := os.Stat(filePath);
-    if err != nil { logs.Error("Can't access Analyzer ouput file data: "+err.Error()); return nil,err}
-    size := fi.Size()
-
     analyzerData["status"] = analyzerStatus
     analyzerData["path"] = filePath
+
+    fi, err := os.Stat(filePath);
+    if err != nil { logs.Error("Can't access Analyzer ouput file data: "+err.Error()); return analyzerData,err}
+    size := fi.Size()
+
     analyzerData["size"] = strconv.FormatInt(size, 10)
 
 
