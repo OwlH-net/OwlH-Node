@@ -344,6 +344,7 @@ func PingAnalyzer()(data map[string]string ,err error) {
     if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return nil,err}
 
     fi, err := os.Stat(filePath);
+    if err != nil { logs.Error("Can't access Analyzer ouput file data: "+err.Error()); return nil,err}
     size := fi.Size()
 
     analyzerData["status"] = analyzerStatus
