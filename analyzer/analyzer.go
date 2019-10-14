@@ -344,7 +344,7 @@ func PingAnalyzer()(data map[string]string ,err error) {
 
     analyzerStatus,err := ndb.GetStatusAnalyzer()
     logs.Info("ANALYZER STATUS - "+analyzerStatus)
-    if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return nil,err}
+    if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return analyzerData,err}
 
     analyzerData["status"] = analyzerStatus
     analyzerData["path"] = filePath
