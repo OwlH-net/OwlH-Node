@@ -4,6 +4,7 @@ import (
 	"owlhnode/models"
 	"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
+    "encoding/json"
 )
 
 type ZeekController struct {
@@ -59,16 +60,31 @@ func (n *ZeekController) StopZeek() {
     n.ServeJSON()
 }
 
-// @Title DeployZeek
+// @Title ChangeZeekMode
 // @Description get Zeek status
 // @Success 200 {object} models.zeek
-// @router /DeployZeek [get]
-func (m *ZeekController) DeployZeek() {
-    logs.Info ("Zeek controller -> GET")
-	err := models.DeployZeek()
+// @router /changeZeekMode [put]
+func (m *ZeekController) ChangeZeekMode() {
+    var anode map[string]string
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+	err := models.ChangeZeekMode(anode)
 	m.Data["json"] = map[string]string{"ack": "true"}
 	if err != nil {
-        logs.Info("DeployZeek OUT -- ERROR : %s", err.Error())
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    m.ServeJSON()
+}
+
+// @Title AddClusterValue
+// @Description get Zeek status
+// @Success 200 {object} models.zeek
+// @router /addClusterValue [POST]
+func (m *ZeekController) AddClusterValue() {
+    var anode map[string]string
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+	err := models.AddClusterValue(anode)
+	m.Data["json"] = map[string]string{"ack": "true"}
+	if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
     m.ServeJSON()

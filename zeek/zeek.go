@@ -6,6 +6,7 @@ import (
     "os/exec"
     "strings"
 	"owlhnode/utils"
+	"owlhnode/database"
 	"errors"
 )
 
@@ -155,15 +156,31 @@ func DeployZeek()(err error){
     //DeployZeek["zeekDeploy"]["command"] = ""
     DeployZeek,err = utils.GetConf(DeployZeek)    
     //cmd := DeployZeek["zeekDeploy"]["cmd"]
-    //param := DeployZeek["zeekDeploy"]["param"]
+    //param := DeployZeek["zeekDeploy"]["param"]5,
     //command := DeployZeek["zeekDeploy"]["command"]
     if err != nil {
         logs.Error("DeployZeek Error getting data from main.conf: "+err.Error())
     }
     err = utils.RunCommand(DeployZeek["zeek"]["zeekctl"],DeployZeek["zeek"]["deploy"])
-    if err != nil {
-        logs.Error("Error deploying zeek: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("Error deploying zeek: "+err.Error()); return err}
+
     return nil
+}
+
+func ChangeZeekMode(anode map[string]string) (err error) {
+    err = ndb.UpdateMainconfValue("zeek", "mode", anode["mode"])
+    if err != nil {logs.Error("Error ChangeZeekMode: "+err.Error()); return err}
+    return err
+}
+
+func AddClusterValue(anode map[string]string) (err error) {
+    count,err := ndb.CountDBEntries(anode["type"]); if err != nil {logs.Error("Error AddClusterValue type: "+err.Error()); return err}
+
+    err = ndb.InsertClusterData(anode["type"]+count, "type", anode["type"]); if err != nil {logs.Error("Error AddClusterValue type: "+err.Error()); return err}
+    err = ndb.InsertClusterData(anode["type"]+count, "host", anode["host"]); if err != nil {logs.Error("Error AddClusterValue host: "+err.Error()); return err}
+    if anode["type"] == "worker"{
+        err = ndb.InsertClusterData(anode["type"]+count, "interface", anode["interface"]); if err != nil {logs.Error("Error AddClusterValue interface: "+err.Error()); return err}
+    }
+
+    return err
 }

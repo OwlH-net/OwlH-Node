@@ -55,3 +55,9 @@ CREATE TABLE files (
     file_param text NOT NULL,
     file_value text NOT NULL
 );
+CREATE TABLE cluster (
+    cluster_id integer PRIMARY KEY AUTOINCREMENT,
+    cluster_uniqueid text NOT NULL,
+    cluster_param text NOT NULL,
+    cluster_value text NOT NULL
+);

@@ -216,3 +216,25 @@ func DeleteService(uuid string)(err error){
 	
 	return nil
 }
+
+func InsertClusterData(uuid string, param string, value string)(err error){
+	insertPlugin, err := Pdb.Prepare("insert into cluster(cluster_uniqueid, cluster_param, cluster_value) values (?,?,?);")
+	if (err != nil){ logs.Error("InsertClusterData INSERT prepare error: "+err.Error()); return err}
+
+	_, err = insertPlugin.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("InsertClusterData INSERT exec error: "+err.Error()); return err}
+
+	defer insertPlugin.Close()
+	
+	return nil
+}
+
+func CountDBEntries(clusterType string)(count string, err error){
+	rows, err := Pdb.Query("select count(*) from cluster where cluster_value like '%"+clusterType+"%';")
+	if err != nil {logs.Error("CountDBEntries Pdb.Query Error : %s", err.Error()); return "", err}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&count); err != nil {logs.Error("CountDBEntries -- Query return error: %s", err.Error()); return "", err}
+	} 
+	return count,nil
+}

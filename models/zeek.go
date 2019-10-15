@@ -30,3 +30,13 @@ func DeployZeek() ( err error) {
 	err = zeek.DeployZeek()
     return err
 }
+
+func ChangeZeekMode(anode map[string]string) (err error) {
+	err = zeek.ChangeZeekMode(anode)
+    return err
+}
+
+func AddClusterValue(anode map[string]string) (err error) {
+	err = zeek.AddClusterValue(anode)
+    return err
+}
