@@ -40,3 +40,23 @@ func AddClusterValue(anode map[string]string) (err error) {
 	err = zeek.AddClusterValue(anode)
     return err
 }
+
+func PingCluster()(data map[string]map[string]string, err error) {
+	data, err = zeek.PingCluster()
+    return data, err
+}
+
+func EditClusterValue(anode map[string]string) (err error) {
+	err = zeek.EditClusterValue(anode)
+    return err
+}
+
+func DeleteClusterValue(anode map[string]string) (err error) {
+	err = zeek.DeleteClusterValue(anode)
+    return err
+}
+
+func SyncCluster(anode map[string]string) (err error) {
+	err = zeek.SyncCluster(anode, "cluster")
+    return err
+}
