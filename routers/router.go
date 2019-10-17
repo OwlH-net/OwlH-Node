@@ -84,6 +84,11 @@ func init() {
 				&controllers.PluginController{},
 			),
 		),
+		beego.NSNamespace("/changecontrol",
+			beego.NSInclude(
+				&controllers.ChangecontrolController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

@@ -150,3 +150,40 @@ func DeleteDataFlowValueSelected(uuid string)(err error){
     if err != nil {logs.Error("DeleteDataFlowValueSelected ERROR deleting: "+err.Error());return err}
 	return nil
 }
+
+func GetChangeControlNode()(path map[string]map[string]string, err error){
+	var configValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+
+	sql := "select control_uniqueid, control_param, control_value from changerecord;";
+	
+	rows, err := Nodedb.Query(sql)
+	if err != nil {
+		logs.Error("GetChangeControlNode Nodedb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetChangeControlNode -- Query return error: %s", err.Error())
+            return nil, err
+		}
+        if configValues[uniqid] == nil { configValues[uniqid] = map[string]string{}}
+        configValues[uniqid][param]=value
+	} 
+	return configValues,nil
+}
+
+func InsertChangeControl(uuid string, param string, value string)(err error){
+	insertChangeControlValues, err := Nodedb.Prepare("insert into changerecord(control_uniqueid, control_param, control_value) values (?,?,?);")
+	if (err != nil){ logs.Error("InsertChangeControl prepare error: "+err.Error()); return err}
+
+	_, err = insertChangeControlValues.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("InsertChangeControl exec error: "+err.Error()); return err}
+
+	defer insertChangeControlValues.Close()
+	
+	return nil
+}

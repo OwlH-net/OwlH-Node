@@ -1,7 +1,9 @@
 package models
 
 import (
-	"owlhnode/plugin"
+    "owlhnode/plugin"
+    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs"
 )
 
 func ChangeServiceStatus(anode map[string]string)(err error) {
@@ -29,6 +31,19 @@ func DeleteService(anode map[string]string)(err error) {
 
 func AddPluginService(anode map[string]string) (err error) {
     err = plugin.AddPluginService(anode)
+    if err!=nil { 
+        anode["actionStatus"] = "error"
+        anode["errorDescription"] = err.Error()
+    }else{
+        anode["actionStatus"] = "success"
+    }
+    anode["action"] = "POST"
+    anode["actionDescription"] = "Add plugin service"
+    var controlError error
+    controlError = changecontrol.InsertChangeControl(anode)
+    if controlError!=nil { logs.Error("AddPluginService controlError: "+controlError.Error()) }
+    if err != nil {return err}
+
     return err
 }
 

@@ -61,3 +61,9 @@ CREATE TABLE cluster (
     cluster_param text NOT NULL,
     cluster_value text NOT NULL
 );
+CREATE TABLE changerecord (
+    control_id integer PRIMARY KEY AUTOINCREMENT,
+    control_uniqueid text NOT NULL,
+    control_param text NOT NULL,
+    control_value text NOT NULL
+);

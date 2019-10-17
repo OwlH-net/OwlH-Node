@@ -3,7 +3,7 @@ Description=owlhnode API service
 
 [Service]
 Type=simple
-EnvironmentFile=/usr/local/owlh/src/owlhnode/conf/owlhnode-init.conf
+Environment=GOPATH=/usr/local/owlh
 ExecStart=/bin/sh -c '/usr/local/owlh/src/owlhnode/owlhnode > /dev/null 2>&1'
 Restart=on-failure
 RestartSec=5

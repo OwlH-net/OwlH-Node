@@ -54,7 +54,7 @@ func (n *PluginController) DeleteService() {
 }
 
 // @Title AddPluginService()
-// @Description Add new Suricata service
+// @Description Add new service like Suricata or Zeek
 // @Success 200 {object} models.suricata
 // @router /addService [put]
 func (n *PluginController) AddPluginService() {
