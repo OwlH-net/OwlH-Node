@@ -2,7 +2,8 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
-	"owlhnode/models"
+    "owlhnode/models"
+    "encoding/json"
 )
 
 type PingController struct {
@@ -14,6 +15,20 @@ type PingController struct {
 // @router / [get]
 func (n *PingController) PingNode() {
 	n.Data["json"] = map[string]string{"ack": "true"}
+    n.ServeJSON()
+}
+
+// @Title UpdateNodeData
+// @Description update node data
+// @router /updateNode [put]
+func (n *PingController) UpdateNodeData() {
+	var anode map[string]map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
+    err := models.UpdateNodeData(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     n.ServeJSON()
 }
 

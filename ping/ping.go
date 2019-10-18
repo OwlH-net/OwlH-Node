@@ -97,3 +97,28 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
 	}
 	return allPlugin,err
 }
+
+func UpdateNodeData(data map[string]map[string]string)(err error) {
+	var action string
+	currentData, err := ndb.GetNodeData()	
+
+	if len(currentData) == 0{
+		action = "insert"
+	}else{
+		action = "update"
+	}
+
+	for x,y := range data {
+		for y,_ := range y {
+			if action == "insert"{
+				err = ndb.InsertNodeData(x,y,data[x][y])
+				if err != nil { logs.Error("Error inserting node data: "+err.Error()); return err }
+			}else if action == "update"{
+				err = ndb.UpdateNodeData(x,y,data[x][y])
+				if err != nil { logs.Error("Error updating node data: "+err.Error()); return err }
+			}
+		}
+	}
+
+	return nil
+}

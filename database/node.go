@@ -187,3 +187,89 @@ func InsertChangeControl(uuid string, param string, value string)(err error){
 	
 	return nil
 }
+
+func UpdateNodeData(uuid string, param string, value string) (err error) {
+	updateDataflowNode, err := Nodedb.Prepare("update node set node_value = ? where node_uniqueid = ? and node_param = ?;")
+	if (err != nil){ logs.Error("UpdateNodeData UPDATE prepare error: "+err.Error()); return err}
+
+	_, err = updateDataflowNode.Exec(&value, &uuid, &param)
+	defer updateDataflowNode.Close()
+
+	if (err != nil){ logs.Error("UpdateNodeData UPDATE error: "+err.Error()); return err}
+
+	return nil
+}
+
+func InsertNodeData(uuid string, param string, value string)(err error){
+	InsertNodeDataValues, err := Nodedb.Prepare("insert into node(node_uniqueid, node_param, node_value) values (?,?,?);")
+	if (err != nil){ logs.Error("InsertNodeData prepare error: "+err.Error()); return err}
+
+	_, err = InsertNodeDataValues.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("InsertNodeData exec error: "+err.Error()); return err}
+
+	defer InsertNodeDataValues.Close()
+	
+	return nil
+}
+
+func GetNodeData()(path map[string]map[string]string, err error){
+	var configValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+
+	sql := "select node_uniqueid, node_param, node_value from node;";
+	
+	rows, err := Nodedb.Query(sql)
+	if err != nil {
+		logs.Error("GetNodeData Nodedb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetNodeData -- Query return error: %s", err.Error())
+            return nil, err
+		}
+        if configValues[uniqid] == nil { configValues[uniqid] = map[string]string{}}
+        configValues[uniqid][param]=value
+	} 
+	return configValues,nil
+}
+
+func GetIncidentsNode()(path map[string]map[string]string, err error){
+	var configValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+
+	sql := "select incidents_uniqueid, incidents_param, incidents_value from incidents;";
+	
+	rows, err := Nodedb.Query(sql)
+	if err != nil {
+		logs.Error("GetIncidentsNode Nodedb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetIncidentsNode -- Query return error: %s", err.Error())
+            return nil, err
+		}
+        if configValues[uniqid] == nil { configValues[uniqid] = map[string]string{}}
+        configValues[uniqid][param]=value
+	} 
+	return configValues,nil
+}
+
+func PutIncidentNode(uuid string, param string, value string)(err error){
+	PutIncidentNodeValues, err := Nodedb.Prepare("insert into incidents(incidents_uniqueid, incidents_param, incidents_value) values (?,?,?);")
+	if (err != nil){ logs.Error("PutIncidentNode prepare error: "+err.Error()); return err}
+
+	_, err = PutIncidentNodeValues.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("PutIncidentNode exec error: "+err.Error()); return err}
+
+	defer PutIncidentNodeValues.Close()
+	
+	return nil
+}

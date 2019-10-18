@@ -23,3 +23,8 @@ func PingPluginsNode()(data map[string]map[string]string ,err error) {
 	data, err = ping.PingPluginsNode()
 	return data, err
 }
+
+func UpdateNodeData(data map[string]map[string]string)(err error) {
+	err = ping.UpdateNodeData(data)
+	return err
+}

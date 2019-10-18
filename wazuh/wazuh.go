@@ -12,7 +12,9 @@ import (
     "encoding/json"
     "strconv"
     // "bytes"
+    "time"
     "owlhnode/utils"
+    "owlhnode/database"
 )
 
 func WazuhPath() (exists bool) {
@@ -172,6 +174,28 @@ func PingWazuhFiles() (files map[int]map[string]string, err error) {
                 if filesPath[count] == nil { filesPath[count] = map[string]string{}}
                 filesPath[count]["path"] = locationFound[1]
                 filesPath[count]["size"] = strconv.FormatInt(size, 10)
+
+                //Add new Incident
+                //Add incident to database
+                if size > 1024{
+                    uuid := utils.Generate()
+                    nodeData, err := ndb.GetNodeData()
+                    if err != nil {logs.Error("Error creating incident for Wazuh: "+err.Error()); return nil,err}
+                    currentTime := time.Now()
+                    timeFormated := currentTime.Format("2006-01-02T15:04:05")
+                    err = ndb.PutIncidentNode(uuid, "date", timeFormated)
+                    err = ndb.PutIncidentNode(uuid, "desc", "This is the description")
+                    err = ndb.PutIncidentNode(uuid, "status", "new") // new, open, closed, delayed
+                    err = ndb.PutIncidentNode(uuid, "level", "info") // warning, info or danger
+                    err = ndb.PutIncidentNode(uuid, "filePath", locationFound[1]) // warning, info or danger
+                    err = ndb.PutIncidentNode(uuid, "fileSize", strconv.FormatInt(size, 10)) // warning, info or danger
+                    for x := range nodeData{
+                        err = ndb.PutIncidentNode(uuid, "deviceName", nodeData[x]["name"])
+                        err = ndb.PutIncidentNode(uuid, "deviceIp", nodeData[x]["ip"])
+                        err = ndb.PutIncidentNode(uuid, "devicePort", nodeData[x]["port"])
+                        err = ndb.PutIncidentNode(uuid, "deviceUuid", x)
+                    }
+                }
             }
         }
         count++ 

@@ -89,6 +89,11 @@ func init() {
 				&controllers.ChangecontrolController{},
 			),
 		),
+		beego.NSNamespace("/incidents",
+			beego.NSInclude(
+				&controllers.IncidentslController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

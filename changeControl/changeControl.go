@@ -17,7 +17,12 @@ func InsertChangeControl(values map[string]string)(err error){
     currentTime := time.Now()
     timeFormated := currentTime.Format("2006-01-02T15:04:05")
 
-    err = ndb.InsertChangeControl(uuid, "nodeServerName", "--> add node name <--"); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
+    node,err := ndb.GetNodeData()
+    for r := range node{
+        err = ndb.InsertChangeControl(uuid, "deviceName", node[r]["name"]); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
+        err = ndb.InsertChangeControl(uuid, "deviceIP", node[r]["ip"]); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
+        err = ndb.InsertChangeControl(uuid, "devicePort", node[r]["port"]); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
+    }
     err = ndb.InsertChangeControl(uuid, "nodeServerUuid", values["uuid"]); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
     err = ndb.InsertChangeControl(uuid, "time", timeFormated); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
     for x := range values {
