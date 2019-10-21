@@ -124,3 +124,17 @@ func (n *PluginController) ModifyStapValues() {
     }
     n.ServeJSON()
 }
+
+// @Title ChangeSuricataTable
+// @Description Change a specific plugin service status
+// @router /changeSuricataTable [put]
+func (n *PluginController) ChangeSuricataTable() {
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.ChangeSuricataTable(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

@@ -5,6 +5,7 @@ import (
 	"os"
 	"errors"
 	"os/exec"
+	"strings"
 	"owlhnode/utils"
 	"owlhnode/plugin"
 	"owlhnode/database"
@@ -81,21 +82,55 @@ func GetMainconfData()(data map[string]map[string]string, err error) {
 }
 
 func PingPluginsNode() (data map[string]map[string]string ,err error) {
-	allPlugin,err := ndb.GetPlugins()
+	allPlugins,err := ndb.GetPlugins()
 	if err != nil {logs.Error("ping/GetMainconfData error getting GetPlugins values: "+err.Error()); return nil, err}
 
-	for x := range allPlugin {
-		if allPlugin[x]["status"] == "enabled" && allPlugin[x]["type"] == "suricata"{
+	for x := range allPlugins {
+		if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata"{
 
 			if _, err := os.Stat("/var/run/suricata/"+x+"-pidfile.pid"); os.IsNotExist(err) {		
-				err = plugin.StopSuricataService(x, allPlugin[x]["status"])
+				err = plugin.StopSuricataService(x, allPlugins[x]["status"])
     			if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error stopping suricata for launch again: "+err.Error()); return nil,err}
-				err = plugin.LaunchSuricataService(x, allPlugin[x]["interface"])
+				err = plugin.LaunchSuricataService(x, allPlugins[x]["interface"])
     			if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error launching suricata again: "+err.Error()); return nil, err}
 			}
 		}
 	}
-	return allPlugin,err
+
+	//get suricata values that are not in the database
+	var avoidUUIDS string
+    for f := range allPlugins {
+        if allPlugins[f]["type"] == "suricata" {
+            avoidUUIDS = avoidUUIDS + "grep -v "+f+" | "
+        }
+    }
+
+    com, err := exec.Command("bash","-c","ps -ef | grep suricata | "+avoidUUIDS+" grep -v grep | awk '{print $2}'").Output()
+    if err != nil {logs.Error("PingPluginsNode error getting suricata shell launched: "+err.Error())}
+    pidValue := strings.Split(string(com), "\n")
+    for pid := range pidValue{
+        if pidValue[pid] != "" {
+            fullCommand, err := exec.Command("bash","-c","ps -ef | grep "+pidValue[pid]+" | grep -v grep").Output()
+            if err != nil {logs.Error("PingPluginsNode error getting suricata shell full command: "+err.Error())}
+
+            existsPid := false
+            for f := range allPlugins {
+                if allPlugins[f]["type"] == "suricata" && allPlugins[f]["pid"] == pidValue[pid] {
+                    existsPid = true
+                }
+            }
+            if !existsPid{
+				uuid := utils.Generate()
+				pluginNotControlled := make(map[string]string)
+				pluginNotControlled["type"] = "suricata" 
+				pluginNotControlled["pid"] = pidValue[pid]
+				pluginNotControlled["command"] = string(fullCommand)
+				allPlugins[uuid] = pluginNotControlled
+            }
+        }
+    }
+
+	return allPlugins,err
 }
 
 func UpdateNodeData(data map[string]map[string]string)(err error) {

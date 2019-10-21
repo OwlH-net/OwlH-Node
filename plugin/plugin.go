@@ -60,6 +60,7 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
 }
 
 func ChangeMainServiceStatus(anode map[string]string)(err error) {
+    logs.Warn(anode)
     err = ndb.UpdateMainconfValue(anode["service"],anode["param"],anode["status"])
     if err != nil {logs.Error("plugin/ChangeMainServiceStatus error: "+err.Error()); return err}
 
@@ -232,8 +233,9 @@ func CheckServicesStatus()(){
                     if err != nil {
                         logs.Error("plugin/CheckServicesStatus error launching SURICATA after node stops: "+err.Error())
                         _ = StopSuricataService(w, allPlugins[w]["status"])
-                    }
-                    logs.Notice("Launching Suricata Service")
+                    }else{
+                        logs.Notice("Launching Suricata Service") 
+                    } 
                 }
             }else if allPlugins[w]["type"] == "zeek"{
                 StopZeek := map[string]map[string]string{}
@@ -249,7 +251,6 @@ func CheckServicesStatus()(){
                 
                 if allPlugins[w]["status"] == "enabled"{                    
                     if (len(pid) == 0){
-                        logs.Notice("Zeek stopped...")
                         err = zeek.DeployZeek()                        
                         if err != nil {logs.Error("plugin/CheckQServicesStatus error deploying zeek: "+err.Error())}
                         // err = ndb.UpdatePluginValue(w,"pid",string(pid))
@@ -257,8 +258,7 @@ func CheckServicesStatus()(){
                     }
                     // else{
                     //     if (allPlugins[w]["pid"] != string(pid)){
-                    //         // err = ndb.UpdatePluginValue(w,"pid",string(pid))
-                    //         logs.Notice("Zeek updated after Node stops")
+                    //         logs.Info("Zeek updated after Node stops")
                     //     }
                     // }
                 }else if (allPlugins[w]["status"] == "disabled") {
@@ -357,7 +357,7 @@ func CheckServicesStatus()(){
 }
 
 func LaunchSuricataService(uuid string, iface string)(err error){
-
+    logs.Notice(uuid+"     --     "+iface)
     mainConfData, err := ndb.GetMainconfData()
     if (mainConfData["suricata"]["status"] == "disabled"){ return nil }
 
@@ -615,5 +615,40 @@ func StopStapService(anode map[string]string)(err error) {
 
     logs.Notice(allPlugins[anode["service"]]["type"]+" service stopped successfuly!")
 
+    return nil
+}
+
+func ChangeSuricataTable(anode map[string]string)(err error) {
+    allPlugins,err := ndb.GetPlugins()
+    data, err := ndb.GetMainconfData()
+
+    for x := range allPlugins {
+        if anode["status"] == "expert" {
+            err = ndb.UpdateMainconfValue("suricata", "previousStatus", data["suricata"]["status"]); if err != nil {logs.Error("ChangeSuricataTable status Error: "+err.Error()); return err}
+            err = ndb.UpdateMainconfValue("suricata", "status", "expert"); if err != nil {logs.Error("ChangeSuricataTable status Error: "+err.Error()); return err}
+            if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata"{
+                err = StopSuricataService(x, allPlugins[x]["status"])
+                if err != nil {logs.Error("StopSuricataService status Error: "+err.Error()); return err}
+            } 
+        }else{
+            if data["suricata"]["previousStatus"] == "enabled" {
+                err = ndb.UpdateMainconfValue("suricata", "status", data["suricata"]["previousStatus"])
+                err = ndb.UpdateMainconfValue("suricata", "previousStatus", "disabled")  
+                if allPlugins[x]["previousState"] == "enabled" && allPlugins[x]["type"] == "suricata"{
+                    err = LaunchSuricataService(x, allPlugins[x]["interface"])
+                    if err != nil {logs.Error("StopSuricataService status Error: "+err.Error()); return err}
+                }          
+            }else if data["suricata"]["previousStatus"] == "disabled"{
+                err = ndb.UpdateMainconfValue("suricata", "status", data["suricata"]["previousStatus"])
+                err = ndb.UpdateMainconfValue("suricata", "previousStatus", "enabled")
+                if allPlugins[x]["previousStatus"] == "enabled" && allPlugins[x]["type"] == "suricata"{
+                    err = StopSuricataService(x, allPlugins[x]["status"])
+                    if err != nil {logs.Error("ChangeSuricataTable LaunchSuricataService status Error: "+err.Error()); return err}
+                }
+                
+            }
+        }
+    }
+    
     return nil
 }

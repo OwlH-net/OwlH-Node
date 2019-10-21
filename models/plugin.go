@@ -66,3 +66,15 @@ func ModifyStapValues(anode map[string]string)(err error) {
 	err = plugin.ModifyStapValues(anode)
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/node/plugin/changeSuricataTable \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "suricata",
+//     "status": "none"
+// }
+func ChangeSuricataTable(anode map[string]string)(err error) {
+	err = plugin.ChangeSuricataTable(anode)
+    return err
+}
