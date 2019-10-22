@@ -645,7 +645,6 @@ func ChangeSuricataTable(anode map[string]string)(err error) {
                     err = StopSuricataService(x, allPlugins[x]["status"])
                     if err != nil {logs.Error("ChangeSuricataTable LaunchSuricataService status Error: "+err.Error()); return err}
                 }
-                
             }
         }
     }
