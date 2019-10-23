@@ -36,7 +36,7 @@ func ChangeZeekMode(anode map[string]string) (err error) {
     logs.Info("============")
     logs.Info("ZEEK - ChangeZeekMode")
     for key :=range cc {
-        logs.Info(key +" -> ")
+        logs.Info(key +" -> " + cc[key])
     }
     delete(anode,"action")
     delete(anode,"controller")
