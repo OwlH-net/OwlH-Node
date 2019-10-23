@@ -2,7 +2,8 @@ package models
 
 import (
 	"owlhnode/suricata"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 
 func GetSuricata() (status map[string]bool, err error) {

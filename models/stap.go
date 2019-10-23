@@ -2,8 +2,8 @@ package models
 
 import (
 	"owlhnode/stap"
-	"github.com/astaxie/beego/logs"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 func AddServer(anode map[string]string) (err error) {
     logs.Info("AddServer stap into Node file")

@@ -2,7 +2,8 @@ package models
 
 import (
 	"owlhnode/net"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 func GetNetworkData()(values map[string]string, err error) {
 	values,err = net.GetNetworkData()

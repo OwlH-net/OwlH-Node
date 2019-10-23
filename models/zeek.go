@@ -2,8 +2,8 @@ package models
 
 import (
     "owlhnode/zeek"
-    "github.com/astaxie/beego/logs"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 
 func GetZeek() (status map[string]bool, err error) {

@@ -2,7 +2,8 @@ package models
 
 import (
 	"owlhnode/ping"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 func PingService()(err error) {
 	err = ping.PingService()

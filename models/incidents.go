@@ -2,7 +2,8 @@ package models
 
 import (
     "owlhnode/incidents"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 // curl -X GET \
 //   https://52.47.197.22:50002/node/incidents \

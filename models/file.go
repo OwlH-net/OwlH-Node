@@ -2,8 +2,8 @@ package models
 
 import (
 	"owlhnode/file"
-	"github.com/astaxie/beego/logs"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 func SendFile(filename string) (data map[string]string, err error) {
     logs.Info("SendFile into Node file")

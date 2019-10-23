@@ -2,7 +2,8 @@ package models
 
 import (
     "owlhnode/deploy"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 func DeployNode(anode map[string]string)(err error) {
     cc := anode

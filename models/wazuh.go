@@ -2,6 +2,7 @@ package models
 
 import (
     "owlhnode/wazuh"
+//    "owlhnode/changeControl"
     "github.com/astaxie/beego/logs"
 )
 

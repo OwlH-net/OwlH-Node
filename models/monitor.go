@@ -2,7 +2,8 @@ package models
 
 import (
     "owlhnode/monitor"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 func GetNodeStats()(data monitor.Monitor) {
 	data = monitor.GetLastMonitorInfo()

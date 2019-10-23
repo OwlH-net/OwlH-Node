@@ -2,7 +2,8 @@ package models
 
 import (
     "owlhnode/knownports"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 func ShowPorts() (data map[string]map[string]string, err error) {
 	data,err = knownports.ShowPorts()
