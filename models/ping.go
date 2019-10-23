@@ -15,7 +15,7 @@ func DeployService(anode map[string]map[string]string)(err error) {
     logs.Info("============")
     logs.Info("PING - DeployService")
     for key :=range cc {
-        logs.Info(key +" -> "+ cc[key])
+        logs.Info(key +" -> ")
     }
     delete(anode,"action")
     delete(anode,"controller")
@@ -39,7 +39,7 @@ func UpdateNodeData(data map[string]map[string]string)(err error) {
     logs.Info("============")
     logs.Info("PING - UpdateNodeData")
     for key :=range cc {
-        logs.Info(key +" -> "+ cc[key])
+        logs.Info(key +" -> ")
     }
     delete(data,"action")
     delete(data,"controller")
