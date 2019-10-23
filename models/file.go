@@ -15,7 +15,7 @@ func SaveFile(data map[string]string) (err error) {
     cc := data
     logs.Info("============")
     logs.Info("FILE - SaveFile")
-    for key :=range anode {
+    for key :=range cc {
         logs.Info(key +" -> "+ cc[key])
     }
     delete(data,"action")

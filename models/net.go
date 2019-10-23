@@ -16,15 +16,15 @@ func LoadNetworkValuesSelected()(values map[string]map[string]string, err error)
 }
 
 func UpdateNetworkInterface(data map[string]string) (err error) {
-    cc := anode
+    cc := data
     logs.Info("============")
     logs.Info("NET - UpdateNetworkInterface")
     for key :=range cc {
         logs.Info(key +" -> "+ cc[key])
     }
-    delete(anode,"action")
-    delete(anode,"controller")
-    delete(anode,"router")
+    delete(data,"action")
+    delete(data,"controller")
+    delete(data,"router")
 
 	err = net.UpdateNetworkInterface(data)
     return err
