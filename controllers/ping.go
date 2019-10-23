@@ -26,7 +26,7 @@ func (n *PingController) UpdateNodeData() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 	logs.Info("ACTION -> PUT")
     logs.Info("CONTROLLER -> PING")
-    logs.Info("ROUTER -> @router /updateNode [put]"
+    logs.Info("ROUTER -> @router /updateNode [put]")
     err := models.UpdateNodeData(anode)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
