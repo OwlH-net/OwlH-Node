@@ -71,10 +71,14 @@ func (n *SuricataController) SetBPF() {
 func (n *SuricataController) SyncRulesetFromMaster() {
     var anode map[string][]byte
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	anode["action"] = "PUT"
-    anode["controller"] = "SURICATA"
-    anode["router"] = "@router /sync [put]"
-    
+
+    logs.Info("ACTION -> PUT")
+    logs.Info("CONTROLLER -> SURICATA")
+    logs.Info("ROUTER -> @router /sync [put]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+
     err := models.SyncRulesetFromMaster(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
