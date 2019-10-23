@@ -69,12 +69,12 @@ func AddPluginService(anode map[string]string) (err error) {
     delete(anode,"router")
     err = plugin.AddPluginService(anode)
     if err!=nil { 
-        anode["actionStatus"] = "error"
-        anode["errorDescription"] = err.Error()
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
     }else{
-        anode["actionStatus"] = "success"
+        cc["actionStatus"] = "success"
     }
-    anode["actionDescription"] = "Add plugin service"
+    cc["actionDescription"] = "Add plugin service"
     var controlError error
     controlError = changecontrol.InsertChangeControl(anode)
     if controlError!=nil { logs.Error("AddPluginService controlError: "+controlError.Error()) }
