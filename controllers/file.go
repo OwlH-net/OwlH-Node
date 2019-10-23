@@ -38,6 +38,9 @@ func (n *FileController) SaveFile() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.SaveFile(anode)
+	anode["action"] = "PUT"
+    anode["controller"] = "FILE"
+    anode["router"] = "@router / [put]"
 
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {

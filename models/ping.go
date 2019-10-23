@@ -9,7 +9,16 @@ func PingService()(err error) {
     return err
 }
 
-func DeployService()(err error) {
+func DeployService(anode map[string]map[string]string)(err error) {
+    var cc := anode
+    logs.Info("============")
+    logs.Info("PING - DeployService")
+    for key :=range cc {
+        logs.Info(key +" -> "+ cc[key])
+    }
+    delete(anode,"action")
+    delete(anode,"controller")
+    delete(anode,"router")
 	err = ping.DeployService()
     return err
 }
@@ -25,6 +34,16 @@ func PingPluginsNode()(data map[string]map[string]string ,err error) {
 }
 
 func UpdateNodeData(data map[string]map[string]string)(err error) {
+    var cc := data
+    logs.Info("============")
+    logs.Info("PING - UpdateNodeData")
+    for key :=range cc {
+        logs.Info(key +" -> "+ cc[key])
+    }
+    delete(data,"action")
+    delete(data,"controller")
+    delete(data,"router")
+    
 	err = ping.UpdateNodeData(data)
 	return err
 }

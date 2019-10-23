@@ -12,6 +12,16 @@ func SendFile(filename string) (data map[string]string, err error) {
 }
 
 func SaveFile(data map[string]string) (err error) {
+    var cc := data
+    logs.Info("============")
+    logs.Info("FILE - SaveFile")
+    for key :=range anode {
+        logs.Info(key +" -> "+ cc[key])
+    }
+    delete(data,"action")
+    delete(data,"controller")
+    delete(data,"router")
+
     logs.Info("SaveFile into Node file")
 	err = file.SaveFile(data)
     return err

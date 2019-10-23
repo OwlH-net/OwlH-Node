@@ -33,6 +33,15 @@ func (m *WazuhController) Get() {
 // @router /RunWazuh [put]
 func (n *WazuhController) RunWazuh() {
     logs.Info("RunWazuh -> In")
+    var anode map[string]string
+    anode["action"] = "PUT"
+    anode["controller"] = "WAZUH"
+    anode["router"] = "@router /RunWazuh [put]"
+    logs.Info("============")
+    logs.Info("WAZUH - RunWazuh")
+    for key :=range anode {
+        logs.Info(key +" -> "+anode[key])
+    }
     data,err := models.RunWazuh()
     n.Data["json"] = data
     if err != nil {
@@ -50,6 +59,15 @@ func (n *WazuhController) RunWazuh() {
 // @router /StopWazuh [put]
 func (n *WazuhController) StopWazuh() {
     logs.Info("StopWazuh -> In")
+    var anode map[string]string
+    anode["action"] = "PUT"
+    anode["controller"] = "WAZUH"
+    anode["router"] = "@router /StopWazuh [put]"
+    logs.Info("============")
+    logs.Info("WAZUH - StopWazuh")
+    for key :=range anode {
+        logs.Info(key +" -> "+anode[key])
+    }
     data,err := models.StopWazuh()
     n.Data["json"] = data
     if err != nil {
@@ -81,6 +99,9 @@ func (m *WazuhController) PingWazuhFiles() {
 func (n *WazuhController) DeleteWazuhFile() {
     var anode map[string]interface{}
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    anode["action"] = "PUT"
+    anode["controller"] = "SURICATA"
+    anode["router"] = "@router /StopSuricata [put]"
     err := models.DeleteWazuhFile(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     
@@ -96,6 +117,9 @@ func (n *WazuhController) DeleteWazuhFile() {
 func (n *WazuhController) AddWazuhFile() {
     var anode map[string]interface{}
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    anode["action"] = "PUT"
+    anode["controller"] = "SURICATA"
+    anode["router"] = "@router /StopSuricata [put]"
     err := models.AddWazuhFile(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     
@@ -111,6 +135,9 @@ func (n *WazuhController) AddWazuhFile() {
 func (n *WazuhController) LoadFileLastLines() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    anode["action"] = "PUT"
+    anode["controller"] = "SURICATA"
+    anode["router"] = "@router /StopSuricata [put]"
     data,err := models.LoadFileLastLines(anode)
     n.Data["json"] = data
     
@@ -126,6 +153,10 @@ func (n *WazuhController) LoadFileLastLines() {
 func (n *WazuhController) SaveFileContentWazuh() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    anode["action"] = "PUT"
+    anode["controller"] = "SURICATA"
+    anode["router"] = "@router /StopSuricata [put]"
+
     err := models.SaveFileContentWazuh(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     

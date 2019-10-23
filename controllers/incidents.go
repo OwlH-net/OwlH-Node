@@ -30,6 +30,9 @@ func (m *IncidentslController) GetIncidentsNode() {
 func (m *MonitorController) PutIncidentNode() {	
 	var anode map[string]string
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+	anode["action"] = "POST"
+    anode["controller"] = "INCIDENTS"
+    anode["router"] = "@router / [post]"
 	err := models.PutIncidentNode(anode)
 	m.Data["json"] = map[string]string{"ack": "true"}
 	if err != nil {

@@ -28,11 +28,30 @@ func PingWazuhFiles() (files map[int]map[string]string, err error) {
 }
 
 func DeleteWazuhFile(file map[string]interface{})(err error) {
+    var cc := file
+    logs.Info("============")
+    logs.Info("WAZUH - DeleteWazuhFile")
+    for key :=range cc {
+        logs.Info(key +" -> ")
+    }
+    delete(file,"action")
+    delete(file,"controller")
+    delete(file,"router")
     err = wazuh.ModifyWazuhFile(file)
     return err
 }
 
 func AddWazuhFile(file map[string]interface{})(err error) {
+    var cc := file
+    logs.Info("============")
+    logs.Info("WAZUH - AddWazuhFile")
+    for key :=range cc {
+        logs.Info(key +" -> ")
+    }
+    delete(file,"action")
+    delete(file,"controller")
+    delete(file,"router")
+    
     err = wazuh.ModifyWazuhFile(file)
     return err
 }
@@ -43,6 +62,16 @@ func LoadFileLastLines(file map[string]string)(data map[string]string, err error
 }
 
 func SaveFileContentWazuh(file map[string]string)(err error) {
+    var cc := file
+    logs.Info("============")
+    logs.Info("WAZUH - SaveFileContentWazuh")
+    for key :=range cc {
+        logs.Info(key +" -> ")
+    }
+    delete(file,"action")
+    delete(file,"controller")
+    delete(file,"router")
+    
      err = wazuh.SaveFileContentWazuh(file)
     return  err
 }

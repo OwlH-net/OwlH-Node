@@ -34,6 +34,9 @@ func (m *AnalyzerController) ChangeAnalyzerStatus() {
 	var anode map[string]string
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
 	err := models.ChangeAnalyzerStatus(anode)
+	anode["action"] = "PUT"
+    anode["controller"] = "ANALYZER"
+    anode["router"] = "@router /changeAnalyzerStatus [put]"
 	m.Data["json"] = map[string]string{"ack": "true"}
 	if err != nil {
         logs.Info("ChangeAnalyzerStatus OUT -- ERROR : %s", err.Error())
