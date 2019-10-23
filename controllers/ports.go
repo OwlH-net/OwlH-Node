@@ -110,6 +110,7 @@ func (m *PortsController) DeletePorts() {
 // @Success 200 {object} models.ports
 // @router /deleteAll [put]
 func (m *PortsController) DeleteAllPorts() {
+    var anode map[string]string
     anode["action"] = "PUT"
     anode["controller"] = "PORTS"
     anode["router"] = "@router /mode [put]"

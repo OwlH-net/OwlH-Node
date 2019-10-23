@@ -24,9 +24,9 @@ func (n *PingController) PingNode() {
 func (n *PingController) UpdateNodeData() {
 	var anode map[string]map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	anode["action"] = "PUT"
-    anode["controller"] = "PING"
-    anode["router"] = "@router /updateNode [put]"
+	logs.Info("ACTION -> PUT")
+    logs.Info("CONTROLLER -> PING")
+    logs.Info("ROUTER -> @router /updateNode [put]"
     err := models.UpdateNodeData(anode)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -51,6 +51,7 @@ func (n *PingController) PingService() {
 // @Description get ping for node
 // @router /deployservice [put]
 func (n *PingController) DeployService() {
+    var anode map[string]string
 	anode["action"] = "PUT"
     anode["controller"] = "PING"
     anode["router"] = "@router /deployservice [put]"
