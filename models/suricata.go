@@ -16,7 +16,7 @@ func GetSuricata() (status map[string]bool, err error) {
 // }
 
 func SetBPF(anode map[string]string) (err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("SURICATA - SetBPF")
     for key :=range cc {
@@ -31,7 +31,7 @@ func SetBPF(anode map[string]string) (err error) {
 }
 
 func SyncRulesetFromMaster(n map[string][]byte) (err error) {
-    var cc := n
+    cc := n
     logs.Info("============")
     logs.Info("SURICATA - SyncRulesetFromMaster")
     for key :=range cc {

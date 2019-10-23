@@ -10,7 +10,7 @@ func GetNodeStats()(data monitor.Monitor) {
 }
 
 func AddMonitorFile(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("MONITOR - AddMonitorFile")
     for key :=range cc {

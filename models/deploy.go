@@ -5,7 +5,7 @@ import (
 )
 
 func DeployNode(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("DEPLOY - DeployNode")
     for key :=range anode {

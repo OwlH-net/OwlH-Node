@@ -15,7 +15,7 @@ func LoadNetworkValuesSelected()(values map[string]map[string]string, err error)
 }
 
 func UpdateNetworkInterface(data map[string]string) (err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("NET - UpdateNetworkInterface")
     for key :=range cc {

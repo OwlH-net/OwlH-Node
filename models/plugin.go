@@ -7,7 +7,7 @@ import (
 )
 
 func ChangeServiceStatus(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - ChangeServiceStatus")
     for key :=range cc {
@@ -30,7 +30,7 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
 //     "value": "enabled"
 // }
 func ChangeMainServiceStatus(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - ChangeMainServiceStatus")
     for key :=range cc {
@@ -44,7 +44,7 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
 }
 
 func DeleteService(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - DeleteService")
     for key :=range cc {
@@ -58,7 +58,7 @@ func DeleteService(anode map[string]string)(err error) {
 }
 
 func AddPluginService(anode map[string]string) (err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - AddPluginService")
     for key :=range cc {
@@ -84,7 +84,7 @@ func AddPluginService(anode map[string]string) (err error) {
 }
 
 func SaveSuricataInterface(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - SaveSuricataInterface")
     for key :=range cc {
@@ -98,7 +98,7 @@ func SaveSuricataInterface(anode map[string]string)(err error) {
 }
 
 func DeployStapService(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - DeployStapService")
     for key :=range cc {
@@ -112,7 +112,7 @@ func DeployStapService(anode map[string]string)(err error) {
 }
 
 func StopStapService(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - StopStapService")
     for key :=range cc {
@@ -126,7 +126,7 @@ func StopStapService(anode map[string]string)(err error) {
 }
 
 func ModifyStapValues(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - ModifyStapValues")
     for key :=range cc {
@@ -147,7 +147,7 @@ func ModifyStapValues(anode map[string]string)(err error) {
 //     "status": "none"
 // }
 func ChangeSuricataTable(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - ChangeSuricataTable")
     for key :=range cc {

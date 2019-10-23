@@ -2,7 +2,7 @@ package models
 
 import (
     "owlhnode/analyzer"
-    "owlhnode/changeControl"
+//    "owlhnode/changeControl"
     "github.com/astaxie/beego/logs"
 
 )

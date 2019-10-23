@@ -7,7 +7,7 @@ import (
 
 func AddServer(anode map[string]string) (err error) {
     logs.Info("AddServer stap into Node file")
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("STAP - AddServer")
     for key :=range cc {
@@ -99,7 +99,7 @@ func StopStapServer(serveruuid string) (data string, err error) {
 }
 
 func EditStapServer(anode map[string]string) (err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("STAP - EditStapServer")
     for key :=range cc {

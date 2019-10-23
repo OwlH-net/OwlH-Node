@@ -22,7 +22,7 @@ func GetIncidentsNode()(data map[string]map[string]string ,err error) {
 //     "value": "v",
 // }
 func PutIncidentNode(anode map[string]string)(err error){
-    var cc := data
+    cc := data
     logs.Info("============")
     logs.Info("INCIDENT - PutIncidentNode")
     for key :=range anode {

@@ -10,7 +10,7 @@ func ShowPorts() (data map[string]map[string]string, err error) {
 }
 
 func ChangeMode(anode map[string]string) (err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PORTS - ChangeMode")
     for key :=range cc {
@@ -25,7 +25,7 @@ func ChangeMode(anode map[string]string) (err error) {
 }
 
 func ChangeStatus(anode map[string]string) (err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PORTS - ChangeStatus")
     for key :=range cc {
@@ -40,7 +40,7 @@ func ChangeStatus(anode map[string]string) (err error) {
 }
 
 func DeletePorts(anode map[string]string) (err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PORTS - DeletePorts")
     for key :=range cc {
@@ -56,7 +56,7 @@ func DeletePorts(anode map[string]string) (err error) {
 
 func DeleteAllPorts(anode map[string]string) (err error) {
 
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PORTS - DeleteAllPorts")
     for key :=range cc {

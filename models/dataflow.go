@@ -20,7 +20,7 @@ func ChangeDataflowValues(anode map[string]string) (err error) {
 }
 
 func SaveSocketToNetwork(anode map[string]string) (err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - ChangeDataflowValues")
     for key :=range anode {
@@ -43,7 +43,7 @@ func LoadDataflowValues()(data map[string]map[string]string, err error) {
 }
 
 func SaveNewLocal(anode map[string]string)(err error) {
-        var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - SaveNewLocal")
     for key :=range anode {
@@ -61,7 +61,7 @@ func SaveNewLocal(anode map[string]string)(err error) {
 }
 
 func SaveVxLAN(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - SaveVxLAN")
     for key :=range anode {
@@ -76,7 +76,7 @@ func SaveVxLAN(anode map[string]string)(err error) {
 }
 
 func SaveSocketToNetworkSelected(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - SaveSocketToNetworkSelected")
     for key :=range anode {
@@ -91,7 +91,7 @@ func SaveSocketToNetworkSelected(anode map[string]string)(err error) {
 }
 
 func DeleteDataFlowValueSelected(anode map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - DeleteDataFlowValueSelected")
     for key :=range anode {

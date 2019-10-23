@@ -10,7 +10,7 @@ func PingService()(err error) {
 }
 
 func DeployService(anode map[string]map[string]string)(err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("PING - DeployService")
     for key :=range cc {
@@ -34,7 +34,7 @@ func PingPluginsNode()(data map[string]map[string]string ,err error) {
 }
 
 func UpdateNodeData(data map[string]map[string]string)(err error) {
-    var cc := data
+    cc := data
     logs.Info("============")
     logs.Info("PING - UpdateNodeData")
     for key :=range cc {
