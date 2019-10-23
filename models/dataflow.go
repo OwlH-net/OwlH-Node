@@ -5,7 +5,7 @@ import (
 )
 
 func ChangeDataflowValues(anode map[string]string) (err error) {
-    var cc := anode
+    cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - ChangeDataflowValues")
     for key :=range anode {
