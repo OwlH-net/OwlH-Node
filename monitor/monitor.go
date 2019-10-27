@@ -2,10 +2,13 @@ package monitor
 
 import (
     "github.com/astaxie/beego/logs"
-    // "strconv"
+    "strconv"
 	"runtime"
-	"fmt"
+    "fmt"
+    "os"
     "time"
+    "owlhnode/database"
+    "owlhnode/utils"
     // "github.com/pbnjay/memory"
     "github.com/shirou/gopsutil/cpu"
     "github.com/shirou/gopsutil/disk"
@@ -144,4 +147,35 @@ func PrintCPUUsage() {
 
 func bToMb(b uint64) uint64 {
     return b / 1024 / 1024
+}
+
+func AddMonitorFile(anode map[string]string)(err error) {
+    uuid := utils.Generate()
+    err = ndb.InsertMonitorValue(uuid, "path", anode["path"])
+    if err != nil {logs.Error("AddMonitorFile error inserting new path into database: %s", err.Error());return err}
+    
+    return nil
+}
+
+func DeleteMonitorFile(anode map[string]string)(err error) {
+    err = ndb.DeleteMonitorFile(anode["file"])
+    if err != nil {logs.Error("DeleteMonitorFile error inserting new path into database: %s", err.Error());return err}
+    
+    return nil
+}
+
+func PingMonitorFiles()(data map[string]map[string]string, err error) {
+    data,err = ndb.LoadMonitorFiles()
+    if err != nil {logs.Error("PingMonitorFiles error getting monitor paths: %s", err.Error());return nil,err}
+
+    for x := range data {
+        fi, err := os.Stat(data[x]["path"]);
+        if err != nil {
+            data[x]["size"] = "-1"
+        }else{
+            data[x]["size"] = strconv.FormatInt(fi.Size(), 10)
+        }
+    }
+
+	return data,err
 }

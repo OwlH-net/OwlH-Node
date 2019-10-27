@@ -21,7 +21,7 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
         if anode["status"] == "enabled"{
             for x := range allPlugins {
                 //get all db values and check if any
-                if allPlugins[x]["pid"] != "none" && allPlugins[x]["interface"] == anode["interface"] && allPlugins[x]["status"] == "enabled" && x != anode["service"]{
+                if allPlugins[x]["type"] == "suricata" && allPlugins[x]["pid"] != "none" && allPlugins[x]["interface"] == anode["interface"] && allPlugins[x]["status"] == "enabled" && x != anode["service"]{
                     logs.Error("Can't launch more than one suricata with same interface. Please, select other interface.")
                     return errors.New("Can't launch more than one suricata with same interface. Please, select other interface.")
                 }
@@ -55,12 +55,12 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
             err = ndb.UpdatePluginValue(anode["service"],"status","disabled")
             if err != nil {logs.Error("plugin/ChangeServiceStatus error updating zeek status to disabled: "+err.Error()); return err}
         }
-
     }
     return err
 }
 
 func ChangeMainServiceStatus(anode map[string]string)(err error) {
+    logs.Warn(anode)
     err = ndb.UpdateMainconfValue(anode["service"],anode["param"],anode["status"])
     if err != nil {logs.Error("plugin/ChangeMainServiceStatus error: "+err.Error()); return err}
 
@@ -233,33 +233,39 @@ func CheckServicesStatus()(){
                     if err != nil {
                         logs.Error("plugin/CheckServicesStatus error launching SURICATA after node stops: "+err.Error())
                         _ = StopSuricataService(w, allPlugins[w]["status"])
-                    }
-                    logs.Notice("Launching Suricata Service")
+                    }else{
+                        logs.Notice("Launching Suricata Service") 
+                    } 
                 }
             }else if allPlugins[w]["type"] == "zeek"{
-                pid, err := exec.Command("bash","-c","zeekctl status | awk '{print $5}'").Output()
+                StopZeek := map[string]map[string]string{}
+                StopZeek["zeek"] = map[string]string{}
+                StopZeek["zeek"]["zeekctl"] = ""
+                StopZeek,err := utils.GetConf(StopZeek)    
+                if err != nil {logs.Error("StopZeek Error getting data from main.conf: "+err.Error())}
+                zeekBinary := StopZeek["zeek"]["zeekctl"]
+
+                // pid, err := exec.Command("bash","-c","zeekctl status | grep running | awk '{print $5}'").Output()
+                pid, err := exec.Command("bash","-c",zeekBinary+" status | grep running | awk '{print $5}'").Output()
                 if err != nil {logs.Error("plugin/CheckServicesStatus Checking Zeek PID: "+err.Error())}
                 
                 if allPlugins[w]["status"] == "enabled"{                    
                     if (len(pid) == 0){
-                        _,err = zeek.StopZeek()
-                        if err != nil {logs.Error("plugin/CheckServicesStatus error stopping zeek: "+err.Error())}
-                        logs.Notice("Zeek stopped...")
-                        err = zeek.DeployZeek()
+                        err = zeek.DeployZeek()                        
                         if err != nil {logs.Error("plugin/CheckQServicesStatus error deploying zeek: "+err.Error())}
+                        // err = ndb.UpdatePluginValue(w,"pid",string(pid))
                         logs.Notice("Launch Zeek after Node stops")
-                    }else{
-                        pidValue := strings.Split(string(pid), "\n")
-                        if (pidValue != nil && pidValue[1] == ""){
-                            err = zeek.DeployZeek()
-                            if err != nil {logs.Error("plugin/CheckServicesStatus error deploying zeek: "+err.Error())}
-                            logs.Notice("Launch Zeek after Node stops")
-                        }
                     }
+                    // else{
+                    //     if (allPlugins[w]["pid"] != string(pid)){
+                    //         logs.Info("Zeek updated after Node stops")
+                    //     }
+                    // }
                 }else if (allPlugins[w]["status"] == "disabled") {
-                    if (len(pid) == 0){
+                    if (len(pid) != 0){
                         _,err = zeek.StopZeek()
                         if err != nil {logs.Error("plugin/CheckServicesStatus error stopping zeek: "+err.Error())}
+                        // err = ndb.UpdatePluginValue(w,"pid","none")                        
                         logs.Notice("Zeek stopped...")
                     }
                 }
@@ -351,7 +357,7 @@ func CheckServicesStatus()(){
 }
 
 func LaunchSuricataService(uuid string, iface string)(err error){
-
+    logs.Notice(uuid+"     --     "+iface)
     mainConfData, err := ndb.GetMainconfData()
     if (mainConfData["suricata"]["status"] == "disabled"){ return nil }
 
@@ -609,5 +615,39 @@ func StopStapService(anode map[string]string)(err error) {
 
     logs.Notice(allPlugins[anode["service"]]["type"]+" service stopped successfuly!")
 
+    return nil
+}
+
+func ChangeSuricataTable(anode map[string]string)(err error) {
+    allPlugins,err := ndb.GetPlugins()
+    data, err := ndb.GetMainconfData()
+
+    for x := range allPlugins {
+        if anode["status"] == "expert" {
+            err = ndb.UpdateMainconfValue("suricata", "previousStatus", data["suricata"]["status"]); if err != nil {logs.Error("ChangeSuricataTable status Error: "+err.Error()); return err}
+            err = ndb.UpdateMainconfValue("suricata", "status", "expert"); if err != nil {logs.Error("ChangeSuricataTable status Error: "+err.Error()); return err}
+            if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata"{
+                err = StopSuricataService(x, allPlugins[x]["status"])
+                if err != nil {logs.Error("StopSuricataService status Error: "+err.Error()); return err}
+            } 
+        }else{
+            if data["suricata"]["previousStatus"] == "enabled" {
+                err = ndb.UpdateMainconfValue("suricata", "status", data["suricata"]["previousStatus"])
+                err = ndb.UpdateMainconfValue("suricata", "previousStatus", "disabled")  
+                if allPlugins[x]["previousState"] == "enabled" && allPlugins[x]["type"] == "suricata"{
+                    err = LaunchSuricataService(x, allPlugins[x]["interface"])
+                    if err != nil {logs.Error("StopSuricataService status Error: "+err.Error()); return err}
+                }          
+            }else if data["suricata"]["previousStatus"] == "disabled"{
+                err = ndb.UpdateMainconfValue("suricata", "status", data["suricata"]["previousStatus"])
+                err = ndb.UpdateMainconfValue("suricata", "previousStatus", "enabled")
+                if allPlugins[x]["previousStatus"] == "enabled" && allPlugins[x]["type"] == "suricata"{
+                    err = StopSuricataService(x, allPlugins[x]["status"])
+                    if err != nil {logs.Error("ChangeSuricataTable LaunchSuricataService status Error: "+err.Error()); return err}
+                }
+            }
+        }
+    }
+    
     return nil
 }

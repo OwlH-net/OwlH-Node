@@ -47,6 +47,12 @@ func (n *SuricataController) Get() {
 func (n *SuricataController) SetBPF() {
     var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	
+	anode["action"] = "PUT"
+    anode["controller"] = "SURICATA"
+    anode["router"] = "@router /bpf [put]"
+
+	
     err := models.SetBPF(anode)
 
     n.Data["json"] = map[string]string{"ack": "true"}
@@ -65,6 +71,14 @@ func (n *SuricataController) SetBPF() {
 func (n *SuricataController) SyncRulesetFromMaster() {
     var anode map[string][]byte
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    logs.Info("ACTION -> PUT")
+    logs.Info("CONTROLLER -> SURICATA")
+    logs.Info("ROUTER -> @router /sync [put]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+
     err := models.SyncRulesetFromMaster(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -80,6 +94,15 @@ func (n *SuricataController) SyncRulesetFromMaster() {
 // @Failure 403 body is empty
 // @router /RunSuricata [put]
 func (n *SuricataController) RunSuricata() {
+    var anode map[string]string
+    anode["action"] = "PUT"
+    anode["controller"] = "SURICATA"
+    anode["router"] = "@router /RunSuricata [put]"
+    logs.Info("============")
+    logs.Info("SURICATA - RunSuricata")
+    for key :=range anode {
+        logs.Info(key +" -> "+anode[key])
+    }
     data,err := models.RunSuricata()
     n.Data["json"] = data
     if err != nil {
@@ -95,6 +118,15 @@ func (n *SuricataController) RunSuricata() {
 // @Failure 403 body is empty
 // @router /StopSuricata [put]
 func (n *SuricataController) StopSuricata() {
+    var anode map[string]string
+    anode["action"] = "PUT"
+    anode["controller"] = "SURICATA"
+    anode["router"] = "@router /StopSuricata [put]"
+    logs.Info("============")
+    logs.Info("SURICATA - StopSuricata")
+    for key :=range anode {
+        logs.Info(key +" -> "+anode[key])
+    }
     data,err := models.StopSuricata()
     n.Data["json"] = data
     if err != nil {

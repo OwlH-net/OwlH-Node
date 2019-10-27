@@ -18,7 +18,7 @@ type AnalyzerController struct {
 // @router /pingAnalyzer [get]
 func (m *AnalyzerController) PingAnalyzer() {	
 	data, err := models.PingAnalyzer()
-	m.Data["json"] = map[string]string{"status": data}
+	m.Data["json"] = data
 	if err != nil {
         logs.Info("PingAnalyzer OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -33,7 +33,11 @@ func (m *AnalyzerController) PingAnalyzer() {
 func (m *AnalyzerController) ChangeAnalyzerStatus() {	
 	var anode map[string]string
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-	err := models.ChangeAnalyzerStatus(anode)
+	anode["action"] = "PUT"
+    anode["controller"] = "ANALYZER"
+    anode["router"] = "@router /changeAnalyzerStatus [put]"
+    err := models.ChangeAnalyzerStatus(anode)
+
 	m.Data["json"] = map[string]string{"ack": "true"}
 	if err != nil {
         logs.Info("ChangeAnalyzerStatus OUT -- ERROR : %s", err.Error())

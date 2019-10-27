@@ -2,7 +2,10 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
-	"owlhnode/models"
+    "owlhnode/models"
+    "encoding/json"
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs"
 )
 
 type PingController struct {
@@ -14,6 +17,26 @@ type PingController struct {
 // @router / [get]
 func (n *PingController) PingNode() {
 	n.Data["json"] = map[string]string{"ack": "true"}
+    n.ServeJSON()
+}
+
+// @Title UpdateNodeData
+// @Description update node data
+// @router /updateNode [put]
+func (n *PingController) UpdateNodeData() {
+	var anode map[string]map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	logs.Info("ACTION -> PUT")
+    logs.Info("CONTROLLER -> PING")
+    logs.Info("ROUTER -> @router /updateNode [put]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+    err := models.UpdateNodeData(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     n.ServeJSON()
 }
 
@@ -33,7 +56,12 @@ func (n *PingController) PingService() {
 // @Description get ping for node
 // @router /deployservice [put]
 func (n *PingController) DeployService() {
-	err := models.DeployService()
+	var anode map[string]map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    logs.Info("ACTION -> PUT")
+    logs.Info("CONTROLLER -> PING")
+    logs.Info("ROUTER -> @router /deployservice [put]")
+	err := models.DeployService(anode)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

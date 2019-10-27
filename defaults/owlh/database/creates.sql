@@ -49,3 +49,33 @@ CREATE TABLE mainconf (
     main_param text NOT NULL,
     main_value text NOT NULL
 );
+CREATE TABLE files (
+    file_id integer PRIMARY KEY AUTOINCREMENT,
+    file_uniqueid text NOT NULL,
+    file_param text NOT NULL,
+    file_value text NOT NULL
+);
+CREATE TABLE cluster (
+    cluster_id integer PRIMARY KEY AUTOINCREMENT,
+    cluster_uniqueid text NOT NULL,
+    cluster_param text NOT NULL,
+    cluster_value text NOT NULL
+);
+CREATE TABLE changerecord (
+    control_id integer PRIMARY KEY AUTOINCREMENT,
+    control_uniqueid text NOT NULL,
+    control_param text NOT NULL,
+    control_value text NOT NULL
+);
+CREATE TABLE node (
+    node_id integer PRIMARY KEY AUTOINCREMENT,
+    node_uniqueid text NOT NULL,
+    node_param text NOT NULL,
+    node_value text NOT NULL
+);
+ CREATE TABLE incidents (
+    incidents_id integer PRIMARY KEY AUTOINCREMENT,
+    incidents_uniqueid text NOT NULL,
+    incidents_param text NOT NULL,
+    incidents_value text NOT NULL
+);

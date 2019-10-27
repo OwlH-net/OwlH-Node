@@ -2,14 +2,24 @@ package models
 
 import (
 	"owlhnode/ping"
-)
+//    "owlhnode/changeControl"
+    "github.com/astaxie/beego/logs")
 
 func PingService()(err error) {
 	err = ping.PingService()
     return err
 }
 
-func DeployService()(err error) {
+func DeployService(anode map[string]map[string]string)(err error) {
+    cc := anode
+    logs.Info("============")
+    logs.Info("PING - DeployService")
+    for key :=range cc {
+        logs.Info(key +" -> ")
+    }
+    delete(anode,"action")
+    delete(anode,"controller")
+    delete(anode,"router")
 	err = ping.DeployService()
     return err
 }
@@ -22,4 +32,19 @@ func GetMainconfData()(data map[string]map[string]string, err error) {
 func PingPluginsNode()(data map[string]map[string]string ,err error) {
 	data, err = ping.PingPluginsNode()
 	return data, err
+}
+
+func UpdateNodeData(data map[string]map[string]string)(err error) {
+    cc := data
+    logs.Info("============")
+    logs.Info("PING - UpdateNodeData")
+    for key :=range cc {
+        logs.Info(key +" -> ")
+    }
+    delete(data,"action")
+    delete(data,"controller")
+    delete(data,"router")
+    
+	err = ping.UpdateNodeData(data)
+	return err
 }

@@ -4,12 +4,13 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/google/gopacket/pcap"
 	"owlhnode/database"
-	"owlhnode/utils"
+	"owlhnode/zeek"
+	// "owlhnode/utils"
 	// "owlhnode/zeek"
 	// "owlhnode/suricata"
-	"io/ioutil"
-	"regexp"
-	"strings"
+	// "io/ioutil"
+	// "regexp"
+	// "strings"
 )
 func ListInterfaces(interfaces []pcap.Interface)(netValues map[string]string) {
 	data := make(map[string]string)
@@ -61,21 +62,19 @@ func UpdateNetworkInterface(data map[string]string) (err error) {
 	// if err != nil {logs.Error("UpdateNetworkInterface Error calling function GetRegexpInterface: "+err.Error())}
 
 	//read zeek file
-	zeekPath := map[string]map[string]string{}
-    zeekPath["loadDataZeekPath"] = map[string]string{}
-    zeekPath["loadDataZeekPath"]["nodeConfig"] = ""
-	zeekPath,err = utils.GetConf(zeekPath)
-	if err != nil {logs.Error("UpdateNetworkInterface Error readding GetConf: "+err.Error())}
-	zeekPathValue := zeekPath["loadDataZeekPath"]["nodeConfig"]
+	// zeekPath := map[string]map[string]string{}
+    // zeekPath["loadDataZeekPath"] = map[string]string{}
+    // zeekPath["loadDataZeekPath"]["nodeConfig"] = ""
+	// zeekPath,err = utils.GetConf(zeekPath)
+	// if err != nil {logs.Error("UpdateNetworkInterface Error readding GetConf: "+err.Error())}
+	// zeekPathValue := zeekPath["loadDataZeekPath"]["nodeConfig"]
 
-	reg := regexp.MustCompile(`interface=`)
-	err = GetRegexpInterface(data,zeekPathValue, reg, "interface="+data["value"])
-	if err != nil {logs.Error("UpdateNetworkInterface Error calling function GetRegexpInterface: "+err.Error())}
-	reg = regexp.MustCompile(`INTERFACE="`)
-	err = GetRegexpInterface(data,zeekPathValue, reg, "INTERFACE=\""+data["value"]+"\"")
-	if err != nil {logs.Error("UpdateNetworkInterface Error calling function GetRegexpInterface: "+err.Error())}
-
-
+	// reg := regexp.MustCompile(`interface=`)
+	// err = GetRegexpInterface(data,zeekPathValue, reg, "interface="+data["value"])
+	// if err != nil {logs.Error("UpdateNetworkInterface Error calling function GetRegexpInterface: "+err.Error())}
+	// reg = regexp.MustCompile(`INTERFACE="`)
+	// err = GetRegexpInterface(data,zeekPathValue, reg, "INTERFACE=\""+data["value"]+"\"")
+	// if err != nil {logs.Error("UpdateNetworkInterface Error calling function GetRegexpInterface: "+err.Error())}
 
 	//update database with the new value
 	// err = ndb.ChangeNodeconfigValues(data["uuid"],data["param"],data["value"])
@@ -90,6 +89,7 @@ func UpdateNetworkInterface(data map[string]string) (err error) {
 	//update zeek db interface
 	err = ndb.UpdatePluginValue(data["service"], "interface", data["value"]); if err != nil {logs.Error("UpdateNetworkInterface Zeek interface update Error: "+err.Error()); return err}
 
+	err = zeek.SyncCluster(data, "standalone"); if err != nil {logs.Error("UpdateNetworkInterface Zeek update interface and node.cfg Error: "+err.Error()); return err}
 	// //restart zeek
 	// err = zeek.DeployZeek()
 	// if err != nil {logs.Error("UpdateNetworkInterface Error restarting Zeek"); return err}
@@ -97,26 +97,26 @@ func UpdateNetworkInterface(data map[string]string) (err error) {
     return nil
 }
 
-func GetRegexpInterface(data map[string]string, path string, regexpValue *regexp.Regexp, newLine string)(err error){
-	//get first occurrence suricata
-	input, err := ioutil.ReadFile(path)
-	if err != nil {logs.Error("GetRegexpInterface Error readding zeek interface file: "+err.Error()); return err}
-	lines := strings.Split(string(input), "\n")
+// func GetRegexpInterface(data map[string]string, path string, regexpValue *regexp.Regexp, newLine string)(err error){
+// 	//get first occurrence suricata
+// 	input, err := ioutil.ReadFile(path)
+// 	if err != nil {logs.Error("GetRegexpInterface Error readding zeek interface file: "+err.Error()); return err}
+// 	lines := strings.Split(string(input), "\n")
 	
-	found := false
-	for i := range lines {		
-		regexpresult := regexpValue.FindStringSubmatch(lines[i])
-		if regexpresult != nil && !found{
-			lines[i] = newLine
-			found = true
-		}
-	}
-	output := strings.Join(lines, "\n")
-	err = ioutil.WriteFile(path, []byte(output), 0644)
-	if err != nil {logs.Error("GetRegexpInterface Error writting new interface for Node: "+err.Error()); return err}
+// 	found := false
+// 	for i := range lines {		
+// 		regexpresult := regexpValue.FindStringSubmatch(lines[i])
+// 		if regexpresult != nil && !found{
+// 			lines[i] = newLine
+// 			found = true
+// 		}
+// 	}
+// 	output := strings.Join(lines, "\n")
+// 	err = ioutil.WriteFile(path, []byte(output), 0644)
+// 	if err != nil {logs.Error("GetRegexpInterface Error writting new interface for Node: "+err.Error()); return err}
 
-	return nil
-}
+// 	return nil
+// }
 
 // func LoadNetworkValuesSuricata()(values map[string]map[string]string, err error) {
 // 	GetNetworkData

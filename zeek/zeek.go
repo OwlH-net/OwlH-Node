@@ -5,7 +5,9 @@ import (
     "os"
     "os/exec"
     "strings"
+    "strconv"
 	"owlhnode/utils"
+	"owlhnode/database"
 	"errors"
 )
 
@@ -155,15 +157,129 @@ func DeployZeek()(err error){
     //DeployZeek["zeekDeploy"]["command"] = ""
     DeployZeek,err = utils.GetConf(DeployZeek)    
     //cmd := DeployZeek["zeekDeploy"]["cmd"]
-    //param := DeployZeek["zeekDeploy"]["param"]
+    //param := DeployZeek["zeekDeploy"]["param"],
     //command := DeployZeek["zeekDeploy"]["command"]
     if err != nil {
         logs.Error("DeployZeek Error getting data from main.conf: "+err.Error())
     }
     err = utils.RunCommand(DeployZeek["zeek"]["zeekctl"],DeployZeek["zeek"]["deploy"])
-    if err != nil {
-        logs.Error("Error deploying zeek: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("Error deploying zeek: "+err.Error()); return err}
+
     return nil
+}
+
+func ChangeZeekMode(anode map[string]string) (err error) {
+    err = ndb.UpdateMainconfValue("zeek", "mode", anode["mode"])
+    if err != nil {logs.Error("Error ChangeZeekMode: "+err.Error()); return err}
+    return err
+}
+
+func AddClusterValue(anode map[string]string) (err error) {
+    count,err := ndb.CountDBEntries(anode["type"]); if err != nil {logs.Error("Error AddClusterValue type: "+err.Error()); return err}
+    count++
+    err = ndb.InsertClusterData(anode["type"]+"-"+strconv.Itoa(count), "type", anode["type"]); if err != nil {logs.Error("Error AddClusterValue type: "+err.Error()); return err}
+    err = ndb.InsertClusterData(anode["type"]+"-"+strconv.Itoa(count), "host", anode["host"]); if err != nil {logs.Error("Error1 AddClusterValue host: "+err.Error()); return err}
+    if anode["type"] == "worker"{
+        err = ndb.InsertClusterData(anode["type"]+"-"+strconv.Itoa(count), "interface", anode["interface"]); if err != nil {logs.Error("Error AddClusterValue interface: "+err.Error()); return err}
+    }
+    return err
+}
+
+func PingCluster()(data map[string]map[string]string, err error) {
+    data,err = ndb.GetClusterData(); if err != nil {logs.Error("Error Zeek/PingCluster: "+err.Error()); return nil,err}
+    return data,err
+}
+
+func EditClusterValue(anode map[string]string) (err error) {
+    err = ndb.UpdateClusterValue(anode["type"], "host", anode["host"]); if err != nil {logs.Error("Error Zeek/EditClusterValue: "+err.Error()); return err}
+    if anode["cluster"] == "worker"{
+        err = ndb.UpdateClusterValue(anode["type"], "interface", anode["interface"]); if err != nil {logs.Error("Error Zeek/EditClusterValue: "+err.Error()); return err}
+    }
+    return err
+}
+
+func DeleteClusterValue(anode map[string]string) (err error) {
+    err = ndb.DeleteClusterValue(anode["type"]); if err != nil {logs.Error("Error Zeek/DeleteClusterValue: "+err.Error()); return err}
+    //change indentifier
+    countWorker := 1
+    countProxy := 1
+    data,err := ndb.GetClusterData(); if err != nil {logs.Error("Error Zeek/DeleteClusterValue: "+err.Error()); return err}
+    err = ndb.DeleteAllClusters(); if err != nil {logs.Error("Error Zeek/DeleteClusterValue: "+err.Error()); return err}
+    
+    for id,_ := range data {
+        if id == "manager" || id == "logger"{
+            err = ndb.InsertClusterData(id, "host", data[id]["host"]); if err != nil {logs.Error("Error DeleteClusterValue manager: "+err.Error()); return err}
+        }else{
+            if data[id]["type"] == "worker" {
+                err = ndb.InsertClusterData(data[id]["type"]+"-"+strconv.Itoa(countWorker), "type", data[id]["type"]); if err != nil {logs.Error("Error DeleteClusterValue type: "+err.Error()); return err}
+                err = ndb.InsertClusterData(data[id]["type"]+"-"+strconv.Itoa(countWorker), "host", data[id]["host"]); if err != nil {logs.Error("Error DeleteClusterValue host: "+err.Error()); return err}
+                err = ndb.InsertClusterData(data[id]["type"]+"-"+strconv.Itoa(countWorker), "interface", data[id]["interface"]); if err != nil {logs.Error("Error DeleteClusterValue type: "+err.Error()); return err}
+                countWorker++
+            }else{
+                err = ndb.InsertClusterData(data[id]["type"]+"-"+strconv.Itoa(countProxy), "type", data[id]["type"]); if err != nil {logs.Error("Error DeleteClusterValue type: "+err.Error()); return err}
+                err = ndb.InsertClusterData(data[id]["type"]+"-"+strconv.Itoa(countProxy), "host", data[id]["host"]); if err != nil {logs.Error("Error DeleteClusterValue host: "+err.Error()); return err}
+                countProxy++
+            }
+        }
+    }
+
+    return err
+}
+
+func SyncCluster(anode map[string]string, clusterType string) (err error) {
+    zeekPath := map[string]map[string]string{}
+    zeekPath["loadDataZeekPath"] = map[string]string{}
+    zeekPath["loadDataZeekPath"]["nodeConfig"] = ""
+	zeekPath,err = utils.GetConf(zeekPath)
+	if err != nil {logs.Error("SyncCluster Error readding GetConf: "+err.Error())}
+    path := zeekPath["loadDataZeekPath"]["nodeConfig"]
+    
+    h := 0
+    fileContent := make(map[int]string)
+
+    if clusterType == "standalone" {
+        fileContent[h] = "[bro]"; h++
+        fileContent[h] = "type=standalone"; h++
+        fileContent[h] = "host=localhost"; h++
+        fileContent[h] = "interface="+anode["value"]; h++
+    }else if clusterType == "cluster" {
+        data,err := ndb.GetClusterData(); if err != nil {logs.Error("Error Zeek/SyncCluster: "+err.Error()); return err}
+        
+        for t := range data{
+            if t == "logger"{
+                fileContent[h] = "[logger]"; h++
+                fileContent[h] = "type=logger"; h++
+                fileContent[h] = "host="+data[t]["host"]; h++
+                fileContent[h] = ""; h++
+            }else if t == "manager"{
+                fileContent[h] = "[manager]"; h++
+                fileContent[h] = "type=manager"; h++
+                fileContent[h] = "host="+data[t]["host"]; h++
+                fileContent[h] = ""; h++
+            }else if data[t]["type"] == "proxy"{
+                fileContent[h] = "["+t+"]"; h++
+                fileContent[h] = "type="+data[t]["type"]; h++
+                fileContent[h] = "host="+data[t]["host"]; h++
+                fileContent[h] = ""; h++
+            }else if data[t]["type"] == "worker"{
+                fileContent[h] = "["+t+"]"; h++
+                fileContent[h] = "type="+data[t]["type"]; h++
+                fileContent[h] = "host="+data[t]["host"]; h++
+                fileContent[h] = "interface="+data[t]["interface"]; h++
+                fileContent[h] = ""; h++
+            }
+        }
+    }
+
+    saveIntoFile, err := os.OpenFile(path , os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+    if err != nil {logs.Error("Error SyncCluster readding file: "+err.Error()); return err}
+    defer saveIntoFile.Close()
+    saveIntoFile.Truncate(0)
+    saveIntoFile.Seek(0,0)
+    for x:=0 ; x < h ; x++{
+        _, err = saveIntoFile.WriteAt([]byte(fileContent[x]+"\n"), 0) // Write at 0 beginning
+        if err != nil {logs.Error("SyncCluster failed writing to file: %s", err); return err}
+    }
+
+    return err
 }

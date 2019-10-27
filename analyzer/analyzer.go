@@ -257,6 +257,7 @@ func LoadMapper() {
 
 func dispatch(line string) {
     for channel := range Dispatcher {
+        //logs.Notice("Add to channel: "+channel+" --> línea: "+line)
         Dispatcher[channel] <- line
     }
 }
@@ -307,8 +308,8 @@ func IoCtoAlert(line, ioc, iocsrc string) {
 
 func InitAnalizer() {
     logs.Info("starting analyzer")
-    status,_ := PingAnalyzer()
-    if status == "Disabled"{
+    analyzer,_ := PingAnalyzer()
+    if analyzer["status"] == "Disabled"{
         return
     }
     readconf()
@@ -317,29 +318,52 @@ func InitAnalizer() {
     LoadAnalyzers()
     LoadSources()
     for {
-        status,_ = PingAnalyzer()
-		if status == "Disabled"{
-			break
-		}
-		time.Sleep(time.Second * 3)
+        analyzer,_ = PingAnalyzer()
+        if analyzer["status"] == "Disabled"{
+            break
+        }
+        time.Sleep(time.Second * 3)
     }
 }
 
 func Init(){
-
     go InitAnalizer()
 }
 
-func PingAnalyzer()(data string ,err error) {
-	analyzerData,err := ndb.GetStatusAnalyzer()
-	if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return "",err}
+func PingAnalyzer()(data map[string]string ,err error) {
+    wazuhFile := map[string]map[string]string{}
+	wazuhFile["node"] = map[string]string{}
+    wazuhFile["node"]["alertLog"] = ""
+    wazuhFile,err = utils.GetConf(wazuhFile)    
+    filePath := wazuhFile["node"]["alertLog"]
+    if err != nil {logs.Error("PingAnalyzer Error getting data from main.conf")}
 
-	return analyzerData	, nil
+    analyzerData := make(map[string]string)
+    analyzerData["status"] = "Disabled"
+
+
+    analyzerStatus,err := ndb.GetStatusAnalyzer()
+    logs.Info("ANALYZER STATUS - "+analyzerStatus)
+    if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return analyzerData,err}
+
+    analyzerData["status"] = analyzerStatus
+    analyzerData["path"] = filePath
+
+    fi, err := os.Stat(filePath);
+    if err != nil { logs.Error("Can't access Analyzer ouput file data: "+err.Error()); return analyzerData,err}
+    size := fi.Size()
+
+    analyzerData["size"] = strconv.FormatInt(size, 10)
+
+
+
+    return analyzerData, nil
 }
 
 func ChangeAnalyzerStatus(anode map[string]string) (err error) {
-	err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
-	if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
+    logs.Info("ANALYZER STATUS - NEW STATUS - "+anode["status"])
+    err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
+    if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
 
-	return nil
+    return nil
 }

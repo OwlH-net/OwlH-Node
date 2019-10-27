@@ -18,6 +18,9 @@ type DeployController struct {
 func (n *DeployController) DeployNode() {
     var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	anode["action"] = "PUT"
+    anode["controller"] = "DEPLOY"
+    anode["router"] = "@router / [put]"
     err := models.DeployNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {

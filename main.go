@@ -86,9 +86,10 @@ func main() {
     logs.NewLogger(10000)
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
-    ndb.SConn()
-    ndb.PConn()
-    ndb.NConn()
+    ndb.SConn() //stap database
+    ndb.PConn() //plugins database
+    ndb.NConn() //node database
+    ndb.MConn() //monitor database
 
     // logs.Error("Version: 0.5.190415.0922")
 

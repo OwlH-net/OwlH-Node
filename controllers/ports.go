@@ -48,6 +48,9 @@ func (m *PortsController) ShowPorts() {
 func (m *PortsController) ChangeMode() {
     var anode map[string]string
 	json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+    anode["action"] = "PUT"
+    anode["controller"] = "PORTS"
+    anode["router"] = "@router /mode [put]"
 
 	err := models.ChangeMode(anode)
 	m.Data["json"] = map[string]string{"ack": "true"}
@@ -65,6 +68,9 @@ func (m *PortsController) ChangeMode() {
 func (m *PortsController) ChangeStatus() {
 	var anode map[string]string
 	json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+    anode["action"] = "PUT"
+    anode["controller"] = "PORTS"
+    anode["router"] = "@router /status [put]"	
 	anode["plugin"] = "knownports"
     logs.Info ("ports controller -> GET")
 	err := models.ChangeStatus(anode)
@@ -86,7 +92,9 @@ func (m *PortsController) ChangeStatus() {
 func (m *PortsController) DeletePorts() {
 	var anode map[string]string
 	json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-
+    anode["action"] = "PUT"
+    anode["controller"] = "PORTS"
+    anode["router"] = "@router /delete [put]"
 	err := models.DeletePorts(anode)
 	m.Data["json"] = map[string]string{"ack": "true"}
 	if err != nil {
@@ -102,7 +110,11 @@ func (m *PortsController) DeletePorts() {
 // @Success 200 {object} models.ports
 // @router /deleteAll [put]
 func (m *PortsController) DeleteAllPorts() {
-	err := models.DeleteAllPorts()
+    var anode map[string]string
+    anode["action"] = "PUT"
+    anode["controller"] = "PORTS"
+    anode["router"] = "@router /mode [put]"
+	err := models.DeleteAllPorts(anode)
 	m.Data["json"] = map[string]string{"ack": "true"}
 	if err != nil {
         logs.Info("DeletePorts OUT -- ERROR : %s", err.Error())

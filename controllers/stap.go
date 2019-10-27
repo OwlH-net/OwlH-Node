@@ -20,7 +20,9 @@ func (n *StapController) AddServer() {
 	
 	var newServer map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &newServer)
-
+    newServer["action"] = "POST"
+    newServer["controller"] = "STAP"
+    newServer["router"] = "@router / [post]"
 	err := models.AddServer(newServer)
 
 	n.Data["json"] = map[string]string{"ack": "true"}
@@ -93,6 +95,17 @@ func (n *StapController) PingStap() {
 func (n *StapController) RunStap() {
     logs.Info("RunStap -> In")
     uuid := n.GetString(":uuid")
+    var anode map[string]string
+    anode["action"] = "PUT"
+    anode["controller"] = "STAP"
+    anode["router"] = "@router /RunStap/:uuid [put]"
+    anode["uuid"] = uuid
+    logs.Info("============")
+    logs.Info("STAP - RunStap")
+    for key :=range anode {
+        logs.Info(key +" -> "+anode[key])
+    }
+
     data,err := models.RunStap(uuid)
     n.Data["json"] = data
     if err != nil {
@@ -111,6 +124,16 @@ func (n *StapController) RunStap() {
 func (n *StapController) StopStap() {
     logs.Info("StopStap -> In")
     uuid := n.GetString(":uuid")
+    var anode map[string]string
+    anode["action"] = "PUT"
+    anode["controller"] = "STAP"
+    anode["router"] = "@router /StopStap/:uuid [put]"
+    anode["uuid"] = uuid
+    logs.Info("============")
+    logs.Info("STAP - RunStap")
+    for key :=range anode {
+        logs.Info(key +" -> "+anode[key])
+    }
     data,err := models.StopStap(uuid)
     n.Data["json"] = data
     if err != nil {
@@ -129,6 +152,16 @@ func (n *StapController) StopStap() {
 func (n *StapController) RunStapServer() {
     logs.Info("RunStapServer -> In")
     serveruuid := n.GetString(":serveruuid")
+        var anode map[string]string
+    anode["action"] = "PUT"
+    anode["controller"] = "STAP"
+    anode["router"] = "@router /RunStapServer/:serveruuid [put]"
+    anode["serveruuid"] = serveruuid
+    logs.Info("============")
+    logs.Info("STAP - RunStap")
+    for key :=range anode {
+        logs.Info(key +" -> "+anode[key])
+    }
     data,err := models.RunStapServer(serveruuid)
     n.Data["json"] = data
     //logs.Warn("data RunStapServer -->"+data)
@@ -148,6 +181,16 @@ func (n *StapController) RunStapServer() {
 func (n *StapController) StopStapServer() {
     logs.Info("StopStapServer -> In")
     serveruuid := n.GetString(":serveruuid")
+    var anode map[string]string
+    anode["action"] = "PUT"
+    anode["controller"] = "STAP"
+    anode["router"] = "@router /StopStapServer/:serveruuid [put]"
+    anode["serveruuid"] = serveruuid
+    logs.Info("============")
+    logs.Info("STAP - RunStap")
+    for key :=range anode {
+        logs.Info(key +" -> "+anode[key])
+    }
     data,err := models.StopStapServer(serveruuid)
     n.Data["json"] = data
     if err != nil {
@@ -166,6 +209,7 @@ func (n *StapController) PingServerStap() {
     logs.Info ("stap controller -> PingServerStap")
     server := n.GetString(":server")
     logs.Info("Ping Stap server = "+server)
+
 	data, err := models.PingServerStap(server)
 	n.Data["json"] = data
 	if err != nil {
@@ -183,6 +227,17 @@ func (n *StapController) PingServerStap() {
 func (n *StapController) DeleteStapServer() {
     logs.Info("DeleteStapServer -> In")
     serveruuid := n.GetString(":serveruuid")
+    var anode map[string]string
+    anode["action"] = "PUT"
+    anode["controller"] = "STAP"
+    anode["router"] = "@router /DeleteStapServer/:serveruuid [put]"
+    anode["serveruuid"] = serveruuid
+    logs.Info("============")
+    logs.Info("STAP - RunStap")
+    for key :=range anode {
+        logs.Info(key +" -> "+anode[key])
+    }
+    
     data,err := models.DeleteStapServer(serveruuid)
     n.Data["json"] = data
     if err != nil {
@@ -201,6 +256,10 @@ func (n *StapController) DeleteStapServer() {
 func (n *StapController) EditStapServer() {
     var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    anode["action"] = "PUT"
+    anode["controller"] = "STAP"
+    anode["router"] = "@router /EditStapServer [put]"
+
     err := models.EditStapServer(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {

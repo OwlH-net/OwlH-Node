@@ -169,6 +169,18 @@ func GetMainconfData()(path map[string]map[string]string, err error){
 	return mainconfValues,nil
 }
 
+func InsertGetMainconfData(uuid string, param string, value string)(err error){
+	insertPlugin, err := Pdb.Prepare("insert into mainconf(main_uniqueid, main_param, main_value) values (?,?,?);")
+	if (err != nil){ logs.Error("InsertGetMainconfData INSERT prepare error: "+err.Error()); return err}
+
+	_, err = insertPlugin.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("InsertGetMainconfData INSERT exec error: "+err.Error()); return err}
+
+	defer insertPlugin.Close()
+	
+	return nil
+}
+
 func UpdatePluginValue(uuid string, param string, value string)(err error){
 	UpdatePluginValueNode, err := Pdb.Prepare("update plugins set plugin_value = ? where plugin_uniqueid = ? and plugin_param = ?;")
 	if (err != nil){ logs.Error("UpdatePluginValue UPDATE prepare error: "+err.Error()); return err}
@@ -199,6 +211,89 @@ func DeleteService(uuid string)(err error){
 
 	_, err = DeleteServiceNode.Exec(&uuid)
 	if (err != nil){ logs.Error("DeleteService exec error: "+err.Error()); return err}
+
+	defer DeleteServiceNode.Close()
+	
+	return nil
+}
+
+func InsertClusterData(uuid string, param string, value string)(err error){
+	insertPlugin, err := Pdb.Prepare("insert into cluster(cluster_uniqueid, cluster_param, cluster_value) values (?,?,?);")
+	if (err != nil){ logs.Error("InsertClusterData INSERT prepare error: "+err.Error()); return err}
+
+	_, err = insertPlugin.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("InsertClusterData INSERT exec error: "+err.Error()); return err}
+
+	defer insertPlugin.Close()
+	
+	return nil
+}
+
+func CountDBEntries(clusterType string)(count int, err error){
+	rows, err := Pdb.Query("select count(*) from cluster where cluster_value like '%"+clusterType+"%';")
+	if err != nil {logs.Error("CountDBEntries Pdb.Query Error : %s", err.Error()); return -1, err}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&count); err != nil {logs.Error("CountDBEntries -- Query return error: %s", err.Error()); return -1, err}
+	} 
+	return count,nil
+}
+
+func GetClusterData()(path map[string]map[string]string, err error){
+	var clusterValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+
+	sql := "select cluster_uniqueid, cluster_param, cluster_value from cluster;";
+	
+	rows, err := Pdb.Query(sql)
+	if err != nil {
+		logs.Error("GetClusterData Pdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetClusterData -- Query return error: %s", err.Error())
+            return nil, err
+		}
+        if clusterValues[uniqid] == nil { clusterValues[uniqid] = map[string]string{}}
+        clusterValues[uniqid][param]=value
+	} 
+	return clusterValues,nil
+}
+
+func UpdateClusterValue(uuid string, param string, value string)(err error){
+	UpdateClusterValueNode, err := Pdb.Prepare("update cluster set cluster_value = ? where cluster_uniqueid = ? and cluster_param = ?;")
+	if (err != nil){ logs.Error("UpdateClusterValue UPDATE prepare error: "+err.Error()); return err}
+
+	_, err = UpdateClusterValueNode.Exec(&value, &uuid, &param)
+	if (err != nil){ logs.Error("UpdateClusterValue exec error: "+err.Error()); return err}
+
+	defer UpdateClusterValueNode.Close()
+	
+	return nil
+}
+
+func DeleteClusterValue(uuid string)(err error){
+	DeleteServiceNode, err := Pdb.Prepare("delete from cluster where cluster_uniqueid = ?;")
+	if (err != nil){ logs.Error("DeleteClusterValue DELETE prepare error: "+err.Error()); return err}
+
+	_, err = DeleteServiceNode.Exec(&uuid)
+	if (err != nil){ logs.Error("DeleteClusterValue exec error: "+err.Error()); return err}
+
+	defer DeleteServiceNode.Close()
+	
+	return nil
+}
+
+func DeleteAllClusters()(err error){
+	DeleteServiceNode, err := Pdb.Prepare("delete from cluster;")
+	if (err != nil){ logs.Error("DeleteAllClusters DELETE prepare error: "+err.Error()); return err}
+
+	_, err = DeleteServiceNode.Exec()
+	if (err != nil){ logs.Error("DeleteAllClusters exec error: "+err.Error()); return err}
 
 	defer DeleteServiceNode.Close()
 	
