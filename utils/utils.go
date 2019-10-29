@@ -5,8 +5,8 @@ import (
     "strconv"
     "github.com/astaxie/beego/logs"
     "io/ioutil"
-	"io"
-	"errors"
+    "io"
+    "errors"
     "os"
     "time"
     "os/exec"
@@ -22,7 +22,7 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
     if err != nil {
         logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
         return nil, err
-	}
+    }
 
     var anode map[string]map[string]string
     json.Unmarshal(jsonPath, &anode)
@@ -42,18 +42,18 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
 func UpdateBPFFile(path string, file string, bpf string) (err error) {
     //delete file content
     err = os.Truncate(path+file, 0)
-	if err != nil {
-		logs.Error("Error truncate BPF file: "+err.Error())
-		return err
-	}
+    if err != nil {
+        logs.Error("Error truncate BPF file: "+err.Error())
+        return err
+    }
 
-	//write new bpf content
-	bpfByteArray := []byte(bpf)
-	err = WriteNewDataOnFile(path+file, bpfByteArray)
-	if err != nil {
-		logs.Error("Error writing new BPF data into file: "+err.Error())
-		return err
-	}
+    //write new bpf content
+    bpfByteArray := []byte(bpf)
+    err = WriteNewDataOnFile(path+file, bpfByteArray)
+    if err != nil {
+        logs.Error("Error writing new BPF data into file: "+err.Error())
+        return err
+    }
     return nil
 }
 
@@ -74,28 +74,28 @@ func BackupFile(path string, fileName string) (err error) {
     t := time.Now()
     newFile := fileName+"-"+strconv.FormatInt(t.Unix(), 10)
     srcFolder := path+fileName
-	destFolder := path+newFile
-	//check if file exist
-	if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
-		return nil
-	}else{
-		cpCmd := exec.Command("cp", srcFolder, destFolder)
-		err = cpCmd.Run()
-		if err != nil{
-			logs.Error("utils.BackupFile Error exec cmd command: "+err.Error())
-			return err
-		}
-	}
-	return nil
+    destFolder := path+newFile
+    //check if file exist
+    if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
+        return nil
+    }else{
+        cpCmd := exec.Command("cp", srcFolder, destFolder)
+        err = cpCmd.Run()
+        if err != nil{
+            logs.Error("utils.BackupFile Error exec cmd command: "+err.Error())
+            return err
+        }
+    }
+    return nil
 }
 
 //write data on a file
 func WriteNewDataOnFile(path string, data []byte)(err error){
     err = ioutil.WriteFile(path, data, 0644)
-	if err != nil {
+    if err != nil {
         logs.Error("Error WriteNewData")
-		return err
-	}
+        return err
+    }
     return nil
 }
 
@@ -108,19 +108,19 @@ func GetConfFiles()(loadDataReturn map[string]string, err error) {
         return nil, err
     }
     var anode map[string]map[string]string
-	json.Unmarshal(JSONconf, &anode)
+    json.Unmarshal(JSONconf, &anode)
     return anode["files"], nil
 }
 
 //Generate a 16 bytes unique id
 func Generate()(uuid string)  {
-	b := make([]byte, 16)
-	_, err := rand.Read(b)
-	if err != nil {
-		logs.Error(err)
-	}
-	uuid = fmt.Sprintf("%x-%x-%x-%x-%x",b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
-	return uuid
+    b := make([]byte, 16)
+    _, err := rand.Read(b)
+    if err != nil {
+        logs.Error(err)
+    }
+    uuid = fmt.Sprintf("%x-%x-%x-%x-%x",b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+    return uuid
 }
 
 func LoadDefaultServerData(fileName string)(json map[string]string, err error){
@@ -128,15 +128,15 @@ func LoadDefaultServerData(fileName string)(json map[string]string, err error){
     loadData := map[string]map[string]string{}
     loadData["files"] = map[string]string{}
     loadData["files"][fileName] = ""
-	loadData,err = GetConf(loadData)
-	if err != nil {
-		logs.Error("LoadDefaultServerData Error getting data from main.conf: "+err.Error())
-		return nil, err
-	}
+    loadData,err = GetConf(loadData)
+    if err != nil {
+        logs.Error("LoadDefaultServerData Error getting data from main.conf: "+err.Error())
+        return nil, err
+    }
     fileContent := make(map[string]string)
     rawData, err := ioutil.ReadFile(loadData["files"][fileName])
     if err != nil {
-		logs.Error("LoadDefaultServerData Error reading file: "+err.Error())
+        logs.Error("LoadDefaultServerData Error reading file: "+err.Error())
         return nil,err
     }
     fileContent["fileContent"] = string(rawData)
@@ -144,14 +144,14 @@ func LoadDefaultServerData(fileName string)(json map[string]string, err error){
 }
 
 func CopyFile(dstfolder string, srcfolder string, file string, BUFFERSIZE int64) (err error) {
-	if BUFFERSIZE == 0{
-		BUFFERSIZE = 1000
-	}
-	sourceFileStat, err := os.Stat(srcfolder+file)
+    if BUFFERSIZE == 0{
+        BUFFERSIZE = 1000
+    }
+    sourceFileStat, err := os.Stat(srcfolder+file)
     if err != nil {
         logs.Error("Error checking file at CopyFile function" + err.Error())
         return err
-	}
+    }
     if !sourceFileStat.Mode().IsRegular() {
         logs.Error("%s is not a regular file.", sourceFileStat)
         return errors.New(sourceFileStat.Name()+" is not a regular file.")
@@ -192,12 +192,12 @@ func CopyFile(dstfolder string, srcfolder string, file string, BUFFERSIZE int64)
 }
 
 func RemoveFile(path string, file string)(err error){
-	err = os.Remove(path+file)
-	if err != nil {
-		logs.Error("Error deleting file "+path+file+": "+err.Error())
-		return err
-	}
-	return nil
+    err = os.Remove(path+file)
+    if err != nil {
+        logs.Error("Error deleting file "+path+file+": "+err.Error())
+        return err
+    }
+    return nil
 }
 
 //read data from main.conf
@@ -207,7 +207,7 @@ func GetConfArray(loadData map[string]map[string][]string)(loadDataReturn map[st
     if err != nil {
         logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
         return nil, err
-	}
+    }
 
     var anode map[string]map[string][]string
     json.Unmarshal(jsonPathBpf, &anode)

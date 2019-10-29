@@ -2,13 +2,13 @@ package changecontrol
 
 import (
     "github.com/astaxie/beego/logs"
-	"owlhnode/database"
-	"owlhnode/utils"
-	"time"
+    "owlhnode/database"
+    "owlhnode/utils"
+    "time"
 )
 
 func GetChangeControlNode()(data map[string]map[string]string, err error) {
-	data, err = ndb.GetChangeControlNode(); if err != nil{logs.Error("Error getting ChangeControl database values: "+err.Error()); return nil,err}
+    data, err = ndb.GetChangeControlNode(); if err != nil{logs.Error("Error getting ChangeControl database values: "+err.Error()); return nil,err}
     return data, err
 }
 

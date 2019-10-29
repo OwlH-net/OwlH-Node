@@ -8,7 +8,7 @@ import (
 
 
 func GetWazuh() (status map[string]bool, err error) {
-	return wazuh.Installed()
+    return wazuh.Installed()
 }
 
 func RunWazuh() (data string, err error) {

@@ -9,7 +9,7 @@ func PlayCollector() (err error) {
     return err
 }
 func StopCollector() (err error) {
-	err = collector.StopCollector()
+    err = collector.StopCollector()
     return err
 }
 func ShowCollector() (data string, err error) {

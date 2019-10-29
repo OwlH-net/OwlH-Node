@@ -6,8 +6,8 @@ import (
     "github.com/astaxie/beego/logs")
 
 func GetNodeStats()(data monitor.Monitor) {
-	data = monitor.GetLastMonitorInfo()
-	return data
+    data = monitor.GetLastMonitorInfo()
+    return data
 }
 
 func AddMonitorFile(anode map[string]string)(err error) {
@@ -21,16 +21,16 @@ func AddMonitorFile(anode map[string]string)(err error) {
     delete(anode,"controller")
     delete(anode,"router")
 
-	err = monitor.AddMonitorFile(anode)
-	return err
+    err = monitor.AddMonitorFile(anode)
+    return err
 }
 
 func DeleteMonitorFile(anode map[string]string)(err error) {
-	err = monitor.DeleteMonitorFile(anode)
-	return err
+    err = monitor.DeleteMonitorFile(anode)
+    return err
 }
 
 func PingMonitorFiles()(data map[string]map[string]string, err error) {
-	data,err = monitor.PingMonitorFiles()
-	return data,err
+    data,err = monitor.PingMonitorFiles()
+    return data,err
 }

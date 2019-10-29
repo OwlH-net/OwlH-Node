@@ -35,7 +35,7 @@ func AddServer(elem map[string]string) (err error){
     if err != nil {
         logs.Error("ERROR stap/AddServer INSERT new server ip: "+err.Error())
         return err
-    }	
+    }    
 
     //insert name into server database
     logs.Info("stap/AddServer INSERT new server name")
@@ -45,7 +45,7 @@ func AddServer(elem map[string]string) (err error){
     if err != nil {
         logs.Error("ERROR stap/AddServer INSERT new server name: "+err.Error())
         return err
-    }	
+    }    
     
     //Load default server data from main.conf
     jsonDefaultData,err := utils.LoadDefaultServerData("software TAP PULL mode conf")
@@ -59,7 +59,7 @@ func AddServer(elem map[string]string) (err error){
     if err != nil {
         logs.Error("ERROR unmarshal json on AddServer func: "+err.Error())
         return err
-    }		
+    }        
 
     //insert default data into server database
     for z,v := range jsonData{

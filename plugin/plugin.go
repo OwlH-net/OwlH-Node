@@ -2,8 +2,8 @@ package plugin
 
 import (
     "github.com/astaxie/beego/logs"
-	"owlhnode/database"
-	"owlhnode/zeek"
+    "owlhnode/database"
+    "owlhnode/zeek"
     // "owlhnode/suricata"
     "os/exec"
     "bytes"
@@ -12,7 +12,7 @@ import (
     "strconv"
     "strings"
     "io/ioutil"
-	"owlhnode/utils"
+    "owlhnode/utils"
 )
 
 func ChangeServiceStatus(anode map[string]string)(err error) {

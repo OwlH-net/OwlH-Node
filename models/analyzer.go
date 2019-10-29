@@ -8,8 +8,8 @@ import (
 )
 
 func PingAnalyzer()(data map[string]string ,err error) {
-	data, err = analyzer.PingAnalyzer()	
-	return data, err
+    data, err = analyzer.PingAnalyzer()    
+    return data, err
 }
 
 func ChangeAnalyzerStatus(uuid map[string]string) (err error) {
@@ -21,8 +21,8 @@ func ChangeAnalyzerStatus(uuid map[string]string) (err error) {
         logs.Info(key +" -> "+cc[key])
     }
     
-	err = analyzer.ChangeAnalyzerStatus(uuid)
-	
+    err = analyzer.ChangeAnalyzerStatus(uuid)
+    
     if err!=nil { 
         cc["actionStatus"] = "error"
         cc["errorDescription"] = err.Error()
@@ -33,6 +33,6 @@ func ChangeAnalyzerStatus(uuid map[string]string) (err error) {
     
     controlError := changecontrol.InsertChangeControl(cc)
     if controlError!=nil { logs.Error("AddPluginService controlError: "+controlError.Error()) }
-	
-	return err
+    
+    return err
 }

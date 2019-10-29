@@ -1,14 +1,16 @@
 package controllers
 
 import (
-	"owlhnode/models"
-	"github.com/astaxie/beego"
+    "owlhnode/models"
+    "owlhnode/zeek"
+
+    "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
     "encoding/json"
 )
 
 type ZeekController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title GetZeek
@@ -17,14 +19,39 @@ type ZeekController struct {
 // @router / [get]
 func (m *ZeekController) Get() {
     logs.Info ("Zeek controller -> GET")
-	mstatus,err := models.GetZeek()
-	m.Data["json"] = mstatus
-	if err != nil {
+    mstatus,err := models.GetZeek()
+    m.Data["json"] = mstatus
+    if err != nil {
         logs.Info("GetZeek OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     m.ServeJSON()
 }
+
+// @Title Set
+// @Description Update Zeek configuration as well as manage it
+// @Description This should answer with a GetZeek so origin can verify status 
+// @Success 200 {object} models.zeek
+// @router / [put]
+func (m *ZeekController) Set() {
+    logs.Info ("Zeek controller -> PUT")
+    var zeekdata zeek.Zeek
+    json.Unmarshal(m.Ctx.Input.RequestBody, &zeekdata)
+
+    zeekdata.Extra= map[string]string{}
+    zeekdata.Extra["action"] = "PUT"
+    zeekdata.Extra["controller"] = "ZEEK"
+    zeekdata.Extra["router"] = "@router / [put]"
+
+    mstatus,err := models.SetZeek(zeekdata)
+    m.Data["json"] = mstatus
+    if err != nil {
+        logs.Info("Set Zeek OUT -- ERROR : %s", err.Error())
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    m.ServeJSON()
+}
+
 
 // @Title RunZeek
 // @Description Run zeek system
@@ -33,7 +60,7 @@ func (m *ZeekController) Get() {
 // @router /RunZeek [put]
 func (n *ZeekController) RunZeek() {
     logs.Info("RunZeek -> In")
-    var anode map[string]string
+    anode := map[string]string{}
     anode["action"] = "PUT"
     anode["controller"] = "ZEEK"
     anode["router"] = "@router /RunZeek [put]"
@@ -85,14 +112,15 @@ func (n *ZeekController) StopZeek() {
 func (m *ZeekController) ChangeZeekMode() {
     var anode map[string]string
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+
     anode["action"] = "PUT"
     anode["controller"] = "ZEEK"
     anode["router"] = "@router /changeZeekMode [put]"
-	err := models.ChangeZeekMode(anode)
-	m.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
+    err := models.ChangeZeekMode(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     m.ServeJSON()
 }
 
@@ -107,11 +135,11 @@ func (m *ZeekController) AddClusterValue() {
     anode["controller"] = "ZEEK"
     anode["router"] = "@router /addClusterValue [post]"
 
-	err := models.AddClusterValue(anode)
-	m.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
+    err := models.AddClusterValue(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     m.ServeJSON()
 }
 
@@ -120,11 +148,11 @@ func (m *ZeekController) AddClusterValue() {
 // @Success 200 {object} models.zeek
 // @router /pingCluster [get]
 func (m *ZeekController) PingCluster() {
-	data,err := models.PingCluster()
-	m.Data["json"] = data
-	if err != nil {
+    data,err := models.PingCluster()
+    m.Data["json"] = data
+    if err != nil {
         m.Data["json"] = map[string]map[string]string{"error":{"ack": "false", "error": err.Error()}}
-	}
+    }
     m.ServeJSON()
 }
 
@@ -138,11 +166,11 @@ func (m *ZeekController) EditClusterValue() {
     anode["action"] = "PUT"
     anode["controller"] = "ZEEK"
     anode["router"] = "@router /editClusterValue [put]"
-	err := models.EditClusterValue(anode)
-	m.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
+    err := models.EditClusterValue(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     m.ServeJSON()
 }
 
@@ -156,11 +184,11 @@ func (m *ZeekController) DeleteClusterValue() {
     anode["action"] = "DELETE"
     anode["controller"] = "ZEEK"
     anode["router"] = "@router /deleteClusterValue [delete]"
-	err := models.DeleteClusterValue(anode)
-	m.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
+    err := models.DeleteClusterValue(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     m.ServeJSON()
 }
 
@@ -169,15 +197,16 @@ func (m *ZeekController) DeleteClusterValue() {
 // @Success 200 {object} models.zeek
 // @router /syncCluster [put]
 func (m *ZeekController) SyncCluster() {
-    var anode map[string]string
+    anode := map[string]string{}
+    // var anode map[string]string
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
     anode["action"] = "PUT"
     anode["controller"] = "ZEEK"
     anode["router"] = "@router /syncCluster [put]"
-	err := models.SyncCluster(anode)
-	m.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
+    err := models.SyncCluster(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     m.ServeJSON()
 }

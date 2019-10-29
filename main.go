@@ -16,16 +16,16 @@ import (
     "owlhnode/monitor"
     "os"
     // "os/exec"
-	"bufio"
-	"strings"
-	"runtime"
+    "bufio"
+    "strings"
+    "runtime"
 )
 
 func main() {
-	//operative system values
-	data := OperativeSystemValues()
-	for x := range data {
-		if (x == "ID" || x == "ID_LIKE" || x == "VERSION_ID"){            
+    //operative system values
+    data := OperativeSystemValues()
+    for x := range data {
+        if (x == "ID" || x == "ID_LIKE" || x == "VERSION_ID"){            
             logs.Info(x +" -- "+data[x])
         }
         // if (x == "ID" && data[x] == "debian") {
@@ -60,8 +60,8 @@ func main() {
         //         //install tcpdump
         // }
         
-	}
-	
+    }
+    
     var err error
     loadDataLogger := map[string]map[string]string{}
     loadDataLogger["logs"] = map[string]string{}
@@ -118,23 +118,23 @@ func main() {
 }
 
 func OperativeSystemValues()(values map[string]string){
-	if (runtime.GOOS == "linux"){
-		logs.Info("============"+runtime.GOOS+"============")
-		var OSmap = make(map[string]string)
-		file, err := os.Open("/etc/os-release")
-		if err != nil {logs.Error("No os-release file")}
-		defer file.Close()
-		
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			if (scanner.Text() != ""){
-				sidsSplit := strings.Split(scanner.Text(), "=")
-				str := strings.Replace(sidsSplit[1], "\"", "", -1)
-				OSmap[sidsSplit[0]] = str
-			}			
-		}
-		return OSmap
-	}else{
-		return nil
-	}
+    if (runtime.GOOS == "linux"){
+        logs.Info("============"+runtime.GOOS+"============")
+        var OSmap = make(map[string]string)
+        file, err := os.Open("/etc/os-release")
+        if err != nil {logs.Error("No os-release file")}
+        defer file.Close()
+        
+        scanner := bufio.NewScanner(file)
+        for scanner.Scan() {
+            if (scanner.Text() != ""){
+                sidsSplit := strings.Split(scanner.Text(), "=")
+                str := strings.Replace(sidsSplit[1], "\"", "", -1)
+                OSmap[sidsSplit[0]] = str
+            }            
+        }
+        return OSmap
+    }else{
+        return nil
+    }
 }

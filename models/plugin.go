@@ -17,7 +17,7 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
     delete(anode,"controller")
     delete(anode,"router")
 
-	err = plugin.ChangeServiceStatus(anode)
+    err = plugin.ChangeServiceStatus(anode)
     return err
 }
 
@@ -39,7 +39,7 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.ChangeMainServiceStatus(anode)
+    err = plugin.ChangeMainServiceStatus(anode)
     return err
 }
 
@@ -53,7 +53,7 @@ func DeleteService(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.DeleteService(anode)
+    err = plugin.DeleteService(anode)
     return err
 }
 
@@ -93,7 +93,7 @@ func SaveSuricataInterface(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.SaveSuricataInterface(anode)
+    err = plugin.SaveSuricataInterface(anode)
     return err
 }
 
@@ -107,7 +107,7 @@ func DeployStapService(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.DeployStapService(anode)
+    err = plugin.DeployStapService(anode)
     return err
 }
 
@@ -121,7 +121,7 @@ func StopStapService(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.StopStapService(anode)
+    err = plugin.StopStapService(anode)
     return err
 }
 
@@ -135,7 +135,7 @@ func ModifyStapValues(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.ModifyStapValues(anode)
+    err = plugin.ModifyStapValues(anode)
     return err
 }
 
@@ -157,6 +157,6 @@ func ChangeSuricataTable(anode map[string]string)(err error) {
     delete(anode,"controller")
     delete(anode,"router")
 
-	err = plugin.ChangeSuricataTable(anode)
+    err = plugin.ChangeSuricataTable(anode)
     return err
 }

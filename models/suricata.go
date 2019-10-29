@@ -1,18 +1,18 @@
 package models
 
 import (
-	"owlhnode/suricata"
+    "owlhnode/suricata"
 //    "owlhnode/changeControl"
     "github.com/astaxie/beego/logs")
 
 
 func GetSuricata() (status map[string]bool, err error) {
-	status,err = suricata.Installed()
-	return status,err
+    status,err = suricata.Installed()
+    return status,err
 }
 
 // func GetBPF() (bpf string, err error) {
-// 	bpf,err = suricata.GetBPF()
+//     bpf,err = suricata.GetBPF()
 //     return bpf,err
 // }
 

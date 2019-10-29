@@ -55,15 +55,15 @@ var config Analyzer
 
 func readconf()(err error) {
 
-	cfg := map[string]map[string]string{}
-	cfg["analyzer"] = map[string]string{}
-	cfg["analyzer"]["analyzerconf"] = ""
-	cfg,err = utils.GetConf(cfg)
-	analyzerCFG := cfg["analyzer"]["analyzerconf"]
-	if err != nil {
-		logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
-		return
-	}
+    cfg := map[string]map[string]string{}
+    cfg["analyzer"] = map[string]string{}
+    cfg["analyzer"]["analyzerconf"] = ""
+    cfg,err = utils.GetConf(cfg)
+    analyzerCFG := cfg["analyzer"]["analyzerconf"]
+    if err != nil {
+        logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
+        return
+    }
 
     confFile, err := os.Open(analyzerCFG)
     if err != nil {
@@ -72,9 +72,9 @@ func readconf()(err error) {
     }
     defer confFile.Close()
     byteValue, _ := ioutil.ReadAll(confFile)
-	err = json.Unmarshal(byteValue, &config)
+    err = json.Unmarshal(byteValue, &config)
     if err != nil {
-		logs.Error(err.Error())
+        logs.Error(err.Error())
         return err
     }
     return nil
@@ -237,7 +237,7 @@ func Starttail(file string) {
 }
 
 func LoadAnalyzers() {
-	logs.Info("loading analyzers")
+    logs.Info("loading analyzers")
     for file := range config.Feedfiles {
         go Startanalyzer(config.Feedfiles[file].File, config.Feedfiles[file].Workers)
     }
@@ -269,40 +269,40 @@ func writeline(line string) {
 }
 
 func IoCtoAlert(line, ioc, iocsrc string) {
-	var err error
-	AlertLog := map[string]map[string]string{}
-	AlertLog["Node"] = map[string]string{}
-	AlertLog["Node"]["AlertLog"] = ""
-	AlertLog,err = utils.GetConf(AlertLog)
-	AlertLogJson := AlertLog["Node"]["AlertLog"]
-	if err != nil {
-		logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
-		return
-	}
+    var err error
+    AlertLog := map[string]map[string]string{}
+    AlertLog["Node"] = map[string]string{}
+    AlertLog["Node"]["AlertLog"] = ""
+    AlertLog,err = utils.GetConf(AlertLog)
+    AlertLogJson := AlertLog["Node"]["AlertLog"]
+    if err != nil {
+        logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
+        return
+    }
 
-	alert     := iocAlert{}
-	data      := Data{}
-	signature := Signature{}
+    alert     := iocAlert{}
+    data      := Data{}
+    signature := Signature{}
 
-	signature.Signature = "OwlH IoC found - "+ioc
-	signature.Signature_id = "8000101"
+    signature.Signature = "OwlH IoC found - "+ioc
+    signature.Signature_id = "8000101"
 
-	// data.Dstport = dstport
-	// data.Dstip = dstip
-	// data.Srcip = srcip
-	// data.Srcport = srcport
-	data.Signature = signature
-	data.IoC = ioc
-	data.IoCsource = iocsrc
+    // data.Dstport = dstport
+    // data.Dstip = dstip
+    // data.Srcip = srcip
+    // data.Srcport = srcport
+    data.Signature = signature
+    data.IoC = ioc
+    data.IoCsource = iocsrc
 
-	alert.Data = data
-	alert.Full_log = line
-	alertOutput, _ := json.Marshal(alert)
+    alert.Data = data
+    alert.Full_log = line
+    alertOutput, _ := json.Marshal(alert)
 
-	err = utils.WriteNewDataOnFile(AlertLogJson, alertOutput)
-	if err != nil {
-		logs.Error("Error saving data IoCtoAlert: %s", err.Error())
-	}
+    err = utils.WriteNewDataOnFile(AlertLogJson, alertOutput)
+    if err != nil {
+        logs.Error("Error saving data IoCtoAlert: %s", err.Error())
+    }
 
 }
 
@@ -332,7 +332,7 @@ func Init(){
 
 func PingAnalyzer()(data map[string]string ,err error) {
     wazuhFile := map[string]map[string]string{}
-	wazuhFile["node"] = map[string]string{}
+    wazuhFile["node"] = map[string]string{}
     wazuhFile["node"]["alertLog"] = ""
     wazuhFile,err = utils.GetConf(wazuhFile)    
     filePath := wazuhFile["node"]["alertLog"]
