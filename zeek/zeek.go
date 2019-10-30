@@ -13,6 +13,7 @@ import (
 
 type Zeek struct {
     Path        bool                `json:"path"`
+    Rol         string              `json:"role"`
     Bin         bool                `json:"bin"`
     Action      string              `json:"action"`
     Running     []ZeekNodeStatus    `json:"running"`
@@ -20,6 +21,11 @@ type Zeek struct {
     Managed     bool                `json:"managed"`
     Nodes       []ZeekNode          `json:"nodes"`
     Extra       map[string]string   `json:"extra"`
+}
+
+type ZeekKeys struct {
+    Key         string              `json:"key"`
+    Value       string              `json:"value"`
 }
 
 type ZeekNode struct {
@@ -30,7 +36,7 @@ type ZeekNode struct {
     NInterface  string              `json:"interface"`
     Pid         string              `json:"pid"`
     Started     string              `json:"started"`
-    Extra       map[string]string   `json:"extra"`
+    Extra       []ZeekKeys          `json:"extra"`
 }
 
 type ZeekNodeStatus struct {
@@ -203,7 +209,8 @@ func SetZeek(zeekdata Zeek)(newzeekdata Zeek, err error) {
         logs.Warn("=============")
         logs.Warn("======= EXTRA ========")
         for extra := range zeekdata.Nodes[node].Extra {
-            logs.Warn("key - "+extra + " -- " + zeekdata.Nodes[node].Extra[extra] )
+            logs.Warn(zeekdata.Nodes[node].Extra[extra])
+            logs.Warn("key - "+zeekdata.Nodes[node].Extra[extra].Key + " -- " + zeekdata.Nodes[node].Extra[extra].Value )
         }
         logs.Warn("======= EXTRA ========")
     }
