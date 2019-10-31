@@ -212,8 +212,9 @@ func UpdatePluginValue(uuid string, param string, value string)(err error){
 }
 
 func UpdateMainconfValue(uuid string, param string, value string)(err error){
-    _, err := GetMainconfParam(uuid, param)
-    if err != nil {
+    currentvalue, err := GetMainconfParam(uuid, param)
+    logs.Info("mainconf key -> " + value)
+    if err != nil || currentvalue == "" {
         InsertGetMainconfData(uuid, param, value)
     }else{
         UpdateMainconfValueNode, err := Pdb.Prepare("update mainconf set main_value = ? where main_uniqueid = ? and main_param = ?;")
