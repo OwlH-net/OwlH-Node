@@ -212,13 +212,18 @@ func UpdatePluginValue(uuid string, param string, value string)(err error){
 }
 
 func UpdateMainconfValue(uuid string, param string, value string)(err error){
-    UpdateMainconfValueNode, err := Pdb.Prepare("update mainconf set main_value = ? where main_uniqueid = ? and main_param = ?;")
-    if (err != nil){ logs.Error("UpdateMainconfValue UPDATE prepare error: "+err.Error()); return err}
+    _, err := GetMainconfParam(uuid, param)
+    if err != nil {
+        InsertGetMainconfData(uuid, param, value)
+    }else{
+        UpdateMainconfValueNode, err := Pdb.Prepare("update mainconf set main_value = ? where main_uniqueid = ? and main_param = ?;")
+        if (err != nil){ logs.Error("UpdateMainconfValue UPDATE prepare error: "+err.Error()); return err}
 
-    _, err = UpdateMainconfValueNode.Exec(&value, &uuid, &param)
-    if (err != nil){ logs.Error("UpdateMainconfValue exec error: "+err.Error()); return err}
+        _, err = UpdateMainconfValueNode.Exec(&value, &uuid, &param)
+        if (err != nil){ logs.Error("UpdateMainconfValue exec error: "+err.Error()); return err}
 
-    defer UpdateMainconfValueNode.Close()
+        defer UpdateMainconfValueNode.Close()
+    }
     
     return nil
 }
