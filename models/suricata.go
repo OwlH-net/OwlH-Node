@@ -46,6 +46,21 @@ func SyncRulesetFromMaster(n map[string][]byte) (err error) {
     return err
 }
 
+func SaveConfigFile(files map[string][]byte) (err error) {
+    cc := files
+    logs.Info("============")
+    logs.Info("SURICATA - SaveConfigFile")
+    for key :=range cc {
+        logs.Info(key +" -> ")
+    }
+    delete(n,"action")
+    delete(n,"controller")
+    delete(n,"router")
+
+    err = suricata.SaveConfigFile(files)
+    return err
+}
+
 func RunSuricata() (data string, err error) {
     data,err = suricata.RunSuricata()
     return data,err

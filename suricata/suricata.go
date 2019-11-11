@@ -256,3 +256,14 @@ func GetSuricataServices()(data map[string]map[string]string, err error) {
     if err != nil {logs.Error("GetSuricataServices Error: "+err.Error()); return nil,err}    
     return data,nil
 }
+
+func SaveConfigFile(files map[string][]byte)(err error){
+    for file := range files {
+        err = utils.WriteNewDataOnFile(file, files[file])
+        if err != nil{
+            logs.Error("Error writting data into "+file+" file: "+err.Error())
+            return err    
+        }
+    }
+    return nil
+}
