@@ -216,8 +216,8 @@ func (m *ZeekController) SyncCluster() {
 // @Success 200 {object} models.Node
 // @Failure 403 body is empty
 // @router / [post]
-func (n *SuricataController) SavePolicyFiles() {
-    var anode map[string][]byte
+func (n *ZeekController) SavePolicyFiles() {
+    var anode map[string]map[string][]byte
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 
     logs.Info("ACTION -> POST")

@@ -94,7 +94,7 @@ func (n *SuricataController) SyncRulesetFromMaster() {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *SuricataController) SaveConfigFile() {
-    var anode map[string][]byte
+    var anode map[string]map[string][]byte
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 
     logs.Info("ACTION -> POST")

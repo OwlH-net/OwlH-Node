@@ -257,12 +257,16 @@ func GetSuricataServices()(data map[string]map[string]string, err error) {
     return data,nil
 }
 
-func SaveConfigFile(files map[string][]byte)(err error){
-    for file := range files {
-        err = utils.WriteNewDataOnFile(file, files[file])
-        if err != nil{
-            logs.Error("Error writting data into "+file+" file: "+err.Error())
-            return err    
+func SaveConfigFile(files map[string]map[string][]byte)(err error){
+    for nodePath, file := range files {
+        //check path
+        if _, err := os.Stat(nodePath); os.IsNotExist(err) {
+            os.MkdirAll(nodePath, os.ModePerm)
+        }
+
+        for file,_ := range file {            
+            err = utils.WriteNewDataOnFile(nodePath+"/"+file, files[nodePath][file])
+            if err != nil{logs.Error("SaveConfigFile Error writting data into "+nodePath+"/"+file+" file: "+err.Error()); return err}
         }
     }
     return nil

@@ -3,4 +3,5 @@
 
 # ignore a file type
 *.tar.gz
+*.db
 /.DS_Store
