@@ -53,9 +53,6 @@ func SaveConfigFile(files map[string][]byte) (err error) {
     for key :=range cc {
         logs.Info(key +" -> ")
     }
-    delete(n,"action")
-    delete(n,"controller")
-    delete(n,"router")
 
     err = suricata.SaveConfigFile(files)
     return err
