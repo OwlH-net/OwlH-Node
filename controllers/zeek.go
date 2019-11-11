@@ -210,3 +210,28 @@ func (m *ZeekController) SyncCluster() {
     }
     m.ServeJSON()
 }
+
+// @Title SaveConfigFile
+// @Description Save Configuration files from Master
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router / [post]
+func (n *SuricataController) SaveConfigFile() {
+    var anode map[string][]byte
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    logs.Info("ACTION -> POST")
+    logs.Info("CONTROLLER -> ZEEK")
+    logs.Info("ROUTER -> @router / [post]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+
+    err := models.SaveConfigFile(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Info("Save configuration files -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

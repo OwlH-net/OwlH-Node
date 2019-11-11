@@ -30,7 +30,7 @@ func WazuhPath() (exists bool) {
     }
     
     if _, err := os.Stat(path); os.IsNotExist(err) {
-        logs.Error("Wazuh is not installed, at least at /var/ossec folder does not exist")
+        logs.Error("Wazuh is not installed, at least, /var/ossec folder does not exist")
         return false
     }
     return true
@@ -51,7 +51,6 @@ func WazuhBin() (exists bool) {
         logs.Error("Wazuh bin does not exist")
         return false
     }
-    logs.Info("Wazuh bin exist")
     return true
 }
 
@@ -73,11 +72,9 @@ func WazuhRunning() (running bool) {
     out, err := exec.Command(command, param, cmd).Output()
     if err == nil {
         if strings.Contains(string(out), "is running") {
-            logs.Info("Wazuh is running ->"+string(out))
             return true
         }
     }
-    logs.Error("Wazuh is NOT running -> " + string(out))
     return false
 }
 
@@ -88,10 +85,8 @@ func Installed() (isIt map[string]bool, err error){
     wazuh["running"] = WazuhRunning()
 
     if wazuh["path"] || wazuh["bin"] || wazuh["running"]  {
-        logs.Info("Wazuh installed and running")
         return wazuh, nil
     } else {
-        logs.Error("Wazuh isn't present or not running")
         return wazuh, errors.New("Wazuh isn't present or not running")
     }
 }
@@ -106,12 +101,14 @@ func RunWazuh()(data string, err error){
     StartWazuh["wazuhStart"]["param"] = ""
     StartWazuh["wazuhStart"]["command"] = ""
     StartWazuh,err = utils.GetConf(StartWazuh)    
+    if err != nil {
+        logs.Error("RunWazuh Error getting data from main.conf")
+        return "", err
+    }
+
     cmd := StartWazuh["wazuhStart"]["start"]
     param := StartWazuh["wazuhStart"]["param"]
     command := StartWazuh["wazuhStart"]["command"]
-    if err != nil {
-        logs.Error("RunWazuh Error getting data from main.conf")
-    }
 
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
@@ -131,10 +128,14 @@ func StopWazuh()(data string, err error){
     StopWazuh["wazuhStop"]["param"] = ""
     StopWazuh["wazuhStop"]["command"] = ""
     StopWazuh,err = utils.GetConf(StopWazuh)    
+    if err != nil {
+        logs.Error("RunWazuh Error getting data from main.conf")
+        return "", err
+    }
+
     cmd := StopWazuh["wazuhStop"]["stop"]
     param := StopWazuh["wazuhStop"]["param"]
     command := StopWazuh["wazuhStop"]["command"]
-    if err != nil {logs.Error("RunWazuh Error getting data from main.conf")}
     
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {logs.Error("Error stopping Wazuh: "+err.Error()); return "",err}
@@ -144,7 +145,7 @@ func StopWazuh()(data string, err error){
 
 func PingWazuhFiles() (files map[int]map[string]string, err error) {    
     file, err := os.Open("/var/ossec/etc/ossec.conf")
-    if err != nil {logs.Error(err)}
+    if err != nil {logs.Error(err); return nil, err}
     defer file.Close()
 
     scanner := bufio.NewScanner(file)

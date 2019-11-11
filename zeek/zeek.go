@@ -455,3 +455,15 @@ func SyncCluster(anode map[string]string, clusterType string) (err error) {
 
     return err
 }
+
+
+func SaveConfigFile(files map[string][]byte)(err error){
+    for file := range files {
+        err = utils.WriteNewDataOnFile(file, files[file])
+        if err != nil{
+            logs.Error("Error writting data into "+file+" file: "+err.Error())
+            return err    
+        }
+    }
+    return nil
+}

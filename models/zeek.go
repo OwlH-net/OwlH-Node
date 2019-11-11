@@ -161,3 +161,15 @@ func SyncCluster(anode map[string]string) (err error) {
     err = zeek.SyncCluster(anode, "cluster")
     return err
 }
+
+func SaveConfigFile(files map[string][]byte) (err error) {
+    cc := files
+    logs.Info("============")
+    logs.Info("Zeek - SaveConfigFile")
+    for key :=range cc {
+        logs.Info(key +" -> ")
+    }
+
+    err = suricata.SaveConfigFile(files)
+    return err
+}

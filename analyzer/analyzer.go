@@ -251,13 +251,12 @@ func LoadSources() {
 }
 
 func LoadMapper() {
-    logs.Info("loading sources")
+    logs.Info("loading Mappers")
     go StartMapper(4)
 }
 
 func dispatch(line string) {
     for channel := range Dispatcher {
-        //logs.Notice("Add to channel: "+channel+" --> línea: "+line)
         Dispatcher[channel] <- line
     }
 }
@@ -343,7 +342,7 @@ func PingAnalyzer()(data map[string]string ,err error) {
 
 
     analyzerStatus,err := ndb.GetStatusAnalyzer()
-    logs.Info("ANALYZER STATUS - "+analyzerStatus)
+    // logs.Info("ANALYZER STATUS - "+analyzerStatus)
     if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return analyzerData,err}
 
     analyzerData["status"] = analyzerStatus
