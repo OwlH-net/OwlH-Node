@@ -124,12 +124,13 @@ func GetPlugins()(path map[string]map[string]string, err error){
         return nil, err
     }
     defer rowsQuery.Close()
+
     for rowsQuery.Next() {
         if err = rowsQuery.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetPlugins -- Query return error: %s", err.Error()); return nil, err}
-
         if serviceValues[uniqid] == nil { serviceValues[uniqid] = map[string]string{}}
         serviceValues[uniqid][param]=value
     } 
+
     return serviceValues,nil
 }
 

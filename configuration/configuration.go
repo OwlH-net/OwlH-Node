@@ -32,7 +32,10 @@ type Table struct {
 }
 
 type Field struct {
+    Fconn           string
+    Ftable          string
     Fname           string
+    Fquery          string
     Finsert         string
 }
 
@@ -40,6 +43,23 @@ var DBCONFIG        []Dbconfig
 
 
 func MainCheck()(cancontinue bool){
+
+    ok := checkDatabases()
+    if !ok {
+        return false
+    }
+    ok = checkTables()
+    if !ok {
+        return false
+    }
+    ok = checkFields()
+    if !ok {
+        return false
+    }
+    return true
+}
+
+func checkDatabases()(ok bool){
     dbs := []string{"monitorConn","stapConn","pluginConn","nodeConn"}
     for db := range dbs {
         ok := CheckDB(dbs[db])
@@ -47,14 +67,18 @@ func MainCheck()(cancontinue bool){
             return false
         }
     }
+    return true
+}
 
+
+func checkTables()(ok bool){
     var table Table
 
     table.Tname = "plugins"
     table.Tconn = "pluginConn"
     table.Tcreate = "CREATE TABLE plugins (plugin_id integer PRIMARY KEY AUTOINCREMENT,plugin_uniqueid text NOT NULL,plugin_param text NOT NULL,plugin_value text NOT NULL)"
 
-    ok := CheckTable(table)
+    ok = CheckTable(table)
     if !ok {
         return false
     }
@@ -154,14 +178,45 @@ func MainCheck()(cancontinue bool){
     if !ok {
         return false
     }
-
-
     return true
 }
 
 func checkFields()(ok bool){
 // plugins -             UUID - "suricata", param - "previousStatus", data["suricata"]["status"]
-// plugins - "analyzer" - select analyzer_value from analyzer where analyzer_param='status'"
+
+    var field Field
+
+
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select analyzer_param from analyzer where analyzer_param='status'"
+    field.Finsert    = "insert into analyzer (analyzer_uniqueid,analyzer_param,analyzer_value) values ('analyzer','status','Disabled')"
+    field.Fname      = "analyzer - status"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "mainconf"
+    field.Fquery     = "select main_param from mainconf where main_param='status' and main_uniqueid='suricata'"
+    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('suricata','status','enabled')"
+    field.Fname      = "suricata - status"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "mainconf"
+    field.Fquery     = "select main_param from mainconf where main_param='previousStatus' and main_uniqueid='suricata'"
+    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('suricata','previousStatus','enabled')"
+    field.Fname      = "suricata - previousStatus"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    return true
 }
 
 func CheckDB(conn string)(ok bool) {
@@ -186,6 +241,69 @@ func CheckDB(conn string)(ok bool) {
         if err != nil {
             return false
         }
+    }
+    return true
+}
+
+func CheckField(field Field)(ok bool){
+    loadDataSQL := map[string]map[string]string{}
+    loadDataSQL[field.Fconn] = map[string]string{}
+    loadDataSQL[field.Fconn]["path"] = ""
+    loadDataSQL, err := utils.GetConf(loadDataSQL)
+    if err != nil {
+        logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf")
+        return false
+    }
+    dbpath := loadDataSQL[field.Fconn]["path"]
+
+    exists := FieldExists(dbpath, field.Fquery)
+    if !exists {
+        logs.Warn("Configuration -> Field "+field.Fname+" doesn't exist on Table/DB "+field.Ftable+"/"+field.Fconn+" ...Creating")
+        created := FieldCreate(dbpath, field.Finsert, field.Fname)
+        if !created {
+            return false
+        }
+        return true
+    }
+
+    logs.Info("Configuration -> Field "+field.Fname+" exists on Table/DB "+field.Ftable+"/"+field.Fconn)
+    return true
+}
+
+func FieldExists (dbpath, qry string)(ok bool){
+    dblink, err := sql.Open("sqlite3", dbpath)
+    if err != nil {
+        logs.Error("Configuration -> Check Field -> db " + dbpath + " can't be opened -> err: "+err.Error())
+        return false
+    }
+    defer dblink.Close()
+    row := dblink.QueryRow(qry)
+
+    var fieldname string
+    switch err := row.Scan(&fieldname); err {
+    case sql.ErrNoRows:
+        return false
+    case nil:
+        return true
+    default:
+        return false
+    }
+    return true
+}
+
+func FieldCreate (dbpath string, insert string, name string)(ok bool){
+    logs.Info("Configuration -> Creating field "+name+" in "+dbpath)
+
+    dblink, err := sql.Open("sqlite3", dbpath)
+    if err != nil {
+        logs.Error("Configuration -> Check Field -> db " + dbpath + " can't be opened -> err: "+err.Error())
+        return false
+    }
+    defer dblink.Close()
+    _, err = dblink.Exec(insert)
+    if err != nil {
+        logs.Error("Configuration -> Creating field " + name + " failed -> err: "+err.Error())
+        return false
     }
     return true
 }
@@ -257,32 +375,7 @@ func TableExists(db string, table string)(exists bool){
     return true
 }
 
-func RecordExists(  db string, 
-                    table string, 
-                    uuid_field string, 
-                    uuid_value string, 
-                    param_field string, 
-                    param_value string,
-                    value_field string)(exists bool) {
-    dblink, err := sql.Open("sqlite3", db)
-    if err != nil {
-        logs.Error("Configuration -> Check Record -> db " + db + " can't open -> err: "+err.Error())
-        return false
-    }
-    defer dblink.Close()
-    sql := "select "+value_field+" from "+table+" where "+uuid_field+"='"+uuid_value+"' AND "+param_field+"='"+param_value+"'";
-    rows, err := dblink.Query(sql)
-    if err != nil {
-        logs.Error("Configuration -> Check Record -> "+db+" record "+table+"->"+uuid_value+"->"+param_value+" can't query -> err: "+err.Error())
-        return false
-    }
-    defer rows.Close()
-    for rows.Next() {
-        return true
-    } 
-    logs.Error("Configuration -> Check Record -> "+db+" record "+table+"->"+uuid_value+"->"+param_value+" doesn't exists -> err: "+err.Error())
-    return false
-}
+
 
 func TableCreate(conn string, tablename string, create string)(ok bool){
     logs.Info("Configuration -> Creating table "+tablename+" in "+conn)
@@ -307,21 +400,6 @@ func TableCreate(conn string, tablename string, create string)(ok bool){
     }
     return true 
 }
-
-
-func TableCreatePluginPlugins()(ok bool){
-    conn := "pluginConn"
-    tablename := "plugins"
-    create := "CREATE TABLE plugins ("+
-                "plugin_id integer PRIMARY KEY AUTOINCREMENT,"+
-                "plugin_uniqueid text NOT NULL,"+
-                "plugin_param text NOT NULL,"+
-                "plugin_value text NOT NULL)"
-    return TableCreate(conn, tablename, create)
-}
-
-
-
 
 func DbCreate(db string)(err error) {
     logs.Warn ("Configuration -> Creating DB file -> "+db)
