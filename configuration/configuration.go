@@ -220,7 +220,7 @@ func checkFields()(ok bool){
     field.Fconn      = "pluginConn"
     field.Ftable     = "mainconf"
     field.Fquery     = "select main_param from mainconf where main_param='mode' and main_uniqueid='zeek'"
-    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','mode','cluster')"
+    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','mode','standalone')"
     field.Fname      = "zeek - cluster mode"
     ok = CheckField(field)
     if !ok {
