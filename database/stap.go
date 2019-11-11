@@ -18,7 +18,7 @@ func SConn() {
     loadDataSQL["stapConn"] = map[string]string{}
     loadDataSQL["stapConn"]["path"] = ""
     loadDataSQL["stapConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)    
+    loadDataSQL, err = utils.GetConf(loadDataSQL)
     path := loadDataSQL["stapConn"]["path"]
     cmd := loadDataSQL["stapConn"]["cmd"]
     if err != nil {
