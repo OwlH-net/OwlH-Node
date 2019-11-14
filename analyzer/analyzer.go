@@ -342,7 +342,6 @@ func PingAnalyzer()(data map[string]string ,err error) {
 
 
     analyzerStatus,err := ndb.GetStatusAnalyzer()
-    // logs.Info("ANALYZER STATUS - "+analyzerStatus)
     if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return analyzerData,err}
 
     analyzerData["status"] = analyzerStatus
@@ -354,13 +353,11 @@ func PingAnalyzer()(data map[string]string ,err error) {
 
     analyzerData["size"] = strconv.FormatInt(size, 10)
 
-
-
     return analyzerData, nil
 }
 
 func ChangeAnalyzerStatus(anode map[string]string) (err error) {
-    logs.Info("ANALYZER STATUS - NEW STATUS - "+anode["status"])
+    logs.Emergency("ANALYZER STATUS - NEW STATUS - "+anode["status"])
     err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
     if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
 

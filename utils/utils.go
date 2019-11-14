@@ -92,10 +92,8 @@ func BackupFile(path string, fileName string) (err error) {
 //write data on a file
 func WriteNewDataOnFile(path string, data []byte)(err error){
     err = ioutil.WriteFile(path, data, 0644)
-    if err != nil {
-        logs.Error("Error WriteNewData")
-        return err
-    }
+    if err != nil {logs.Error("Error WriteNewData"); return err}
+    
     return nil
 }
 
