@@ -16,6 +16,7 @@ import (
     "owlhnode/monitor"
     "owlhnode/configuration"
     "os"
+    "crypto/tls"
     // "os/exec"
     "bufio"
     "strings"
@@ -125,6 +126,7 @@ func main() {
         beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
     }
     
+    beego.BeeApp.Server.TLSConfig = &tls.Config{ MinVersion: 1}
     beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
         AllowOrigins:     []string{"*"},
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

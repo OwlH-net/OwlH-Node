@@ -20,7 +20,7 @@ func (m *AnalyzerController) PingAnalyzer() {
     data, err := models.PingAnalyzer()
     m.Data["json"] = data
     if err != nil {
-        logs.Info("PingAnalyzer OUT -- ERROR : %s", err.Error())
+        logs.Error("PingAnalyzer OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     m.ServeJSON()
@@ -40,10 +40,27 @@ func (m *AnalyzerController) ChangeAnalyzerStatus() {
 
     m.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
-        logs.Info("ChangeAnalyzerStatus OUT -- ERROR : %s", err.Error())
+        logs.Error("ChangeAnalyzerStatus OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }else{
         analyzer.Init()
+    }
+    m.ServeJSON()
+}
+
+// @Title SyncAnalyzer
+// @Description SyncAnalyzer status
+// @Success 200 {object} models.analyzer
+// @router /sync [put]
+func (m *AnalyzerController) SyncAnalyzer() {    
+    var anode map[string][]byte
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+    err := models.SyncAnalyzer(anode)
+
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Error("SyncAnalyzer OUT -- ERROR : %s", err.Error())
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     m.ServeJSON()
 }

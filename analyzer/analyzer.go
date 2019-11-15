@@ -360,6 +360,13 @@ func ChangeAnalyzerStatus(anode map[string]string) (err error) {
     logs.Emergency("ANALYZER STATUS - NEW STATUS - "+anode["status"])
     err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
     if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
-
+    
     return nil
+}
+
+func SyncAnalyzer(file map[string][]byte) (err error) {
+    err = utils.WriteNewDataOnFile("conf/analyzer.json", file["data"])
+    if err != nil { logs.Error("Analyzer/SyncAnalyzer Error updating Analyzer file: "+err.Error()); return err}
+    
+    return err
 }
