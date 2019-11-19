@@ -173,3 +173,17 @@ func SavePolicyFiles(files map[string]map[string][]byte) (err error) {
     err = zeek.SaveConfigFile(files)
     return err
 }
+
+func SyncClusterFile(anode map[string][]byte) (err error) {
+    logs.Info("============")
+    logs.Info("ZEEK - SyncClusterFile")
+    // for key :=range cc {
+    //     logs.Info(key +" -> " + cc[key])
+    // }
+    delete(anode,"action")
+    delete(anode,"controller")
+    delete(anode,"router")
+
+    err = zeek.SyncClusterFile(anode)
+    return err
+}
