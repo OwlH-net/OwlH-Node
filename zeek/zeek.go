@@ -472,15 +472,14 @@ func SaveConfigFile(files map[string]map[string][]byte)(err error){
 }
 
 func SyncClusterFile(anode map[string][]byte) (err error) {
-    // zeekPath := map[string]map[string]string{}
-    // zeekPath["zeek"] = map[string]string{}
-    // zeekPath["zeek"]["nodeconfig"] = ""
-    // zeekPath,err = utils.GetConf(zeekPath)
-    // if err != nil {logs.Error("SyncCluster Error readding GetConf: "+err.Error())}
-    // path := zeekPath["zeek"]["nodeconfig"]
+    zeekPath := map[string]map[string]string{}
+    zeekPath["zeek"] = map[string]string{}
+    zeekPath["zeek"]["nodeconfig"] = ""
+    zeekPath,err = utils.GetConf(zeekPath)
+    if err != nil {logs.Error("SyncCluster Error readding GetConf: "+err.Error())}
+    path := zeekPath["zeek"]["nodeconfig"]
 
-    // err = utils.WriteNewDataOnFile(path, anode["data"])
-    err = utils.WriteNewDataOnFile("/usr/local/bro/etc/node.cfg", anode["data"])
+    err = utils.WriteNewDataOnFile(path, anode["data"])
     if err != nil{logs.Error("zeek/SyncClusterFile Error writting cluster file content: "+err.Error()); return err}
     return err
 }
