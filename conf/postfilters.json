@@ -1,0 +1,34 @@
+{
+    "filters":[
+        {
+            "filtername":"Remove stats events",
+            "type":"string",
+            "fields":["event_type"],
+            "exp":"stats",
+            "stop":false,
+            "action": "exclude",
+            "field": "newfield",
+            "value": "newvalue"
+        },
+        {
+            "filtername":"filter 2",
+            "type":"string",
+            "fields":["field1","field2"],
+            "exp":"string to match",
+            "stop":false,
+            "action": "insert",
+            "field": "level",
+            "value": "high"
+        },
+        {
+            "filtername":"filter 2",
+            "type":"string",
+            "fields":["field1","field2"],
+            "exp":"string to match",
+            "stop":false,
+            "action": "modify",
+            "field": "level",
+            "value": "high"
+        }
+    ]
+}
