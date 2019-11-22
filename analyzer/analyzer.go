@@ -134,17 +134,8 @@ func readconf()(err error) {
 }
 
 func readtags() {
-    tag := map[string]map[string]string{}
-    tag["analyzer"] = map[string]string{}
-    tag["analyzer"]["analyzertags"] = ""
-    tag,err := utils.GetConf(tag)
-    analyzertag := tag["analyzer"]["analyzertags"]
-    if err != nil {
-        logs.Error("Analyzer Tags - Error getting data from main.conf: "+err.Error())
-        return
-    }
 
-    tagFile, err := os.Open(analyzertag)
+    tagFile, err := os.Open(config.Tagfile)
     if err != nil {
         logs.Error("Error openning analyzer tag file: "+err.Error())
         return
