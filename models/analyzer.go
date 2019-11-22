@@ -9,6 +9,7 @@ import (
 
 func PingAnalyzer()(data map[string]string ,err error) {
     data, err = analyzer.PingAnalyzer()    
+    changecontrol.ChangeControlInsertData(err, "PingAnalyzer")    
     return data, err
 }
 
@@ -22,17 +23,7 @@ func ChangeAnalyzerStatus(uuid map[string]string) (err error) {
     
     err = analyzer.ChangeAnalyzerStatus(uuid)
     
-    if err!=nil { 
-        cc["actionStatus"] = "error"
-        cc["errorDescription"] = err.Error()
-    }else{
-        cc["actionStatus"] = "success"
-    }
-    cc["actionDescription"] = "Change Analyzer Status Enable/Disable"
-    
-    controlError := changecontrol.InsertChangeControl(cc)
-    if controlError!=nil { logs.Error("AddPluginService controlError: "+controlError.Error()) }
-    
+    changecontrol.ChangeControlInsertData(err, "ChangeAnalyzerStatus")    
     return err
 }
 
@@ -44,18 +35,7 @@ func SyncAnalyzer(file map[string][]byte) (err error) {
     logs.Info("============")
     logs.Info("ANALYZER - SyncAnalyzer")
     logs.Info("file - conf/analyzer.json")
-    
-    err = analyzer.SyncAnalyzer(file)
-    if err!=nil { 
-        cc["actionStatus"] = "error"
-        cc["errorDescription"] = err.Error()
-    }else{
-        cc["actionStatus"] = "success"
-    }
-    cc["actionDescription"] = "Sync analyzer file"
-    
-    controlError := changecontrol.InsertChangeControl(cc)
-    if controlError!=nil { logs.Error("SyncAnalyzer controlError: "+controlError.Error()) }
-    
+        
+    changecontrol.ChangeControlInsertData(err, "SyncAnalyzer")    
     return err
 }

@@ -2,18 +2,20 @@ package models
 
 import (
     "owlhnode/suricata"
-//    "owlhnode/changeControl"
+   "owlhnode/changeControl"
     "github.com/astaxie/beego/logs")
 
 
 func GetSuricata() (status map[string]bool, err error) {
     status,err = suricata.Installed()
+    changecontrol.ChangeControlInsertData(err, "GetSuricata")    
     return status,err
 }
 
 // func GetBPF() (bpf string, err error) {
 //     bpf,err = suricata.GetBPF()
-//     return bpf,err
+//     changecontrol.ChangeControlInsertData(err, "")    
+    // return bpf,err
 // }
 
 func SetBPF(anode map[string]string) (err error) {
@@ -28,6 +30,7 @@ func SetBPF(anode map[string]string) (err error) {
     delete(anode,"router")
 
     err = suricata.SetBPF(anode)
+    changecontrol.ChangeControlInsertData(err, "SetBPF")    
     return err
 }
 
@@ -43,6 +46,7 @@ func SyncRulesetFromMaster(n map[string][]byte) (err error) {
     delete(n,"router")
 
     err = suricata.SyncRulesetFromMaster(n)
+    changecontrol.ChangeControlInsertData(err, "SyncRulesetFromMaster")    
     return err
 }
 
@@ -55,20 +59,24 @@ func SaveConfigFile(files map[string]map[string][]byte) (err error) {
     }
 
     err = suricata.SaveConfigFile(files)
+    changecontrol.ChangeControlInsertData(err, "SaveConfigFile")    
     return err
 }
 
 func RunSuricata() (data string, err error) {
     data,err = suricata.RunSuricata()
+    changecontrol.ChangeControlInsertData(err, "RunSuricata")    
     return data,err
 }
 
 func StopSuricata() (data string, err error) {
     data,err = suricata.StopSuricata()
+    changecontrol.ChangeControlInsertData(err, "StopSuricata")    
     return data,err
 }
 
 func GetSuricataServices() (data map[string]map[string]string, err error) {
     data,err = suricata.GetSuricataServices()
+    changecontrol.ChangeControlInsertData(err, "GetSuricataServices")    
     return data,err
 }

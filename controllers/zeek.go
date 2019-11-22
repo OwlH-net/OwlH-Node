@@ -235,3 +235,26 @@ func (n *ZeekController) SavePolicyFiles() {
     }
     n.ServeJSON()
 }
+
+// @Title SyncClusterFile
+// @Description Sync Zeek cluster file
+// @Success 200 {object} models.zeek
+// @router /syncClusterFile [put]
+func (m *ZeekController) SyncClusterFile() {
+    anode := map[string][]byte{}
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+
+    logs.Info("ACTION -> POST")
+    logs.Info("CONTROLLER -> ZEEK")
+    logs.Info("ROUTER -> @router / [post]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+    
+    err := models.SyncClusterFile(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    m.ServeJSON()
+}
