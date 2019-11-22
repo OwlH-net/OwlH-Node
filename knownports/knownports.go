@@ -4,7 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "owlhnode/database"
     "owlhnode/utils"
-    "owlhnode/analyzer"
+    // "owlhnode/analyzer"
     "errors"
     "regexp"
     "strconv"
@@ -105,7 +105,7 @@ func NewPorts()(){
         
         newuuid := utils.Generate()
         logs.Info(newuuid + ": starting analyzer for Knwon ports")
-        analyzer.Registerchannel(newuuid)
+        // analyzer.Registerchannel(newuuid)
         logs.Debug("ch UUID -> "+newuuid+"registered")
         portsData, err := LoadPortsData()
         if err!=nil {logs.Error("Error LoadPortsData: "+err.Error())}
@@ -126,7 +126,7 @@ func NewPorts()(){
         for {
             logs.Debug("wait line for ch uuid -> "+newuuid)
             
-            line := <- analyzer.Dispatcher[newuuid] 
+            line := ""
             logs.Debug("4.3")
             Status, err = CheckParamKnownports("status"); if err != nil {logs.Error("CheckParamKnownports Error: "+err.Error())}
             Mode, err = CheckParamKnownports("mode"); if err != nil {logs.Error("CheckParamKnownports Error: "+err.Error())}
