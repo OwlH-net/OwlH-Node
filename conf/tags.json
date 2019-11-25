@@ -6,6 +6,7 @@
             "fields":["field1","field2"],
             "exp":"string to match",
             "stop":false,
+            "action":"add",
             "tag": "is a local system"
         },
         {
@@ -14,6 +15,7 @@
             "fields":["field1","field2"],
             "exp":"string to match",
             "stop":false,
+            "action":"insert",
             "tag": "is not a local system"
         }
     ]
