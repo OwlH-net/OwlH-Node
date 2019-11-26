@@ -15,6 +15,9 @@
             "workers":4
         },
         {
+            "feedfile":"/tmp/local.feed"  
+        },
+        {
             "feedfile":"/usr/local/owlh/src/owlhnode/conf/feeds/xforce.feed",
             "workers":4
         },

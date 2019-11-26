@@ -3,8 +3,9 @@ package analyzer
 import (
     "encoding/json"
     "os"
+    "syscall"
     "io/ioutil"
-    // "strings"
+    "strings"
     "github.com/hpcloud/tail"
     "github.com/astaxie/beego/logs"
     "bufio"
@@ -16,26 +17,17 @@ import (
     // "regexp"
 )
 
-
-type iocAlert struct {
-    Data            Data        `json:"data"`
-    Full_log        string      `json:"full_log"`
+type chcounter struct {
+    CHfeed          int
+    CHmapper        int
+    CHprefilter     int
+    CHpostfilter    int
+    CHtag           int
+    CHwriter        int
+    CHstartpipeline int
+    lines           int
 }
 
-type Data struct {
-    Dstport         string      `json:"dstport"`
-    Srcport         string      `json:"srcport"`
-    Dstip           string      `json:"dstip"`
-    Srcip           string      `json:"srcip"`
-    IoC             string      `json:"ioc"`
-    IoCsource       string      `json:"iocsource"`
-    Signature       Signature   `json:"alert"`
-}
-
-type Signature struct {
-    Signature       string      `json:"signature"`
-    Signature_id    string      `json:"signature_id"`
-}
 
 
 type Analyzer struct {
@@ -92,19 +84,22 @@ type Event struct {
     Line            string
 }
 
-var CHstartpipeline         = make (chan string)
-var CHprefilter             = make (chan string)
-var CHmapper                = make (chan string)
-var CHtag                   = make (chan string)
-var CHfeed                  = make (chan string)
-var CHpostfilter            = make (chan string)
-var CHwriter                = make (chan string)
-var CHdispatcher            = make (chan Event)
+var CHstartpipeline         = make (chan string, 1000)
+var CHprefilter             = make (chan string, 1000)
+var CHmapper                = make (chan string, 1000)
+var CHtag                   = make (chan string, 1000)
+var CHfeed                  = make (chan string, 1000)
+var CHpostfilter            = make (chan string, 1000)
+var CHwriter                = make (chan string, 1000)
+var CHdispatcher            = make (chan Event, 1000)
+
 
 var config Analyzer
 var tags Tags
 var postfilters Filters
 var prefilters Filters
+var IoCs = map[string][]string{}
+var counters chcounter
 
 func readconf()(err error) {
 
@@ -147,6 +142,7 @@ func readtags() {
     if err != nil {
         logs.Error("tags to json -> Unmarshal error: %s", err.Error())
     }
+    logs.Info("tags Loaded")
 }
 
 func readpreexcludes() {
@@ -180,17 +176,19 @@ func readpostexcludes() {
     if err != nil {
         logs.Error("post filters to json -> Unmarshal error: %s", err.Error())
     }
+    logs.Info("postfilters loaded")
+    logs.Warn(postfilters)
 }
 
 
 func readLines(path string) ([]string, error) {
+    var lines []string
     file, err := os.Open(path)
     if err != nil {
-        return nil, err
+        return lines, err
     }
     defer file.Close()
     
-    var lines []string
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         lines = append(lines, scanner.Text())
@@ -202,25 +200,35 @@ func ToDispatcher(source, line string) {
     var event Event
     event.Source    =   source
     event.Line      =   line
+    logs.Info(event.Source)
     CHdispatcher <- event
 }
 
 func DoFeed (wkrid int){
-
     for {
         line := <- CHfeed
+        logs.Info("lets analyze a line")
         jsoninterface := make(map[string]interface{})
         json.Unmarshal([]byte(line), &jsoninterface)
-        // for ioc := range IoCs {
-        //     if strings.Contains(line, IoCs[ioc]) {
-        //         logs.Info("Match -> "+ line +" IoC found -> " + IoCs[ioc]  + " wkrid -> " + strconv.Itoa(wkrid))
-        //         //ioc
-        //         IoCtoAlert(line, IoCs[ioc], iocsrc)
-        //     }
-        // }
-
+        feeddone := false
+        for iocmap := range IoCs {
+            logs.Info("lets analyze a line with feed %s", iocmap)
+            for ioc := range IoCs[iocmap] {
+                logs.Info("is %s here?", IoCs[iocmap][ioc])
+                if strings.Contains(line, IoCs[iocmap][ioc]) {
+                    logs.Info ("we have a champion >> %s", IoCs[iocmap][ioc])
+                    feeddone=true
+                    break
+                }
+            }
+            if feeddone {
+                break
+            }
+        }
         bline, err := json.Marshal(jsoninterface)
-        if err != nil {}
+        if err != nil {
+            logs.Error("DoFeed - Marshal before ToDispatcher - Error: %s", err.Error())
+        }
         ToDispatcher("CHfeed", string(bline))
     }
 }
@@ -337,6 +345,7 @@ func DoTag(wkr int){
     logs.Info("Tag -> %d -> Started",wkr)
     for {
         line := <- CHtag
+        logs.Info("Lets tag")
         jsoninterface := make(map[string]interface{})
         json.Unmarshal([]byte(line), &jsoninterface)
 
@@ -367,15 +376,17 @@ func DoTag(wkr int){
             if istheend {
                 break
             }
+            logs.Info("tags done")
         }
 
         if istheend {
+            logs.Info("tags continue")
             continue
         }
 
         bline, err := json.Marshal(jsoninterface)
         if err != nil {}
-        ToDispatcher("CHpostfilter", string(bline))
+        ToDispatcher("CHtag", string(bline))
     }
 }
 
@@ -442,7 +453,7 @@ func DoWriter(wkrid int) {
     logs.Info("WRITER -> Started -> " + outputfile)
     _, err = ofile.WriteString("started\n")
     defer ofile.Close()
-
+    go MonitorFile(outputfile, 1)
     for {
         line := <- CHwriter 
         // logs.Error("WRITER -> writing line %s", line)
@@ -462,18 +473,27 @@ func DoDispatcher(x int) {
         switch line.Source {
         case "start":
             // logs.Warn("dispatcher %d -> %s -> to Prefilter", x, line.Source)
+            counters.CHprefilter += 1
             CHprefilter <- line.Line
         case "CHprefilter":
             // logs.Warn("dispatcher %d -> %s -> to Mapper", x, line.Source)
+            counters.CHmapper += 1
             CHmapper <- line.Line
         case "CHmapper":
             // logs.Warn("dispatcher %d -> %s -> to Feed", x, line.Source)
+            counters.CHfeed += 1
             CHfeed <- line.Line
         case "CHfeed":
+            // logs.Warn("dispatcher %d -> %s -> to Tag", x, line.Source)
+            counters.CHtag += 1
+            CHtag <- line.Line
+        case "CHtag":
             // logs.Warn("dispatcher %d -> %s -> to Postfilter", x, line.Source)
+            counters.CHpostfilter += 1
             CHpostfilter <- line.Line
         case "CHpostfilter":
             // logs.Warn("dispatcher %d -> %s -> to Writer", x, line.Source)
+            counters.CHwriter += 1
             CHwriter <- line.Line
         default:
             logs.Error("Source %s: Have no idea what is next with this line %s", line.Source, line.Line)
@@ -503,8 +523,16 @@ func StartMapper(wkr int) {
     }
 }
 
+func StartTag(wkr int) {
+    logs.Info("starting Tag with %d workers", wkr)
+    for x:=0; x < wkr; x++ {
+        go DoTag(x)
+    }
+}
+
 func StartFeed(wkr int) {
     logs.Info("starting Feed with %d workers", wkr)
+    LoadFeed()
     for x:=0; x < wkr; x++ {
         go DoFeed(x)
     }
@@ -523,34 +551,66 @@ func StartWriter(wkr int) {
     }
 }
 
+func ControlSource(file string) {
+    logs.Info("start file %s control", file)
+    filedet, err := os.Stat(file) 
+    if os.IsNotExist(err) {
+        return
+    }
+    stat, _ := filedet.Sys().(*syscall.Stat_t)
+    var previousinode uint64
+    previousinode = stat.Ino
+    logs.Info("file inode %d ", int(previousinode))
+
+    endthis := false
+    for {
+        time.Sleep(time.Second * 10)
+        if fileinfo, err := os.Stat(file); !os.IsNotExist(err) {
+            stat, _ := fileinfo.Sys().(*syscall.Stat_t)
+            logs.Info("current inode %d vs %d", stat.Ino, previousinode) 
+            if previousinode != stat.Ino {
+                logs.Warn("file %s inode changed, restarting tail with new inode", file)
+                go StartSource(file)
+                endthis = true
+            }
+        }
+        if endthis {
+            break
+        }
+    }
+}
+
 func StartSource(file string) {
     logs.Info("Starting tail of source file: "+file)
     var seekv tail.SeekInfo
     seekv.Offset = 0
     seekv.Whence = os.SEEK_END
     for {
+        logs.Info("tailing - %s", file)
+        if _, err := os.Stat(file); os.IsNotExist(err) {
+            time.Sleep(time.Second * 10)
+            continue
+        }
         t, err := tail.TailFile(file, tail.Config{Follow: true, Location: &seekv})
         if err != nil {
             logs.Error(">>>>>> Tail over file %s error: %s", file, err.Error())
         }
+        go ControlSource(file)
         for line := range t.Lines {
+            counters.lines += 1
+            logs.Info("new line from %s", file)
             ToDispatcher("start",line.Text)
         }
+        logs.Info("End tailing - %s", file)
     }
 }
 
 func LoadFeed() {
     logs.Info("loading Feed")
     for file := range config.Feedfiles {
-        // go StartFeed(config.Feedfiles[file].File, config.Feedfiles[file].Workers)
-        go StartFeed(config.Feedfiles[file].Workers)
+        logs.Info(config.Feedfiles[file].File)
+        IoCs[config.Feedfiles[file].File], _ = readLines(config.Feedfiles[file].File)
     }
-}
-
-
-func LoadMapper() {
-    logs.Info("loading Mappers")
-    go StartMapper(4)
 }
 
 func LoadSources() {
@@ -563,15 +623,43 @@ func LoadSources() {
 func CHstats(){
     logs.Info("Channels Status")
     logs.Info("***************")
-    logs.Info("CHstartpipeline %d items",len(CHstartpipeline))
     logs.Info("CHprefilter %d items",len(CHprefilter))
     logs.Info("CHmapper %d items",len(CHmapper))
+    logs.Info("CHtag %d items",len(CHtag))
     logs.Info("CHfeed %d items",len(CHfeed))
     logs.Info("CHpostfilter %d items",len(CHpostfilter))
     logs.Info("CHwriter %d items",len(CHwriter))
     logs.Info("***************")
 }
 
+func CHcounter(){
+    logs.Info("Channels counters")
+    logs.Info("*****************")
+    logs.Info("Lines %d readed",counters.lines)
+    logs.Info("CHprefilter %d times",counters.CHprefilter)
+    logs.Info("CHmapper %d times",counters.CHmapper)
+    logs.Info("CHfeed %d times",counters.CHfeed)
+    logs.Info("CHtag %d times",counters.CHtag)
+    logs.Info("CHpostfilter %d times",counters.CHpostfilter)
+    logs.Info("CHwriter %d times",counters.CHwriter)
+    logs.Info("***************")
+
+}
+
+func MonitorFile(file string, size int) {
+    logs.Info(" >>>>>>>>>>  start file %s monitor", file)
+    for {
+        filedet, err := os.Stat(file) 
+        if os.IsNotExist(err) {
+            return
+        }
+        fsize := filedet.Size()
+        if fsize > int64(size*1073741824) {
+            logs.Error(">>>>>>> File %s size if greater than %dG, rotating...", file, size)
+        } 
+        time.Sleep(time.Second * 3)
+    }
+}
 
 func InitAnalizer() {
     logs.Info("starting analyzer")
@@ -585,12 +673,13 @@ func InitAnalizer() {
     readpostexcludes()
     readpreexcludes()
     StartWriter(1)
+    StartMapper(4)
+    StartFeed(4)
+    StartTag(4)
     StartDispatcher(4)
     StartPreFilter(4)
     StartPostFilter(4)
 
-    LoadMapper()
-    LoadFeed()
     LoadSources()
     for {
         analyzer,_ = PingAnalyzer()
@@ -599,6 +688,7 @@ func InitAnalizer() {
         }
         time.Sleep(time.Second * 3)
         CHstats()
+        CHcounter()
     }
 }
 
