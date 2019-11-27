@@ -200,23 +200,18 @@ func ToDispatcher(source, line string) {
     var event Event
     event.Source    =   source
     event.Line      =   line
-    logs.Info(event.Source)
     CHdispatcher <- event
 }
 
 func DoFeed (wkrid int){
     for {
         line := <- CHfeed
-        logs.Info("lets analyze a line")
         jsoninterface := make(map[string]interface{})
         json.Unmarshal([]byte(line), &jsoninterface)
         feeddone := false
         for iocmap := range IoCs {
-            logs.Info("lets analyze a line with feed %s", iocmap)
             for ioc := range IoCs[iocmap] {
-                logs.Info("is %s here?", IoCs[iocmap][ioc])
                 if strings.Contains(line, IoCs[iocmap][ioc]) {
-                    logs.Info ("we have a champion >> %s", IoCs[iocmap][ioc])
                     feeddone=true
                     break
                 }
@@ -345,7 +340,6 @@ func DoTag(wkr int){
     logs.Info("Tag -> %d -> Started",wkr)
     for {
         line := <- CHtag
-        logs.Info("Lets tag")
         jsoninterface := make(map[string]interface{})
         json.Unmarshal([]byte(line), &jsoninterface)
 
@@ -453,7 +447,7 @@ func DoWriter(wkrid int) {
     logs.Info("WRITER -> Started -> " + outputfile)
     _, err = ofile.WriteString("started\n")
     defer ofile.Close()
-    go MonitorFile(outputfile, 1)
+    go MonitorFile(outputfile, 1, ofile)
     for {
         line := <- CHwriter 
         // logs.Error("WRITER -> writing line %s", line)
@@ -646,7 +640,7 @@ func CHcounter(){
 
 }
 
-func MonitorFile(file string, size int) {
+func MonitorFile(file string, size int, ofile *os.File) {
     logs.Info(" >>>>>>>>>>  start file %s monitor", file)
     for {
         filedet, err := os.Stat(file) 
@@ -656,6 +650,8 @@ func MonitorFile(file string, size int) {
         fsize := filedet.Size()
         if fsize > int64(size*1073741824) {
             logs.Error(">>>>>>> File %s size if greater than %dG, rotating...", file, size)
+            ofile.Truncate(0)
+            ofile.Seek(0,0)
         } 
         time.Sleep(time.Second * 3)
     }
