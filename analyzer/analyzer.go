@@ -3,6 +3,7 @@ package analyzer
 import (
     "encoding/json"
     "os"
+    "syscall"
     "io/ioutil"
     "strings"
     "github.com/hpcloud/tail"
@@ -13,32 +14,29 @@ import (
     "owlhnode/utils"
     "owlhnode/database"
     "owlhnode/geolocation"
-    "regexp"
+    // "regexp"
 )
 
-type iocAlert struct {
-    Data            Data        `json:"data"`
-    Full_log        string      `json:"full_log"`
+type chcounter struct {
+    CHfeed          int
+    CHmapper        int
+    CHprefilter     int
+    CHpostfilter    int
+    CHtag           int
+    CHwriter        int
+    CHstartpipeline int
+    lines           int
 }
 
-type Data struct {
-    Dstport         string      `json:"dstport"`
-    Srcport         string      `json:"srcport"`
-    Dstip           string      `json:"dstip"`
-    Srcip           string      `json:"srcip"`
-    IoC             string      `json:"ioc"`
-    IoCsource       string      `json:"iocsource"`
-    Signature       Signature   `json:"alert"`
-}
-
-type Signature struct {
-    Signature       string      `json:"signature"`
-    Signature_id    string      `json:"signature_id"`
-}
 
 
 type Analyzer struct {
     Enable          bool        `json:"enable"`
+    OutputFile      string      `json:"outputfile"`
+    Prefilter       string      `json:"prefilterfile"`
+    Postfilter      string      `json:"postfilterfile"`
+    Tagfile         string      `json:"tags"`
+
     Srcfiles        []string    `json:"srcfiles"`
     Feedfiles       []Feedfile
 }
@@ -48,22 +46,72 @@ type Feedfile struct {
     Workers         int         `json:"workers"`
 }
 
-var Dispatcher = make(map[string]chan string)
-var Writer = make(map[string]chan string)
+
+type Tags struct{
+    Tags            []Tag       `json:"tags"`
+}
+
+type Tag struct {
+    Tagname         string      `json:"tagname"`
+    Type            string      `json:"type"`
+    Fields          []string    `json:"fields"`
+    Exp             string      `json:"exp"`
+    Action          string      `json:"action"`
+    Stop            bool        `json:"stop"`
+    Tag             string      `json:"tag"`
+    Field           string      `json:"field"`
+    Value           string      `json:"value"`
+}
+
+type Filters struct{
+    Filters            []Filter       `json:"filters"`
+}
+
+type Filter struct {
+    Filtername      string      `json:"filtername"`
+    Type            string      `json:"type"`
+    Fields          []string    `json:"fields"`
+    Exp             string      `json:"exp"`
+    Stop            bool        `json:"stop"`
+    Tag             string      `json:"tag"`
+    Action          string      `json:"action"`
+    Fieldname       string      `json:"field"`
+    Fieldvalue      string      `json:"value"`
+}
+
+type Event struct {
+    Source          string
+    Line            string
+}
+
+var CHstartpipeline         = make (chan string, 1000)
+var CHprefilter             = make (chan string, 1000)
+var CHmapper                = make (chan string, 1000)
+var CHtag                   = make (chan string, 1000)
+var CHfeed                  = make (chan string, 1000)
+var CHpostfilter            = make (chan string, 1000)
+var CHwriter                = make (chan string, 1000)
+var CHdispatcher            = make (chan Event, 1000)
+
 
 var config Analyzer
+var tags Tags
+var postfilters Filters
+var prefilters Filters
+var IoCs = map[string][]string{}
+var counters chcounter
 
 func readconf()(err error) {
 
-	cfg := map[string]map[string]string{}
-	cfg["analyzer"] = map[string]string{}
-	cfg["analyzer"]["analyzerconf"] = ""
-	cfg,err = utils.GetConf(cfg)
-	analyzerCFG := cfg["analyzer"]["analyzerconf"]
-	if err != nil {
-		logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
-		return
-	}
+    cfg := map[string]map[string]string{}
+    cfg["analyzer"] = map[string]string{}
+    cfg["analyzer"]["analyzerconf"] = ""
+    cfg,err = utils.GetConf(cfg)
+    analyzerCFG := cfg["analyzer"]["analyzerconf"]
+    if err != nil {
+        logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
+        return
+    }
 
     confFile, err := os.Open(analyzerCFG)
     if err != nil {
@@ -72,22 +120,75 @@ func readconf()(err error) {
     }
     defer confFile.Close()
     byteValue, _ := ioutil.ReadAll(confFile)
-	err = json.Unmarshal(byteValue, &config)
+    err = json.Unmarshal(byteValue, &config)
     if err != nil {
-		logs.Error(err.Error())
+        logs.Error(err.Error())
         return err
     }
     return nil
 }
 
+func readtags() {
+
+    tagFile, err := os.Open(config.Tagfile)
+    if err != nil {
+        logs.Error("Error openning analyzer tag file: "+err.Error())
+        return
+    }
+    defer tagFile.Close()
+
+    byteValue, _ := ioutil.ReadAll(tagFile)
+    err = json.Unmarshal(byteValue, &tags)
+    if err != nil {
+        logs.Error("tags to json -> Unmarshal error: %s", err.Error())
+    }
+    logs.Info("tags Loaded")
+}
+
+func readpreexcludes() {
+
+    preFile, err := os.Open(config.Prefilter)
+    if err != nil {
+        logs.Error("Error openning analyzer prefilters file: "+err.Error())
+        return
+    }
+    defer preFile.Close()
+
+    byteValue, _ := ioutil.ReadAll(preFile)
+    err = json.Unmarshal(byteValue, &prefilters)
+    if err != nil {
+        logs.Error("pre filters to json -> Unmarshal error: %s", err.Error())
+    }
+    logs.Info("prefilters loaded")
+    logs.Warn(prefilters)
+}
+
+func readpostexcludes() {
+    postFile, err := os.Open(config.Postfilter)
+    if err != nil {
+        logs.Error("Error openning analyzer postfilters file: "+err.Error())
+        return
+    }
+    defer postFile.Close()
+
+    byteValue, _ := ioutil.ReadAll(postFile)
+    err = json.Unmarshal(byteValue, &postfilters)
+    if err != nil {
+        logs.Error("post filters to json -> Unmarshal error: %s", err.Error())
+    }
+    logs.Info("postfilters loaded")
+    logs.Warn(postfilters)
+}
+
+
 func readLines(path string) ([]string, error) {
+    var lines []string
     file, err := os.Open(path)
     if err != nil {
-        return nil, err
+        return lines, err
     }
     defer file.Close()
     
-    var lines []string
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         lines = append(lines, scanner.Text())
@@ -95,84 +196,244 @@ func readLines(path string) ([]string, error) {
     return lines, scanner.Err()
 }
 
-func Registerchannel(uuid string) {
-    Dispatcher[uuid] = make(chan string)
+func ToDispatcher(source, line string) {
+    var event Event
+    event.Source    =   source
+    event.Line      =   line
+    CHdispatcher <- event
 }
 
-func RegisterWriter(uuid string) {
-    Writer[uuid] = make(chan string)
-}
-
-func Domystuff(IoCs []string, uuid string, wkrid int, iocsrc string) {
+func DoFeed (wkrid int){
     for {
-        line := <- Dispatcher[uuid] 
-        for ioc := range IoCs {
-            if strings.Contains(line, IoCs[ioc]) {
-                logs.Info("Match -> "+ line +" IoC found -> " + IoCs[ioc]  + " wkrid -> " + strconv.Itoa(wkrid))
-                //ioc
-                IoCtoAlert(line, IoCs[ioc], iocsrc)
+        line := <- CHfeed
+        jsoninterface := make(map[string]interface{})
+        json.Unmarshal([]byte(line), &jsoninterface)
+        feeddone := false
+        for iocmap := range IoCs {
+            for ioc := range IoCs[iocmap] {
+                if strings.Contains(line, IoCs[iocmap][ioc]) {
+                    feeddone=true
+                    break
+                }
+            }
+            if feeddone {
+                break
             }
         }
+        bline, err := json.Marshal(jsoninterface)
+        if err != nil {
+            logs.Error("DoFeed - Marshal before ToDispatcher - Error: %s", err.Error())
+        }
+        ToDispatcher("CHfeed", string(bline))
     }
 }
 
-func Mapper(uuid string, wkrid int) {
-    logs.Info("Mapper -> " + uuid + " -> Started")
+func DoMapper(wkrid int) {
+    logs.Info("Mapper -> %d -> Started",wkrid)
+
     for {
-        line := <- Dispatcher[uuid] 
-        StatClue := regexp.MustCompile("event_type\":\"stats\"")
-        isStat := StatClue.FindStringSubmatch(line)
-        if isStat != nil {
-            continue
-        }
-        FlowClue := regexp.MustCompile("event_type\":\"flow\"")
-        isFlow := FlowClue.FindStringSubmatch(line)
-        if isFlow != nil {
-            continue
-        }
-        line = strings.Replace(line, "id.orig_h", "srcip", -1)
-        line = strings.Replace(line, "id.orig_p", "srcport", -1)
-        line = strings.Replace(line, "id.resp_h", "dstip", -1)
-        line = strings.Replace(line, "id.resp_p", "dstport", -1)
-        line = strings.Replace(line, "src_ip", "srcip", -1)
-        line = strings.Replace(line, "src_port", "srcport", -1)
-        line = strings.Replace(line, "dest_ip", "dstip", -1)
-        line = strings.Replace(line, "dest_port", "dstport", -1)
-        re := regexp.MustCompile("dstip\":\"([^\"]+)\"")
-        match := re.FindStringSubmatch(line)
-        if match != nil {
-            geoinfo_dst := geolocation.GetGeoInfo(match[1])
-            if geoinfo_dst != nil {
-                geodstjson, _ := json.Marshal(geoinfo_dst)
-                if last := len(line) - 1; last >= 0 && line[last] == '}' && string(geodstjson) != "{}" {
-                    line = line[:last]
-                    line = line + ",\"geolocation_dst\":"+string(geodstjson)+"}"
-                }
-            } 
-            
-        }
-        re = regexp.MustCompile("srcip\":\"([^\"]+)\"")
-        match = re.FindStringSubmatch(line)
-        if match != nil {
-            geoinfo_src := geolocation.GetGeoInfo(match[1])
-            if geoinfo_src != nil {
-                geosrcjson, _ := json.Marshal(geoinfo_src)
-                if last := len(line) - 1; last >= 0 && line[last] == '}' && string(geosrcjson) != "{}"{
-                    line = line[:last]
-                    line = line + ",\"geolocation_src\":"+string(geosrcjson)+"}"
-                }
-            } 
-        }
-        writeline(line)
+        line := <- CHmapper 
+        jsoninterface := make(map[string]interface{})
+        json.Unmarshal([]byte(line), &jsoninterface)
+
+        renamefield(jsoninterface, "src_ip", "srcip")
+        renamefield(jsoninterface, "src_port", "srcport")
+        renamefield(jsoninterface, "dest_port", "dstport")
+        renamefield(jsoninterface, "dest_ip", "dstip")
+        renamefield(jsoninterface, "id.orig_h", "srcip")
+        renamefield(jsoninterface, "id.orig_p", "srcport")
+        renamefield(jsoninterface, "id.resp_h", "dstip")
+        renamefield(jsoninterface, "id.resp_p", "dstport")
+        geoinfo(jsoninterface, "srcip", "geolocation_src")
+        geoinfo(jsoninterface, "dstip", "geolocation_dst")
+
+        bline, err := json.Marshal(jsoninterface)
+        if err != nil {}
+        ToDispatcher("CHmapper",string(bline))
     }
 }
 
-func Writerproc(uuid string, wkrid int) {
-    var err error
+func renamefield(vjson map[string]interface{}, oldfield, newfield string){
+    _, ok := vjson[oldfield] 
+    if ok {
+        vjson[newfield] = vjson[oldfield]
+        delete(vjson, oldfield)
+    }
+}
+
+func addtag(vjson map[string]interface{}, tag string){
+    var currenttag []interface{}
+    _, ok := vjson["tag"] 
+    if ok {
+        for atag := range vjson["tag"].([]string) {
+            currenttag = append(currenttag, atag)
+        }
+    }
+    currenttag = append(currenttag, tag)
+    vjson["tag"] = currenttag
+}
+
+func insertfield(vjson map[string]interface{}, field, value string){
+    vjson[field] = value
+}
+
+func geoinfo(vjson map[string]interface{}, srcfield, dstfield string){
+    _, ok := vjson[srcfield] 
+    if ok {
+        geodata := geolocation.GetGeoInfo(vjson[srcfield].(string))
+        if len(geodata) != 0 {
+            vjson[dstfield] = geodata
+        }
+    }
+}
+
+func fieldExists(vjson map[string]interface{}, srcfield string)(exists bool){
+    _, ok := vjson[srcfield] 
+    if ok {
+        return true
+    }
+    return false
+}
+
+func DoPreFilter(wkr int){
+    logs.Info("Prefilter -> %d -> Started",wkr)
+    for {
+        line := <- CHprefilter 
+        jsoninterface := make(map[string]interface{})
+        json.Unmarshal([]byte(line), &jsoninterface)
+
+        exclude := false
+
+        for filter := range prefilters.Filters {
+            switch prefilters.Filters[filter].Type {
+            case "string":
+                for field := range prefilters.Filters[filter].Fields {
+                    if fieldExists(jsoninterface,prefilters.Filters[filter].Fields[field]){
+                        if jsoninterface[prefilters.Filters[filter].Fields[field]] == prefilters.Filters[filter].Exp {
+                            switch prefilters.Filters[filter].Action {
+                            case "exclude":
+                                exclude = true
+                                break
+                            default:
+                            }
+                        }
+                    }
+                }
+            default:
+            }
+            if exclude {
+                break
+            }
+        }
+
+        if exclude {
+            continue
+        }
+
+        bline, err := json.Marshal(jsoninterface)
+        if err != nil {}
+        ToDispatcher("CHprefilter", string(bline))
+    }
+}
+
+func DoTag(wkr int){
+    logs.Info("Tag -> %d -> Started",wkr)
+    for {
+        line := <- CHtag
+        jsoninterface := make(map[string]interface{})
+        json.Unmarshal([]byte(line), &jsoninterface)
+
+        istheend := false
+        
+        for tag := range tags.Tags{
+            switch tags.Tags[tag].Type {
+            case "string":
+                for field := range tags.Tags[tag].Fields {
+                    if fieldExists(jsoninterface,tags.Tags[tag].Fields[field]){
+                        if jsoninterface[tags.Tags[tag].Fields[field]] == tags.Tags[tag].Exp {
+                            switch tags.Tags[tag].Action {
+                            case "add":
+                                addtag(jsoninterface, tags.Tags[tag].Tag)
+                            case "insert":
+                                insertfield(jsoninterface, tags.Tags[tag].Field, tags.Tags[tag].Value)
+                            default:
+                            }
+                            if tags.Tags[tag].Stop {
+                                istheend = true
+                                break
+                            }
+                        }
+                    }
+                }
+            default:
+            }
+            if istheend {
+                break
+            }
+            logs.Info("tags done")
+        }
+
+        if istheend {
+            logs.Info("tags continue")
+            continue
+        }
+
+        bline, err := json.Marshal(jsoninterface)
+        if err != nil {}
+        ToDispatcher("CHtag", string(bline))
+    }
+}
+
+func DoPostFilter(wkr int){
+    logs.Info("Postfilter -> %d -> Started",wkr)
+    for {
+        line := <- CHpostfilter 
+        jsoninterface := make(map[string]interface{})
+        json.Unmarshal([]byte(line), &jsoninterface)
+
+        exclude := false
+        
+        for filter := range postfilters.Filters {
+            switch postfilters.Filters[filter].Type {
+            case "string":
+                for field := range postfilters.Filters[filter].Fields {
+                    if fieldExists(jsoninterface,postfilters.Filters[filter].Fields[field]){
+                        if jsoninterface[postfilters.Filters[filter].Fields[field]] == postfilters.Filters[filter].Exp {
+                            switch postfilters.Filters[filter].Action {
+                            case "exclude":
+                                exclude = true
+                                break
+                            default:
+                            }
+                        }
+                    }
+                }
+            default:
+            }
+            if exclude {
+                break
+            }
+        }
+
+        if exclude {
+            continue
+        }
+
+        bline, err := json.Marshal(jsoninterface)
+        if err != nil {}
+        ToDispatcher("CHpostfilter", string(bline))
+    }
+}
+
+
+
+func DoWriter(wkrid int) {
+
+    // TODO - verify if analyzer.json has outfile. if not try to find on main.conf
     AlertLog := map[string]map[string]string{}
     AlertLog["node"] = map[string]string{}
     AlertLog["node"]["alertLog"] = ""
-    AlertLog,err = utils.GetConf(AlertLog)
+    AlertLog,err := utils.GetConf(AlertLog)
     outputfile := AlertLog["node"]["alertLog"]
     if err != nil {
         logs.Error("AlertLog Error getting data from main.conf: " + err.Error())
@@ -183,11 +444,13 @@ func Writerproc(uuid string, wkrid int) {
         logs.Error("Analyzer Writer: can't open output file: " + outputfile + " -> " + err.Error())
         return
     }
-    logs.Info("Mapper -> writer -> Started -> " + outputfile)
-    _, err = ofile.WriteString("started 2\n")
+    logs.Info("WRITER -> Started -> " + outputfile)
+    _, err = ofile.WriteString("started\n")
     defer ofile.Close()
+    go MonitorFile(outputfile, 1, ofile)
     for {
-        line := <- Writer[uuid] 
+        line := <- CHwriter 
+        // logs.Error("WRITER -> writing line %s", line)
         _, err = ofile.WriteString(line+"\n")
         if err != nil {
             logs.Error("Analyzer Writer: can't write line to file: " + outputfile + " -> " + err.Error())
@@ -195,127 +458,224 @@ func Writerproc(uuid string, wkrid int) {
     }
 }
 
-func Startanalyzer(file string, wkr int) {
-    newuuid := utils.Generate()
-    logs.Info(newuuid + ": starting analyzer with feed: "+file + " with " + strconv.Itoa(wkr) + " workers")
-    Registerchannel(newuuid)
-    IoCs, _ := readLines(file)
-    for x:=0; x < wkr; x++ {
-        go Domystuff(IoCs, newuuid, x, file)
-    }
-}
 
-func StartMapper(wkr int) {
-    newuuid := utils.Generate()
-    logs.Info(newuuid + ": starting Mapper with " + strconv.Itoa(wkr) + " workers")
-    Registerchannel(newuuid)
-    for x:=0; x < wkr; x++ {
-        go Mapper(newuuid, x)
-    }
-}
-
-func StartWriter(wkr int) {
-    newuuid := utils.Generate()
-    logs.Info(newuuid + ": starting Writer with " + strconv.Itoa(wkr) + " workers")
-    RegisterWriter(newuuid)
-    for x:=0; x < wkr; x++ {
-        go Writerproc(newuuid, x)
-    }
-}
-
-func Starttail(file string) {
-    logs.Info("Starting tail of file: "+file)
-    var seekv tail.SeekInfo
-    seekv.Offset = 0
-    seekv.Whence = os.SEEK_END
+func DoDispatcher(x int) {
+    logs.Info ("Dispatcher %d --> doing dispatcher stuff", x)
     for {
-        t, _ := tail.TailFile(file, tail.Config{Follow: true, Location: &seekv})
-        for line := range t.Lines {
-            dispatch(line.Text)
+        line := <- CHdispatcher
+        // logs.Info("dispatcher %d -> dispatch line -> source: %s", x, line.Source)
+        switch line.Source {
+        case "start":
+            // logs.Warn("dispatcher %d -> %s -> to Prefilter", x, line.Source)
+            counters.CHprefilter += 1
+            CHprefilter <- line.Line
+        case "CHprefilter":
+            // logs.Warn("dispatcher %d -> %s -> to Mapper", x, line.Source)
+            counters.CHmapper += 1
+            CHmapper <- line.Line
+        case "CHmapper":
+            // logs.Warn("dispatcher %d -> %s -> to Feed", x, line.Source)
+            counters.CHfeed += 1
+            CHfeed <- line.Line
+        case "CHfeed":
+            // logs.Warn("dispatcher %d -> %s -> to Tag", x, line.Source)
+            counters.CHtag += 1
+            CHtag <- line.Line
+        case "CHtag":
+            // logs.Warn("dispatcher %d -> %s -> to Postfilter", x, line.Source)
+            counters.CHpostfilter += 1
+            CHpostfilter <- line.Line
+        case "CHpostfilter":
+            // logs.Warn("dispatcher %d -> %s -> to Writer", x, line.Source)
+            counters.CHwriter += 1
+            CHwriter <- line.Line
+        default:
+            logs.Error("Source %s: Have no idea what is next with this line %s", line.Source, line.Line)
         }
     }
 }
 
-func LoadAnalyzers() {
-	logs.Info("loading analyzers")
+
+func StartDispatcher(wkr int) {
+    logs.Info("starting Dispatcher with %d workers", wkr)
+    for x:=0; x < wkr; x++ {
+        go DoDispatcher(x)
+    }
+}
+
+func StartPreFilter(wkr int) {
+    logs.Info("starting Prefilter with %d workers", wkr)
+    for x:=0; x < wkr; x++ {
+        go DoPreFilter(x)
+    }
+}
+
+func StartMapper(wkr int) {
+    logs.Info("starting Mapper with %d workers", wkr)
+    for x:=0; x < wkr; x++ {
+        go DoMapper(x)
+    }
+}
+
+func StartTag(wkr int) {
+    logs.Info("starting Tag with %d workers", wkr)
+    for x:=0; x < wkr; x++ {
+        go DoTag(x)
+    }
+}
+
+func StartFeed(wkr int) {
+    logs.Info("starting Feed with %d workers", wkr)
+    LoadFeed()
+    for x:=0; x < wkr; x++ {
+        go DoFeed(x)
+    }
+}
+
+func StartPostFilter(wkr int) {
+    logs.Info("starting Postfilter with %d workers", wkr)
+    for x:=0; x < wkr; x++ {
+        go DoPostFilter(x)
+    }
+}
+
+func StartWriter(wkr int) {
+    for x:=0; x < wkr; x++ {
+        go DoWriter(x)
+    }
+}
+
+func ControlSource(file string) {
+    logs.Info("start file %s control", file)
+    filedet, err := os.Stat(file) 
+    if os.IsNotExist(err) {
+        return
+    }
+    stat, _ := filedet.Sys().(*syscall.Stat_t)
+    var previousinode uint64
+    previousinode = stat.Ino
+    logs.Info("file inode %d ", int(previousinode))
+
+    endthis := false
+    for {
+        time.Sleep(time.Second * 10)
+        if fileinfo, err := os.Stat(file); !os.IsNotExist(err) {
+            stat, _ := fileinfo.Sys().(*syscall.Stat_t)
+            logs.Info("current inode %d vs %d", stat.Ino, previousinode) 
+            if previousinode != stat.Ino {
+                logs.Warn("file %s inode changed, restarting tail with new inode", file)
+                go StartSource(file)
+                endthis = true
+            }
+        }
+        if endthis {
+            break
+        }
+    }
+}
+
+func StartSource(file string) {
+    logs.Info("Starting tail of source file: "+file)
+    var seekv tail.SeekInfo
+    seekv.Offset = 0
+    seekv.Whence = os.SEEK_END
+    for {
+        logs.Info("tailing - %s", file)
+        if _, err := os.Stat(file); os.IsNotExist(err) {
+            time.Sleep(time.Second * 10)
+            continue
+        }
+        t, err := tail.TailFile(file, tail.Config{Follow: true, Location: &seekv})
+        if err != nil {
+            logs.Error(">>>>>> Tail over file %s error: %s", file, err.Error())
+        }
+        go ControlSource(file)
+        for line := range t.Lines {
+            counters.lines += 1
+            logs.Info("new line from %s", file)
+            ToDispatcher("start",line.Text)
+        }
+        logs.Info("End tailing - %s", file)
+    }
+}
+
+func LoadFeed() {
+    logs.Info("loading Feed")
     for file := range config.Feedfiles {
-        go Startanalyzer(config.Feedfiles[file].File, config.Feedfiles[file].Workers)
+        logs.Info(config.Feedfiles[file].File)
+        IoCs[config.Feedfiles[file].File], _ = readLines(config.Feedfiles[file].File)
     }
 }
 
 func LoadSources() {
     logs.Info("loading sources")
     for file := range config.Srcfiles {
-        go Starttail(config.Srcfiles[file])
+        go StartSource(config.Srcfiles[file])
     }
 }
 
-func LoadMapper() {
-    logs.Info("loading sources")
-    go StartMapper(4)
+func CHstats(){
+    logs.Info("Channels Status")
+    logs.Info("***************")
+    logs.Info("CHprefilter %d items",len(CHprefilter))
+    logs.Info("CHmapper %d items",len(CHmapper))
+    logs.Info("CHtag %d items",len(CHtag))
+    logs.Info("CHfeed %d items",len(CHfeed))
+    logs.Info("CHpostfilter %d items",len(CHpostfilter))
+    logs.Info("CHwriter %d items",len(CHwriter))
+    logs.Info("***************")
 }
 
-func dispatch(line string) {
-    for channel := range Dispatcher {
-        //logs.Notice("Add to channel: "+channel+" --> línea: "+line)
-        Dispatcher[channel] <- line
+func CHcounter(){
+    logs.Info("Channels counters")
+    logs.Info("*****************")
+    logs.Info("Lines %d readed",counters.lines)
+    logs.Info("CHprefilter %d times",counters.CHprefilter)
+    logs.Info("CHmapper %d times",counters.CHmapper)
+    logs.Info("CHfeed %d times",counters.CHfeed)
+    logs.Info("CHtag %d times",counters.CHtag)
+    logs.Info("CHpostfilter %d times",counters.CHpostfilter)
+    logs.Info("CHwriter %d times",counters.CHwriter)
+    logs.Info("***************")
+
+}
+
+func MonitorFile(file string, size int, ofile *os.File) {
+    logs.Info(" >>>>>>>>>>  start file %s monitor", file)
+    for {
+        filedet, err := os.Stat(file) 
+        if os.IsNotExist(err) {
+            return
+        }
+        fsize := filedet.Size()
+        if fsize > int64(size*1073741824) {
+            logs.Error(">>>>>>> File %s size if greater than %dG, rotating...", file, size)
+            ofile.Truncate(0)
+            ofile.Seek(0,0)
+        } 
+        time.Sleep(time.Second * 3)
     }
-}
-
-func writeline(line string) {
-    for channel := range Writer {
-        Writer[channel] <- line
-    }
-}
-
-func IoCtoAlert(line, ioc, iocsrc string) {
-	var err error
-	AlertLog := map[string]map[string]string{}
-	AlertLog["Node"] = map[string]string{}
-	AlertLog["Node"]["AlertLog"] = ""
-	AlertLog,err = utils.GetConf(AlertLog)
-	AlertLogJson := AlertLog["Node"]["AlertLog"]
-	if err != nil {
-		logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
-		return
-	}
-
-	alert     := iocAlert{}
-	data      := Data{}
-	signature := Signature{}
-
-	signature.Signature = "OwlH IoC found - "+ioc
-	signature.Signature_id = "8000101"
-
-	// data.Dstport = dstport
-	// data.Dstip = dstip
-	// data.Srcip = srcip
-	// data.Srcport = srcport
-	data.Signature = signature
-	data.IoC = ioc
-	data.IoCsource = iocsrc
-
-	alert.Data = data
-	alert.Full_log = line
-	alertOutput, _ := json.Marshal(alert)
-
-	err = utils.WriteNewDataOnFile(AlertLogJson, alertOutput)
-	if err != nil {
-		logs.Error("Error saving data IoCtoAlert: %s", err.Error())
-	}
-
 }
 
 func InitAnalizer() {
     logs.Info("starting analyzer")
     analyzer,_ := PingAnalyzer()
     if analyzer["status"] == "Disabled"{
+        logs.Info("Analyzer is Disabled - Nothing to do")
         return
     }
     readconf()
+    readtags()
+    readpostexcludes()
+    readpreexcludes()
     StartWriter(1)
-    LoadMapper()
-    LoadAnalyzers()
+    StartMapper(4)
+    StartFeed(4)
+    StartTag(4)
+    StartDispatcher(4)
+    StartPreFilter(4)
+    StartPostFilter(4)
+
     LoadSources()
     for {
         analyzer,_ = PingAnalyzer()
@@ -323,6 +683,8 @@ func InitAnalizer() {
             break
         }
         time.Sleep(time.Second * 3)
+        CHstats()
+        CHcounter()
     }
 }
 
@@ -331,39 +693,44 @@ func Init(){
 }
 
 func PingAnalyzer()(data map[string]string ,err error) {
-    wazuhFile := map[string]map[string]string{}
-	wazuhFile["node"] = map[string]string{}
-    wazuhFile["node"]["alertLog"] = ""
-    wazuhFile,err = utils.GetConf(wazuhFile)    
-    filePath := wazuhFile["node"]["alertLog"]
+    alertFile := map[string]map[string]string{}
+    alertFile["node"] = map[string]string{}
+    alertFile["node"]["alertLog"] = ""
+    alertFile,err = utils.GetConf(alertFile)    
+    filePath := alertFile["node"]["alertLog"]
     if err != nil {logs.Error("PingAnalyzer Error getting data from main.conf")}
 
     analyzerData := make(map[string]string)
     analyzerData["status"] = "Disabled"
 
-
     analyzerStatus,err := ndb.GetStatusAnalyzer()
-    logs.Info("ANALYZER STATUS - "+analyzerStatus)
     if err != nil { logs.Error("Error getting Analyzer data: "+err.Error()); return analyzerData,err}
 
     analyzerData["status"] = analyzerStatus
     analyzerData["path"] = filePath
 
-    fi, err := os.Stat(filePath);
+    fi, err := os.Stat(filePath)
+    //logs.Info("analyzer outputfile stats -->")
+    //logs.Info(fi)
+    //logs.Info("fileinfo.Sys() = %#v\n", fi.Sys())
     if err != nil { logs.Error("Can't access Analyzer ouput file data: "+err.Error()); return analyzerData,err}
     size := fi.Size()
 
     analyzerData["size"] = strconv.FormatInt(size, 10)
 
-
-
     return analyzerData, nil
 }
 
 func ChangeAnalyzerStatus(anode map[string]string) (err error) {
-    logs.Info("ANALYZER STATUS - NEW STATUS - "+anode["status"])
+    logs.Emergency("ANALYZER STATUS - NEW STATUS - "+anode["status"])
     err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
     if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
-
+    
     return nil
+}
+
+func SyncAnalyzer(file map[string][]byte) (err error) {
+    err = utils.WriteNewDataOnFile("conf/analyzer.json", file["data"])
+    if err != nil { logs.Error("Analyzer/SyncAnalyzer Error updating Analyzer file: "+err.Error()); return err}
+    return err
 }

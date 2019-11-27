@@ -7,7 +7,7 @@ import (
 )
 
 type MonitorController struct {
-	beego.Controller
+    beego.Controller
 }
 
 
@@ -15,8 +15,8 @@ type MonitorController struct {
 // @Description get last node stats 
 // @Success 200 {object} models.monitor
 // @router / [get]
-func (m *MonitorController) GetLastStatus() {	
-	data := models.GetNodeStats()
+func (m *MonitorController) GetLastStatus() {    
+    data := models.GetNodeStats()
     m.Data["json"] = data
     m.ServeJSON()
 }
@@ -25,16 +25,16 @@ func (m *MonitorController) GetLastStatus() {
 // @Description Add file to monitor
 // @Success 200 {object} models.monitor
 // @router /addFile [post]
-func (m *MonitorController) AddMonitorFile() {	
-	var anode map[string]string
+func (m *MonitorController) AddMonitorFile() {    
+    var anode map[string]string
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-	anode["action"] = "POST"
+    anode["action"] = "POST"
     anode["controller"] = "MONITOR"
     anode["router"] = "@router /addFile [post]"
 
-	err := models.AddMonitorFile(anode)
-	m.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
+    err := models.AddMonitorFile(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     
@@ -45,7 +45,7 @@ func (m *MonitorController) AddMonitorFile() {
 // @Description get monitor file stats
 // @Success 200 {object} models.monitor
 // @router /pingMonitorFiles [get]
-func (m *MonitorController) PingMonitorFiles() {	
+func (m *MonitorController) PingMonitorFiles() {    
     data,err := models.PingMonitorFiles()
     m.Data["json"] = data
     if err != nil {m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
@@ -57,16 +57,16 @@ func (m *MonitorController) PingMonitorFiles() {
 // @Description Add file to monitor
 // @Success 200 {object} models.monitor
 // @router /deleteFile [delete]
-func (m *MonitorController) DeleteMonitorFile() {	
-	var anode map[string]string
+func (m *MonitorController) DeleteMonitorFile() {    
+    var anode map[string]string
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-	anode["action"] = "DELETE"
+    anode["action"] = "DELETE"
     anode["controller"] = "MONITOR"
     anode["router"] = "@router /deleteFile [delete]"
     
-	err := models.DeleteMonitorFile(anode)
-	m.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
+    err := models.DeleteMonitorFile(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     

@@ -1,13 +1,13 @@
 package controllers
 
 import (
-	"owlhnode/models"
-	"encoding/json"
-	"github.com/astaxie/beego"
+    "owlhnode/models"
+    "encoding/json"
+    "github.com/astaxie/beego"
 )
 
 type DataflowController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title ChangeDataflowValues
@@ -16,10 +16,10 @@ type DataflowController struct {
 // @Failure 403 body is empty
 // @router /changeDataflowValues [put]
 func (n *DataflowController) ChangeDataflowValues() {
-	var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
     err := models.ChangeDataflowValues(anode)
-	anode["action"] = "PUT"
+    anode["action"] = "PUT"
     anode["controller"] = "DATAFLOW"
     anode["router"] = "@router /changeDataflowValues [put]"
 
@@ -50,9 +50,9 @@ func (n *DataflowController) LoadDataflowValues() {
 // @Failure 403 body is empty
 // @router /saveSocketToNetwork [put]
 func (n *DataflowController) SaveSocketToNetwork() {
-	var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
-	anode["action"] = "PUT"
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
+    anode["action"] = "PUT"
     anode["controller"] = "DATAFLOW"
     anode["router"] = "@router /saveSocketToNetwork [put]"    
     err := models.SaveSocketToNetwork(anode)
@@ -69,9 +69,9 @@ func (n *DataflowController) SaveSocketToNetwork() {
 // @Failure 403 body is empty
 // @router /saveNewLocal [put]
 func (n *DataflowController) SaveNewLocal() {
-	var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
-	anode["action"] = "PUT"
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
+    anode["action"] = "PUT"
     anode["controller"] = "DATAFLOW"
     anode["router"] = "@router /saveNewLocal [put]"    
     err := models.SaveNewLocal(anode)
@@ -88,9 +88,9 @@ func (n *DataflowController) SaveNewLocal() {
 // @Failure 403 body is empty
 // @router /saveVxLAN [put]
 func (n *DataflowController) SaveVxLAN() {
-	var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
-	anode["action"] = "PUT"
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
+    anode["action"] = "PUT"
     anode["controller"] = "DATAFLOW"
     anode["router"] = "@router /saveVxLAN [put]"    
     err := models.SaveVxLAN(anode)
@@ -107,9 +107,9 @@ func (n *DataflowController) SaveVxLAN() {
 // @Failure 403 body is empty
 // @router /saveSocketToNetworkSelected [put]
 func (n *DataflowController) SaveSocketToNetworkSelected() {
-	var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
-	anode["action"] = "PUT"
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
+    anode["action"] = "PUT"
     anode["controller"] = "DATAFLOW"
     anode["router"] = "@router /saveSocketToNetworkSelected [put]"    
     err := models.SaveSocketToNetworkSelected(anode)
@@ -126,9 +126,9 @@ func (n *DataflowController) SaveSocketToNetworkSelected() {
 // @Failure 403 body is empty
 // @router /deleteDataFlowValueSelected [delete]
 func (n *DataflowController) DeleteDataFlowValueSelected() {
-	var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
-	anode["action"] = "DELETE"
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
+    anode["action"] = "DELETE"
     anode["controller"] = "DATAFLOW"
     anode["router"] = "@router /deleteDataFlowValueSelected [delete]"    
     err := models.DeleteDataFlowValueSelected(anode)

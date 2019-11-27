@@ -1,14 +1,14 @@
 package controllers
 
 import (
-	"owlhnode/models"
-	"github.com/astaxie/beego"
+    "owlhnode/models"
+    "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
     "encoding/json"
 )
 
 type WazuhController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title GetWazuh
@@ -17,9 +17,9 @@ type WazuhController struct {
 // @router / [get]
 func (m *WazuhController) Get() {
     logs.Info ("Wazuh controller -> GET")
-	mstatus, err := models.GetWazuh()
-	m.Data["json"] = mstatus
-	if err != nil {
+    mstatus, err := models.GetWazuh()
+    m.Data["json"] = mstatus
+    if err != nil {
         logs.Info("GetWazuh OUT -- ERROR : %s", err.Error())
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -83,9 +83,9 @@ func (n *WazuhController) StopWazuh() {
 // @Success 200 {object} models.wazuh
 // @router /pingWazuhFiles [get]
 func (m *WazuhController) PingWazuhFiles() {
-	files, err := models.PingWazuhFiles()
-	m.Data["json"] = files
-	if err != nil {
+    files, err := models.PingWazuhFiles()
+    m.Data["json"] = files
+    if err != nil {
         m.Data["json"] = map[int]map[string]string{0:{"ack": "false", "error": err.Error()}}
     }
     m.ServeJSON()

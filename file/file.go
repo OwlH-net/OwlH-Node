@@ -11,27 +11,27 @@ import (
 
 //read file and send back to webpage
 func SendFile(file string)(data map[string]string, err error){
-	sendBackArray := make(map[string]string)
+    sendBackArray := make(map[string]string)
     
     //create map and obtain file
     loadData := map[string]map[string]string{}
-	loadData["files"] = map[string]string{}
-	loadData["files"][file] = ""
-	loadData,err = utils.GetConf(loadData)
-	if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
-	    
+    loadData["files"] = map[string]string{}
+    loadData["files"][file] = ""
+    loadData,err = utils.GetConf(loadData)
+    if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
+        
     //save url from file selected and open file
     fileConfPath := loadData["files"][file]
-	fileReaded, err := ioutil.ReadFile(fileConfPath) // just pass the file name
+    fileReaded, err := ioutil.ReadFile(fileConfPath) // just pass the file name
     if err != nil {
-		logs.Error("Error reading file for path: "+fileConfPath)
+        logs.Error("Error reading file for path: "+fileConfPath)
         return nil,err
     }
-	
-	sendBackArray["fileContent"] = string(fileReaded)
+    
+    sendBackArray["fileContent"] = string(fileReaded)
     sendBackArray["fileName"] = file
 
-	return sendBackArray, nil
+    return sendBackArray, nil
 }
 
 //read changed file, make a backup and save into file
@@ -40,8 +40,8 @@ func SaveFile(file map[string]string)(err error){
     loadData := map[string]map[string]string{}
     loadData["files"] = map[string]string{}
     loadData["files"][file["file"]] = ""
-	loadData,err = utils.GetConf(loadData)
-	if err != nil {
+    loadData,err = utils.GetConf(loadData)
+    if err != nil {
         logs.Error("SaveFile Error getting data from main.conf")
     }
 
@@ -56,7 +56,7 @@ func SaveFile(file map[string]string)(err error){
     bytearray := []byte(file["content"])
     err = utils.WriteNewDataOnFile(loadData["files"][file["file"]], bytearray)
     if err != nil {
-		logs.Error("SaveFile. Error doing backup with function WriteNewDataOnFile: "+err.Error())
+        logs.Error("SaveFile. Error doing backup with function WriteNewDataOnFile: "+err.Error())
         return err
     }
     return nil
@@ -65,8 +65,8 @@ func SaveFile(file map[string]string)(err error){
 func GetAllFiles()(data map[string]string, err error){
 
     var returnedData map[string]string
-	returnedData,err = utils.GetConfFiles()
-	if err != nil {
+    returnedData,err = utils.GetConfFiles()
+    if err != nil {
         logs.Error("Error getting data from main.conf")
     }
     logs.Info("GetAllFiles -> returing file names")
@@ -80,11 +80,11 @@ func ReloadFilesData() (data map[string]map[string]string, err error) {
     
     //ANALYZER
     loadData := map[string]map[string]string{}
-	loadData["node"] = map[string]string{}
-	loadData["node"]["alertLog"] = ""
+    loadData["node"] = map[string]string{}
+    loadData["node"]["alertLog"] = ""
     loadData,err = utils.GetConf(loadData)
     alertLog := loadData["node"]["alertLog"]
-	if err != nil { logs.Error("ReloadFilesData Error getting data from main.conf"); return nil,err}
+    if err != nil { logs.Error("ReloadFilesData Error getting data from main.conf"); return nil,err}
     
     // size = fi.Size()
     fi, err := os.Stat(alertLog);

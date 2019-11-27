@@ -6,23 +6,57 @@ import (
     "os/exec"
     "strings"
     "strconv"
-	"owlhnode/utils"
-	"owlhnode/database"
-	"errors"
+    "owlhnode/utils"
+    "owlhnode/database"
+    "errors"
 )
 
+type Zeek struct {
+    Path        bool                `json:"path"`
+    Rol         string              `json:"role"`
+    Bin         bool                `json:"bin"`
+    Action      string              `json:"action"`
+    Running     []ZeekNodeStatus    `json:"running"`
+    Mode        string              `json:"mode"`
+    Managed     bool                `json:"managed"`
+    Nodes       []ZeekNode          `json:"nodes"`
+    Extra       map[string]string   `json:"extra"`
+}
+
+type ZeekKeys struct {
+    Key         string              `json:"key"`
+    Value       string              `json:"value"`
+}
+
+type ZeekNode struct {
+    Name        string              `json:"name"`
+    Host        string              `json:"host"`
+    Status      string              `json:"status"`
+    Type        string              `json:"type"`
+    NInterface  string              `json:"interface"`
+    Pid         string              `json:"pid"`
+    Started     string              `json:"started"`
+    Extra       []ZeekKeys          `json:"extra"`
+}
+
+type ZeekNodeStatus struct {
+    Status      string              `json:"status"`
+    Nodes       int                 `json:"nodes"`
+}
+
+
 func ZeekPath() (exists bool) {
-	var err error
+    var err error
     //Retrieve path for wazuh.
-	loadDataZeekPath := map[string]map[string]string{}
-	loadDataZeekPath["loadDataZeekPath"] = map[string]string{}
-	loadDataZeekPath["loadDataZeekPath"]["path"] = ""
+    loadDataZeekPath := map[string]map[string]string{}
+    loadDataZeekPath["loadDataZeekPath"] = map[string]string{}
+    loadDataZeekPath["loadDataZeekPath"]["path"] = ""
     loadDataZeekPath,err = utils.GetConf(loadDataZeekPath)    
     path := loadDataZeekPath["loadDataZeekPath"]["path"]
-	if err != nil {
-		logs.Error("ZeekPath Error getting data from main.conf: "+err.Error())
-		return false
-	}
+    if err != nil {
+        logs.Error("ZeekPath Error getting data from main.conf: "+err.Error())
+        return false
+    }
 
     if _, err := os.Stat(path); os.IsNotExist(err) {
         logs.Error("Zeek is not installed on "+path+"."+err.Error())
@@ -32,22 +66,24 @@ func ZeekPath() (exists bool) {
 }
 
 func ZeekBin() (exists bool) {
-	var err error
-    //Retrieve bin for wazuh.
-	loadDataZeekBin := map[string]map[string]string{}
-	loadDataZeekBin["loadDataZeekBin"] = map[string]string{}
+    var err error
+    loadDataZeekBin := map[string]map[string]string{}
+    loadDataZeekBin["loadDataZeekBin"] = map[string]string{}
     loadDataZeekBin["loadDataZeekBin"]["bin"] = ""
     loadDataZeekBin,err = utils.GetConf(loadDataZeekBin)    
     bin := loadDataZeekBin["loadDataZeekBin"]["bin"]
-	if err != nil {
-		logs.Error("ZeekBin Error getting data from main.conf: "+err.Error())
-		return false
-	}
+
+    if err != nil {
+        logs.Error("ZeekBin Error getting data from main.conf: "+err.Error())
+        return false
+    }
+
     _,err = os.Stat(bin)
     if err != nil {
         logs.Error("Zeek OS path err: "+err.Error())
         return false
     }
+
     if os.IsNotExist(err){
         logs.Error("Zeek path not exist: "+err.Error())
         return false
@@ -56,53 +92,160 @@ func ZeekBin() (exists bool) {
 }
 
 func ZeekRunning() (running bool) {
-	var err error
-    //Retrieve running for zeek.
-	loadDataZeekRunning := map[string]map[string]string{}
-	loadDataZeekRunning["loadDataZeekRunning"] = map[string]string{}
-    loadDataZeekRunning["loadDataZeekRunning"]["cmd"] = ""
-    loadDataZeekRunning["loadDataZeekRunning"]["param"] = ""
-    loadDataZeekRunning["loadDataZeekRunning"]["command"] = ""
-    loadDataZeekRunning,err = utils.GetConf(loadDataZeekRunning)    
-    cmd := loadDataZeekRunning["loadDataZeekRunning"]["cmd"]
-    param := loadDataZeekRunning["loadDataZeekRunning"]["param"]
-    command := loadDataZeekRunning["loadDataZeekRunning"]["command"]
-	if err != nil {
-		logs.Error("ZeekRunning Error getting data from main.conf")
-		return false
-	}
-	out, err := exec.Command(command, param, cmd).Output()
-	if err != nil {
-		logs.Error("Zeek is NOT running: "+err.Error())
-		return false
-	}
-	logs.Error("String out zeek Running: "+string(out))
-	if strings.Contains(string(out), "running") {
-		logs.Info("Zeek is now running: "+string(out))
-		return true
-	}
-	return false    
+    return false
+    // DEPRECATED
+    // var err error
+    // //_, err = ZeekStatus()
+    // //Retrieve running for zeek.
+    // loadDataZeekRunning := map[string]map[string]string{}
+    // loadDataZeekRunning["loadDataZeekRunning"] = map[string]string{}
+    // loadDataZeekRunning["loadDataZeekRunning"]["cmd"] = ""
+    // loadDataZeekRunning["loadDataZeekRunning"]["param"] = ""
+    // loadDataZeekRunning["loadDataZeekRunning"]["command"] = ""
+    // loadDataZeekRunning,err = utils.GetConf(loadDataZeekRunning)    
+    // cmd := loadDataZeekRunning["loadDataZeekRunning"]["cmd"]
+    // param := loadDataZeekRunning["loadDataZeekRunning"]["param"]
+    // command := loadDataZeekRunning["loadDataZeekRunning"]["command"]
+    // if err != nil {
+    //     logs.Error("ZeekRunning Error getting data from main.conf")
+    //     return false
+    // }
+    // out, err := exec.Command(command, param, cmd).Output()
+    // if err != nil {
+    //     logs.Error("Zeek is NOT running: "+err.Error())
+    //     return false
+    // }
+    // logs.Error("String out zeek Running: "+string(out))
+    // if strings.Contains(string(out), "running") {
+    //     logs.Info("Zeek is now running: "+string(out))
+    //     return true
+    // }
+    // return false    
 }
 
-func Installed() (isIt map[string]bool, err error){
-    zeek := make(map[string]bool)
-    zeek["path"] = ZeekPath()
-    zeek["bin"] = ZeekBin()
-	zeek["running"] = ZeekRunning()
-
-    if zeek["path"] || zeek["bin"] || zeek["running"]  {
-        logs.Info("Zeek installed and running")
-        return zeek, nil
-    } else {
-        logs.Error("Zeek isn't present or not running")
-        return zeek, errors.New("Zeek isn't present or not running")
+func ZeekStatus() (zeekstatus []ZeekNode, err error) {
+    command := map[string]map[string]string{}
+    command["zeek"] = map[string]string{}
+    command["zeek"]["zeekctl"]=""
+    command["zeek"]["currentstatus"]=""
+    command, err = utils.GetConf(command)
+    if err != nil {
+        newError := errors.New ("ZEEK STATUS -> Error getting Status command from main.conf")
+        logs.Error(newError)
+        // return nil, newError
     }
+    logs.Info(command["zeek"]["zeekctl"])
+    logs.Info(command["zeek"]["currentstatus"])
+    output, err:= exec.Command(command["zeek"]["zeekctl"], command["zeek"]["currentstatus"]).Output()
+    if err != nil {
+        newError := errors.New("ZEEK STATUS -> Error running status command -> " + err.Error())
+        logs.Error(newError)
+        // return nil, newError
+    }
+    logs.Info(string(output))
+    nodes := []ZeekNode{}
+    outputlines := strings.Split(string(output),"\n")
+    for outputline := range outputlines {
+        line := strings.Fields(outputlines[outputline])
+        if len(line) > 2 {
+            if strings.Contains(line[1], "manager") || strings.Contains(line[1], "logger") || strings.Contains(line[1], "proxy") || strings.Contains(line[1], "worker") || strings.Contains(line[1], "standalone") {
+                node := ZeekNode{}
+                node.Name = line[0]
+                node.Type = line[1]
+                node.Host = line[2]
+                node.Status = line[3]
+                if len(line) > 4 {
+                    node.Pid = line[4]
+                }
+                nodes = append(nodes, node)
+            } else {
+                logs.Error ("Zeek -> status output: "+ outputlines[outputline])
+            }
+        }
+    }
+    logs.Info(nodes)
+    return nodes, nil 
+}
+
+
+func GetZeek()(zeek Zeek) {
+    zeek.Path = ZeekPath()
+    zeek.Bin = ZeekBin()
+    zeek.Mode = ZeekMode()
+    zeek.Managed = ZeekManaged()
+    nodes, err := ZeekStatus()
+    zeek.Nodes = nodes
+    if err != nil {
+        logs.Info(err.Error())
+    }
+    for node := range nodes {
+        updated := false
+        for nstatus := range zeek.Running {
+            if zeek.Running[nstatus].Status == nodes[node].Status {
+                updated = true
+                zeek.Running[nstatus].Nodes++
+                break
+            }
+        }
+        if !updated {
+            newStatus := ZeekNodeStatus{}
+            newStatus.Status = nodes[node].Status
+            newStatus.Nodes = 1
+            zeek.Running = append(zeek.Running, newStatus)
+        }
+    }
+    logs.Info(zeek)
+    return zeek
+}
+
+func SetZeek(zeekdata Zeek)(newzeekdata Zeek, err error) {
+    logs.Warn(zeekdata)
+    for node := range zeekdata.Nodes {
+        logs.Warn("=============")
+        logs.Warn("name - "+zeekdata.Nodes[node].Name)
+        logs.Warn("interface - "+zeekdata.Nodes[node].NInterface)
+        logs.Warn("host - "+zeekdata.Nodes[node].Host)
+        logs.Warn("type - "+zeekdata.Nodes[node].Type)
+        logs.Warn("=============")
+        logs.Warn("======= EXTRA ========")
+        for extra := range zeekdata.Nodes[node].Extra {
+            logs.Warn(zeekdata.Nodes[node].Extra[extra])
+            logs.Warn("key - "+zeekdata.Nodes[node].Extra[extra].Key + " -- " + zeekdata.Nodes[node].Extra[extra].Value )
+        }
+        logs.Warn("======= EXTRA ========")
+    }
+
+    newzeekdata = GetZeek()
+    return newzeekdata, nil
+}
+
+func ZeekMode()(mode string) {
+    currentmode, err := ndb.GetMainconfParam("zeek","mode")
+    if err != nil {
+        logs.Error("Error Zeek Mode Get current Mode: "+err.Error())
+        return "Error: Zeek Mode Get current Mode: "+err.Error()
+    }
+    logs.Info("ZEEK -> current Mode: " + currentmode)
+    return currentmode
+}
+
+func ZeekManaged()(ismanaged bool) {
+    currentstatus, err := ndb.GetMainconfParam("zeek","status")
+    if err != nil {
+        logs.Error("Error Zeek Mode Get current Status: "+err.Error())
+        return false
+    }
+    logs.Info("ZEEK -> current Managed Mode: " + currentstatus)
+    if currentstatus == "enabled" {return true}
+    return false 
 }
 
 //Run zeek
 func RunZeek()(data string, err error){
-	//Retrieve path for RunZeek.
-	logs.Warn("RunZeek")
+    data, err = StartZeek("")
+    return data, err
+    //Retrieve path for RunZeek.
+    logs.Warn("RunZeek")
     StartZeek := map[string]map[string]string{}
     StartZeek["zeekStart"] = map[string]string{}
     StartZeek["zeekStart"]["start"] = ""
@@ -112,10 +255,10 @@ func RunZeek()(data string, err error){
     cmd := StartZeek["zeekStart"]["start"]
     param := StartZeek["zeekStart"]["param"]
     command := StartZeek["zeekStart"]["command"]
-	if err != nil {
-		logs.Error("RunZeek Error getting data from main.conf: "+err.Error())
-		return "", err
-	}
+    if err != nil {
+        logs.Error("RunZeek Error getting data from main.conf: "+err.Error())
+        return "", err
+    }
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
         logs.Error("Error launching zeekStart: "+err.Error())
@@ -124,11 +267,38 @@ func RunZeek()(data string, err error){
     return "zeekStart system is on",nil
 }
 
+//Start Zeek
+func StartZeek(action string)(data string, err error){
+    //Retrieve path for RunZeek.
+    // ACTION - Start or Deploy
+    getaction := "deploy"
+    if action != "" { getaction = action } 
+    logs.Warn("Starting Zeek by deploy")
+    StartZeek := map[string]map[string]string{}
+    StartZeek["zeek"] = map[string]string{}
+    StartZeek["zeek"]["zeekctl"] = ""
+    StartZeek["zeek"]["deploy"] = ""
+    StartZeek,err = utils.GetConf(StartZeek)
+    cmd := StartZeek["zeek"]["zeekctl"]
+    realaction := StartZeek["zeek"][getaction]
+    if err != nil {
+        logs.Error("RunZeek Error getting data from main.conf: "+err.Error())
+        return "", err
+    }
+    output,err := exec.Command(cmd, realaction).Output()
+    logs.Warn("Starting Zeek")
+    logs.Warn(output)
+    if err != nil {
+        logs.Error("Error launching zeekStart: "+err.Error())
+        return "",err
+    }
+    return string(output), nil
+}
+
 //Stop zeek
 func StopZeek()(data string, err error){
-    //Retrieve path for zeek.
     StopZeek := map[string]map[string]string{}
-	StopZeek["zeekStop"] = map[string]string{}
+    StopZeek["zeekStop"] = map[string]string{}
     StopZeek["zeekStop"]["stop"] = ""
     StopZeek["zeekStop"]["param"] = ""
     StopZeek["zeekStop"]["command"] = ""
@@ -136,10 +306,10 @@ func StopZeek()(data string, err error){
     cmd := StopZeek["zeekStop"]["stop"]
     param := StopZeek["zeekStop"]["param"]
     command := StopZeek["zeekStop"]["command"]
-	if err != nil {
-		logs.Error("StopZeek Error getting data from main.conf: "+err.Error())
-	}
-	_,err = exec.Command(command, param, cmd).Output()
+    if err != nil {
+        logs.Error("StopZeek Error getting data from main.conf: "+err.Error())
+    }
+    _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
         logs.Error("Error stopping zeek: "+err.Error())
         return "",err
@@ -147,18 +317,14 @@ func StopZeek()(data string, err error){
     return "Zeek stopped ",nil
 }
 
-//Stop zeek
+//Deploy zeek
 func DeployZeek()(err error){
     //Retrieve path for zeek.
     DeployZeek := map[string]map[string]string{}
     DeployZeek["zeek"] = map[string]string{}
     DeployZeek["zeek"]["deploy"] = ""
     DeployZeek["zeek"]["zeekctl"] = ""
-    //DeployZeek["zeekDeploy"]["command"] = ""
     DeployZeek,err = utils.GetConf(DeployZeek)    
-    //cmd := DeployZeek["zeekDeploy"]["cmd"]
-    //param := DeployZeek["zeekDeploy"]["param"],
-    //command := DeployZeek["zeekDeploy"]["command"]
     if err != nil {
         logs.Error("DeployZeek Error getting data from main.conf: "+err.Error())
     }
@@ -171,6 +337,7 @@ func DeployZeek()(err error){
 func ChangeZeekMode(anode map[string]string) (err error) {
     err = ndb.UpdateMainconfValue("zeek", "mode", anode["mode"])
     if err != nil {logs.Error("Error ChangeZeekMode: "+err.Error()); return err}
+    SyncCluster(nil,"standalone")
     return err
 }
 
@@ -230,18 +397,23 @@ func SyncCluster(anode map[string]string, clusterType string) (err error) {
     zeekPath := map[string]map[string]string{}
     zeekPath["loadDataZeekPath"] = map[string]string{}
     zeekPath["loadDataZeekPath"]["nodeConfig"] = ""
-	zeekPath,err = utils.GetConf(zeekPath)
-	if err != nil {logs.Error("SyncCluster Error readding GetConf: "+err.Error())}
+    zeekPath,err = utils.GetConf(zeekPath)
+    if err != nil {logs.Error("SyncCluster Error readding GetConf: "+err.Error())}
     path := zeekPath["loadDataZeekPath"]["nodeConfig"]
     
     h := 0
     fileContent := make(map[int]string)
 
+    zeekdata, err := ndb.GetMainconfData()
+    if zeekdata["zeek"]["status"] == "disabled" {return nil}
+
+    zeekinterface := zeekdata["zeek"]["interface"]
+
     if clusterType == "standalone" {
         fileContent[h] = "[bro]"; h++
         fileContent[h] = "type=standalone"; h++
         fileContent[h] = "host=localhost"; h++
-        fileContent[h] = "interface="+anode["value"]; h++
+        fileContent[h] = "interface="+zeekinterface; h++
     }else if clusterType == "cluster" {
         data,err := ndb.GetClusterData(); if err != nil {logs.Error("Error Zeek/SyncCluster: "+err.Error()); return err}
         
@@ -281,5 +453,33 @@ func SyncCluster(anode map[string]string, clusterType string) (err error) {
         if err != nil {logs.Error("SyncCluster failed writing to file: %s", err); return err}
     }
 
+    return err
+}
+
+func SaveConfigFile(files map[string]map[string][]byte)(err error){
+    for nodePath, file := range files {
+        //check path
+        if _, err := os.Stat(nodePath); os.IsNotExist(err) {
+            os.MkdirAll(nodePath, os.ModePerm)
+        }
+
+        for file,_ := range file {            
+            err = utils.WriteNewDataOnFile(nodePath+"/"+file, files[nodePath][file])
+            if err != nil{logs.Error("Error writting data into "+nodePath+"/"+file+" file: "+err.Error()); return err}
+        }
+    }
+    return nil
+}
+
+func SyncClusterFile(anode map[string][]byte) (err error) {
+    zeekPath := map[string]map[string]string{}
+    zeekPath["zeek"] = map[string]string{}
+    zeekPath["zeek"]["nodeconfig"] = ""
+    zeekPath,err = utils.GetConf(zeekPath)
+    if err != nil {logs.Error("SyncCluster Error readding GetConf: "+err.Error())}
+    path := zeekPath["zeek"]["nodeconfig"]
+
+    err = utils.WriteNewDataOnFile(path, anode["data"])
+    if err != nil{logs.Error("zeek/SyncClusterFile Error writting cluster file content: "+err.Error()); return err}
     return err
 }

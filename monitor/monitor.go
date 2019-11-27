@@ -3,7 +3,7 @@ package monitor
 import (
     "github.com/astaxie/beego/logs"
     "strconv"
-	"runtime"
+    "runtime"
     "fmt"
     "os"
     "time"
@@ -82,8 +82,8 @@ func doMonitor() {
         PrintCPUUsage()
         // testMonitor := GetLastMonitorInfo()
         // logs.Notice(" ===== Monitor ===== ")
-		// logs.Notice(testMonitor)
-		
+        // logs.Notice(testMonitor)
+        
     }
 }
 
@@ -133,15 +133,15 @@ func PrintCPUUsage() {
         var acpu Cpu
         acpu.Id = fmt.Sprintf("%v",idx)
         acpu.Percentage = fmt.Sprintf("%v",cpupercent) 
-		GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
-		///////////////////////////////////////////////////////
-		// acpu.Id = fmt.Sprintf("%v",1)
+        GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
+        ///////////////////////////////////////////////////////
+        // acpu.Id = fmt.Sprintf("%v",1)
         // acpu.Percentage = fmt.Sprintf("%v",11) 
-		// GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
-		// acpu.Id = fmt.Sprintf("%v",2)
+        // GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
+        // acpu.Id = fmt.Sprintf("%v",2)
         // acpu.Percentage = fmt.Sprintf("%v",3) 
-		// GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
-		///////////////////////////////////////////////////////
+        // GlobalMonitor.Cpus = append(GlobalMonitor.Cpus, acpu)
+        ///////////////////////////////////////////////////////
     }
 }
 
@@ -177,5 +177,5 @@ func PingMonitorFiles()(data map[string]map[string]string, err error) {
         }
     }
 
-	return data,err
+    return data,err
 }

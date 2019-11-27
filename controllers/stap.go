@@ -1,14 +1,14 @@
 package controllers
 
 import (
-	"encoding/json"
-	"github.com/astaxie/beego"
+    "encoding/json"
+    "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
-	"owlhnode/models"
+    "owlhnode/models"
 )
 
 type StapController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title AddServer
@@ -16,18 +16,18 @@ type StapController struct {
 // @Success 200 {object} models.stap
 // @router / [post]
 func (n *StapController) AddServer() {
-	logs.Info ("stap controller -> AddServer")
-	
-	var newServer map[string]string
+    logs.Info ("stap controller -> AddServer")
+    
+    var newServer map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &newServer)
     newServer["action"] = "POST"
     newServer["controller"] = "STAP"
     newServer["router"] = "@router / [post]"
-	err := models.AddServer(newServer)
+    err := models.AddServer(newServer)
 
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         logs.Info("AddServer JSON RECEIVED -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -39,16 +39,16 @@ func (n *StapController) AddServer() {
 // @Success 200 {object} models.stap
 // @router / [get]
 func (n *StapController) GetAllServers() {
-	logs.Info ("stap controller -> GetAllServers")
+    logs.Info ("stap controller -> GetAllServers")
 
-	servers, err := models.GetAllServers()
+    servers, err := models.GetAllServers()
 
-	n.Data["json"] = servers
+    n.Data["json"] = servers
 
-	if err != nil {
+    if err != nil {
         logs.Info("GetAllServers JSON RECEIVED -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     n.ServeJSON()
 }
 
@@ -57,16 +57,16 @@ func (n *StapController) GetAllServers() {
 // @Success 200 {object} models.stap
 // @router /server/:uuid [get]
 func (n *StapController) GetServer() {
-	logs.Info ("stap controller -> GetServer")
-	uuid := n.GetString(":uuid") 
-	server, err := models.GetServer(uuid)
+    logs.Info ("stap controller -> GetServer")
+    uuid := n.GetString(":uuid") 
+    server, err := models.GetServer(uuid)
 
-	n.Data["json"] = server
+    n.Data["json"] = server
 
-	if err != nil {
+    if err != nil {
         logs.Info("GetServer JSON RECEIVED -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     n.ServeJSON()
 }
 
@@ -78,12 +78,12 @@ func (n *StapController) PingStap() {
     logs.Info ("Stap controller -> PingStap")
     uuid := n.GetString(":uuid")
     logs.Info("Ping Stap uuid = "+uuid)
-	server,err := models.PingStap(uuid)
-	n.Data["json"] = server
-	if err != nil {
+    server,err := models.PingStap(uuid)
+    n.Data["json"] = server
+    if err != nil {
         logs.Info("PingStap ERROR: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     n.ServeJSON()
 }
 
@@ -210,9 +210,9 @@ func (n *StapController) PingServerStap() {
     server := n.GetString(":server")
     logs.Info("Ping Stap server = "+server)
 
-	data, err := models.PingServerStap(server)
-	n.Data["json"] = data
-	if err != nil {
+    data, err := models.PingServerStap(server)
+    n.Data["json"] = data
+    if err != nil {
         logs.Info("PingServerStap OUT -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -255,7 +255,7 @@ func (n *StapController) DeleteStapServer() {
 // @router /EditStapServer [put]
 func (n *StapController) EditStapServer() {
     var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     anode["action"] = "PUT"
     anode["controller"] = "STAP"
     anode["router"] = "@router /EditStapServer [put]"

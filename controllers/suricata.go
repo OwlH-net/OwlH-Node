@@ -1,14 +1,14 @@
 package controllers
 
 import (
-	"owlhnode/models"
-	"encoding/json"
-	"github.com/astaxie/beego"
+    "owlhnode/models"
+    "encoding/json"
+    "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
 )
 
 type SuricataController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title GetSuricata
@@ -16,10 +16,10 @@ type SuricataController struct {
 // @Success 200 {object} models.suricata
 // @router / [get]
 func (n *SuricataController) Get() {
-	mstatus, err := models.GetSuricata()
+    mstatus, err := models.GetSuricata()
     
-	n.Data["json"] = mstatus
-	if err != nil {
+    n.Data["json"] = mstatus
+    if err != nil {
         logs.Info("Suricata controller -> GET -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -36,8 +36,8 @@ func (n *SuricataController) Get() {
 //     if err != nil {
 //         logs.Info("GetBPF OUT -- ERROR : %s", err.Error())
 //         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-// 	}
-// 	n.ServeJSON()
+//     }
+//     n.ServeJSON()
 // }
 
 // @Title PUT Suricata BPF
@@ -46,13 +46,13 @@ func (n *SuricataController) Get() {
 // @router /bpf [put]
 func (n *SuricataController) SetBPF() {
     var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	
-	anode["action"] = "PUT"
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    anode["action"] = "PUT"
     anode["controller"] = "SURICATA"
     anode["router"] = "@router /bpf [put]"
 
-	
+    
     err := models.SetBPF(anode)
 
     n.Data["json"] = map[string]string{"ack": "true"}
@@ -83,6 +83,31 @@ func (n *SuricataController) SyncRulesetFromMaster() {
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         logs.Info("Ruleset retrieve OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveConfigFile
+// @Description Save Configuration files from Master
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router / [post]
+func (n *SuricataController) SaveConfigFile() {
+    var anode map[string]map[string][]byte
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    logs.Info("ACTION -> POST")
+    logs.Info("CONTROLLER -> SURICATA")
+    logs.Info("ROUTER -> @router / [post]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+
+    err := models.SaveConfigFile(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Info("Save configuration files -- ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -147,6 +172,6 @@ func (n *SuricataController) GetSuricataServices() {
     if err != nil {
         logs.Info("GetSuricataServices ERROR : %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
-	n.ServeJSON()
+    }
+    n.ServeJSON()
 }

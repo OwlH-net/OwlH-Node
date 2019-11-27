@@ -17,7 +17,8 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
     delete(anode,"controller")
     delete(anode,"router")
 
-	err = plugin.ChangeServiceStatus(anode)
+    err = plugin.ChangeServiceStatus(anode)
+    changecontrol.ChangeControlInsertData(err, "ChangeServiceStatus")    
     return err
 }
 
@@ -39,7 +40,8 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.ChangeMainServiceStatus(anode)
+    err = plugin.ChangeMainServiceStatus(anode)
+    changecontrol.ChangeControlInsertData(err, "ChangeMainServiceStatus")    
     return err
 }
 
@@ -53,7 +55,8 @@ func DeleteService(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.DeleteService(anode)
+    err = plugin.DeleteService(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteService")    
     return err
 }
 
@@ -68,18 +71,8 @@ func AddPluginService(anode map[string]string) (err error) {
     delete(anode,"controller")
     delete(anode,"router")
     err = plugin.AddPluginService(anode)
-    if err!=nil { 
-        cc["actionStatus"] = "error"
-        cc["errorDescription"] = err.Error()
-    }else{
-        cc["actionStatus"] = "success"
-    }
-    cc["actionDescription"] = "Add plugin service"
-    var controlError error
-    controlError = changecontrol.InsertChangeControl(anode)
-    if controlError!=nil { logs.Error("AddPluginService controlError: "+controlError.Error()) }
-    if err != nil {return err}
-
+    
+    changecontrol.ChangeControlInsertData(err, "AddPluginService")    
     return err
 }
 
@@ -93,7 +86,8 @@ func SaveSuricataInterface(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.SaveSuricataInterface(anode)
+    err = plugin.SaveSuricataInterface(anode)
+    changecontrol.ChangeControlInsertData(err, "SaveSuricataInterface")    
     return err
 }
 
@@ -107,7 +101,8 @@ func DeployStapService(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.DeployStapService(anode)
+    err = plugin.DeployStapService(anode)
+    changecontrol.ChangeControlInsertData(err, "DeployStapService")    
     return err
 }
 
@@ -121,7 +116,8 @@ func StopStapService(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.StopStapService(anode)
+    err = plugin.StopStapService(anode)
+    changecontrol.ChangeControlInsertData(err, "StopStapService")    
     return err
 }
 
@@ -135,7 +131,8 @@ func ModifyStapValues(anode map[string]string)(err error) {
     delete(anode,"action")
     delete(anode,"controller")
     delete(anode,"router")
-	err = plugin.ModifyStapValues(anode)
+    err = plugin.ModifyStapValues(anode)
+    changecontrol.ChangeControlInsertData(err, "ModifyStapValues")    
     return err
 }
 
@@ -157,6 +154,7 @@ func ChangeSuricataTable(anode map[string]string)(err error) {
     delete(anode,"controller")
     delete(anode,"router")
 
-	err = plugin.ChangeSuricataTable(anode)
+    err = plugin.ChangeSuricataTable(anode)
+    changecontrol.ChangeControlInsertData(err, "ChangeSuricataTable")    
     return err
 }

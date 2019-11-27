@@ -1,25 +1,25 @@
 package controllers
 
 import (
-	"github.com/astaxie/beego"
-	"owlhnode/models"
-	"encoding/json"
+    "github.com/astaxie/beego"
+    "owlhnode/models"
+    "encoding/json"
 )
 
 type NetController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title GetNetworkData
 // @Description get network data
 // @router / [get]
 func (m *NetController) GetNetworkData() {
-	values,err := models.GetNetworkData()
-	
-	m.Data["json"] = values
-	if err != nil {
+    values,err := models.GetNetworkData()
+    
+    m.Data["json"] = values
+    if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     m.ServeJSON()
 }
 
@@ -27,12 +27,12 @@ func (m *NetController) GetNetworkData() {
 // @Description get network values selected by user
 // @router /values [get]
 func (m *NetController) LoadNetworkValuesSelected() {
-	values,err := models.LoadNetworkValuesSelected()
-	
-	m.Data["json"] = values
-	if err != nil {
+    values,err := models.LoadNetworkValuesSelected()
+    
+    m.Data["json"] = values
+    if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     m.ServeJSON()
 }
 
@@ -43,8 +43,8 @@ func (m *NetController) LoadNetworkValuesSelected() {
 // @router / [put]
 func (n *NetController) UpdateNetworkInterface() {
     var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	anode["action"] = "PUT"
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    anode["action"] = "PUT"
     anode["controller"] = "NET"
     anode["router"] = "@router / [put]"
     err := models.UpdateNetworkInterface(anode)
@@ -59,11 +59,11 @@ func (n *NetController) UpdateNetworkInterface() {
 // // @Description get network data
 // // @router /loadNetworkValuesSuricata [get]
 // func (m *NetController) LoadNetworkValuesSuricata() {
-// 	values,err := models.LoadNetworkValuesSuricata()
-	
-// 	m.Data["json"] = values
-// 	if err != nil {
+//     values,err := models.LoadNetworkValuesSuricata()
+    
+//     m.Data["json"] = values
+//     if err != nil {
 //         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-// 	}
+//     }
 //     m.ServeJSON()
 // }

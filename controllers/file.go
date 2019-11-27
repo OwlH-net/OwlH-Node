@@ -1,14 +1,14 @@
 package controllers
 
 import (
-	"owlhnode/models"
-	"encoding/json"
-	"github.com/astaxie/beego"
+    "owlhnode/models"
+    "encoding/json"
+    "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
 )
 
 type FileController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title SendFile
@@ -38,7 +38,7 @@ func (n *FileController) SaveFile() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.SaveFile(anode)
-	anode["action"] = "PUT"
+    anode["action"] = "PUT"
     anode["controller"] = "FILE"
     anode["router"] = "@router / [put]"
 

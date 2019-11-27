@@ -2,8 +2,8 @@ package plugin
 
 import (
     "github.com/astaxie/beego/logs"
-	"owlhnode/database"
-	"owlhnode/zeek"
+    "owlhnode/database"
+    "owlhnode/zeek"
     // "owlhnode/suricata"
     "os/exec"
     "bytes"
@@ -12,7 +12,7 @@ import (
     "strconv"
     "strings"
     "io/ioutil"
-	"owlhnode/utils"
+    "owlhnode/utils"
 )
 
 func ChangeServiceStatus(anode map[string]string)(err error) {
@@ -622,31 +622,42 @@ func ChangeSuricataTable(anode map[string]string)(err error) {
     allPlugins,err := ndb.GetPlugins()
     data, err := ndb.GetMainconfData()
 
+    if anode["status"] == "expert" {
+        err = ndb.UpdateMainconfValue("suricata", "previousStatus", data["suricata"]["status"]); if err != nil {logs.Error("ChangeSuricataTable status Error: "+err.Error()); return err}
+        err = ndb.UpdateMainconfValue("suricata", "status", "expert"); if err != nil {logs.Error("ChangeSuricataTable status Error: "+err.Error()); return err}
+    }else{
+        if data["suricata"]["previousStatus"] == "enabled" {
+            err = ndb.UpdateMainconfValue("suricata", "status", data["suricata"]["previousStatus"])
+            err = ndb.UpdateMainconfValue("suricata", "previousStatus", "disabled")  
+        }else if data["suricata"]["previousStatus"] == "disabled"{
+            err = ndb.UpdateMainconfValue("suricata", "status", data["suricata"]["previousStatus"])
+            err = ndb.UpdateMainconfValue("suricata", "previousStatus", "enabled")
+        }else {
+            ndb.InsertGetMainconfData("suricata", "previousStatus", "disabled")
+        }
+    } 
+
     for x := range allPlugins {
         if anode["status"] == "expert" {
-            err = ndb.UpdateMainconfValue("suricata", "previousStatus", data["suricata"]["status"]); if err != nil {logs.Error("ChangeSuricataTable status Error: "+err.Error()); return err}
-            err = ndb.UpdateMainconfValue("suricata", "status", "expert"); if err != nil {logs.Error("ChangeSuricataTable status Error: "+err.Error()); return err}
             if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata"{
                 err = StopSuricataService(x, allPlugins[x]["status"])
                 if err != nil {logs.Error("StopSuricataService status Error: "+err.Error()); return err}
             } 
         }else{
             if data["suricata"]["previousStatus"] == "enabled" {
-                err = ndb.UpdateMainconfValue("suricata", "status", data["suricata"]["previousStatus"])
-                err = ndb.UpdateMainconfValue("suricata", "previousStatus", "disabled")  
                 if allPlugins[x]["previousState"] == "enabled" && allPlugins[x]["type"] == "suricata"{
                     err = LaunchSuricataService(x, allPlugins[x]["interface"])
-                    if err != nil {logs.Error("StopSuricataService status Error: "+err.Error()); return err}
+                    if err != nil {logs.Error("LaunchSuricataService status Error: "+err.Error()); return err}
                 }          
             }else if data["suricata"]["previousStatus"] == "disabled"{
-                err = ndb.UpdateMainconfValue("suricata", "status", data["suricata"]["previousStatus"])
-                err = ndb.UpdateMainconfValue("suricata", "previousStatus", "enabled")
                 if allPlugins[x]["previousStatus"] == "enabled" && allPlugins[x]["type"] == "suricata"{
                     err = StopSuricataService(x, allPlugins[x]["status"])
                     if err != nil {logs.Error("ChangeSuricataTable LaunchSuricataService status Error: "+err.Error()); return err}
                 }
+            }else {
+                ndb.InsertGetMainconfData("suricata", "previousStatus", "disabled")
             }
-        }
+        } 
     }
     
     return nil
