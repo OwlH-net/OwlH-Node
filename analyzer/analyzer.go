@@ -35,7 +35,7 @@ type Analyzer struct {
     OutputFile      string      `json:"outputfile"`
     Prefilter       string      `json:"prefilterfile"`
     Postfilter      string      `json:"postfilterfile"`
-    Tagfile         string      `json:"tags"`
+    Tagfile         string      `json:"tagsfile"`
 
     Srcfiles        []string    `json:"srcfiles"`
     Feedfiles       []Feedfile
@@ -708,11 +708,11 @@ func PingAnalyzer()(data map[string]string ,err error) {
 
     analyzerData["status"] = analyzerStatus
     analyzerData["path"] = filePath
+    if analyzerData["status"] == "Disabled" {
+        return analyzerData, nil
+    }
 
     fi, err := os.Stat(filePath)
-    //logs.Info("analyzer outputfile stats -->")
-    //logs.Info(fi)
-    //logs.Info("fileinfo.Sys() = %#v\n", fi.Sys())
     if err != nil { logs.Error("Can't access Analyzer ouput file data: "+err.Error()); return analyzerData,err}
     size := fi.Size()
 
