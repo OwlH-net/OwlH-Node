@@ -18,7 +18,7 @@ func DeployNode(anode map[string]string)(err error) {
     delete(anode,"router")
     
     err = deploy.DeployNode(anode)
-    changecontrol.ChangeControlInsertData(err, "DeployNode")    
+    //changecontrol.ChangeControlInsertData(err, "DeployNode")    
     return err
 }
 
@@ -26,6 +26,6 @@ func CheckDeployFiles()(anode map[string]string) {
     anode = deploy.CheckDeployFiles()
     var err error
     if anode == nil { err = errors.New("No files") } else { err = nil }
-    changecontrol.ChangeControlInsertData(err, "CheckDeployFiles")    
+    //changecontrol.ChangeControlInsertData(err, "CheckDeployFiles")    
     return anode
 }

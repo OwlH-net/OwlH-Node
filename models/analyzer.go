@@ -9,7 +9,7 @@ import (
 
 func PingAnalyzer()(data map[string]string ,err error) {
     data, err = analyzer.PingAnalyzer()    
-    changecontrol.ChangeControlInsertData(err, "PingAnalyzer")    
+    //changecontrol.ChangeControlInsertData(err, "PingAnalyzer")    
     return data, err
 }
 
@@ -36,6 +36,6 @@ func SyncAnalyzer(file map[string][]byte) (err error) {
     logs.Info("ANALYZER - SyncAnalyzer")
     logs.Info("file - conf/analyzer.json")
         
-    changecontrol.ChangeControlInsertData(err, "SyncAnalyzer")    
-    return err
+    changecontrol.ChangeControlInsertData(cc, "SyncAnalyzer")    
+    return nil
 }

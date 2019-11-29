@@ -84,6 +84,8 @@ type Event struct {
     Line            string
 }
 
+var monitorfiles            = map[string]bool{}
+
 var CHstartpipeline         = make (chan string, 1000)
 var CHprefilter             = make (chan string, 1000)
 var CHmapper                = make (chan string, 1000)
@@ -545,7 +547,7 @@ func StartWriter(wkr int) {
     }
 }
 
-func ControlSource(file string) {
+func ControlSource(file, uuid string) {
     logs.Info("start file %s control", file)
     filedet, err := os.Stat(file) 
     if os.IsNotExist(err) {
@@ -554,9 +556,8 @@ func ControlSource(file string) {
     stat, _ := filedet.Sys().(*syscall.Stat_t)
     var previousinode uint64
     previousinode = stat.Ino
-    logs.Info("file inode %d ", int(previousinode))
+    logs.Info("file %s inode %d ", file, int(previousinode))
 
-    endthis := false
     for {
         time.Sleep(time.Second * 10)
         if fileinfo, err := os.Stat(file); !os.IsNotExist(err) {
@@ -564,12 +565,10 @@ func ControlSource(file string) {
             logs.Info("current inode %d vs %d", stat.Ino, previousinode) 
             if previousinode != stat.Ino {
                 logs.Warn("file %s inode changed, restarting tail with new inode", file)
+                monitorfiles[uuid] = false
                 go StartSource(file)
-                endthis = true
+                return
             }
-        }
-        if endthis {
-            break
         }
     }
 }
@@ -579,6 +578,8 @@ func StartSource(file string) {
     var seekv tail.SeekInfo
     seekv.Offset = 0
     seekv.Whence = os.SEEK_END
+    uuid := utils.Generate()
+    monitorfiles[uuid] = true
     for {
         logs.Info("tailing - %s", file)
         if _, err := os.Stat(file); os.IsNotExist(err) {
@@ -589,8 +590,11 @@ func StartSource(file string) {
         if err != nil {
             logs.Error(">>>>>> Tail over file %s error: %s", file, err.Error())
         }
-        go ControlSource(file)
+        go ControlSource(file, uuid)
         for line := range t.Lines {
+            if !monitorfiles[uuid] {
+                return
+            }
             counters.lines += 1
             logs.Info("new line from %s", file)
             ToDispatcher("start",line.Text)
@@ -657,6 +661,15 @@ func MonitorFile(file string, size int, ofile *os.File) {
     }
 }
 
+func CHcontrol(){
+    for {
+        time.Sleep(time.Second * 10)
+        CHstats()
+        CHcounter()
+        logs.Warn("monitorfiles size is %d", len(monitorfiles))
+    }
+}
+
 func InitAnalizer() {
     logs.Info("starting analyzer")
     analyzer,_ := PingAnalyzer()
@@ -677,14 +690,13 @@ func InitAnalizer() {
     StartPostFilter(4)
 
     LoadSources()
+    go CHcontrol()
     for {
         analyzer,_ = PingAnalyzer()
         if analyzer["status"] == "Disabled"{
             break
         }
         time.Sleep(time.Second * 3)
-        CHstats()
-        CHcounter()
     }
 }
 
@@ -708,12 +720,13 @@ func PingAnalyzer()(data map[string]string ,err error) {
 
     analyzerData["status"] = analyzerStatus
     analyzerData["path"] = filePath
+    analyzerData["size"] = "0"
 
     fi, err := os.Stat(filePath)
     //logs.Info("analyzer outputfile stats -->")
     //logs.Info(fi)
     //logs.Info("fileinfo.Sys() = %#v\n", fi.Sys())
-    if err != nil { logs.Error("Can't access Analyzer ouput file data: "+err.Error()); return analyzerData,err}
+    if err != nil { logs.Error("Can't access Analyzer ouput file data: "+err.Error()); return analyzerData,nil}
     size := fi.Size()
 
     analyzerData["size"] = strconv.FormatInt(size, 10)

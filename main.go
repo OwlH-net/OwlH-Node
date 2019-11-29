@@ -3,10 +3,12 @@ package main
 import (
 
     "github.com/astaxie/beego/logs"
+    "github.com/astaxie/beego/context"
     _ "owlhnode/routers"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
     "owlhnode/database"
+    "owlhnode/pcap"
     "owlhnode/stap"
     "owlhnode/analyzer"
     "owlhnode/plugin"
@@ -22,6 +24,25 @@ import (
     "strings"
     "runtime"
 )
+
+var FilterToken = func(ctx *context.Context) {
+
+    logs.Warn(ctx.Input.IP())
+    logs.Warn(ctx.Input.Header("token"))
+    logs.Warn(ctx.Input.Host())
+
+    token := ctx.Input.Header("token")
+    if token != "" {
+        logs.Error("no token, we will stop this 403")
+        ctx.Abort(403, "not allowed")
+    } 
+    // _, ok := ctx.Input.Session("uid").(int)
+    // if !ok {
+    //     ctx.Redirect(302, "/login")
+    // }
+}
+
+
 
 func main() {
 
@@ -53,7 +74,7 @@ func main() {
 
 
     //Application version
-    logs.Info("Version OwlH Master: 0.11.0.20191113")
+    logs.Info("Version OwlH Node: 0.12.0.20191129")
 
     cancontinue := configuration.MainCheck()
     if !cancontinue {
@@ -111,8 +132,6 @@ func main() {
     logs.Info ("Main Starting -> reading MONITOR DB")
     ndb.MConn() //monitor database
 
-    // logs.Error("Version: 0.5.190415.0922")
-
     //Launch StapInit for 1st time for check status and go concurrency if status==true
     plugin.CheckServicesStatus()
     stap.StapInit()
@@ -120,6 +139,7 @@ func main() {
     analyzer.Init()
     geolocation.Init()
     monitor.Init()
+    pcap.Init()
     
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
@@ -140,6 +160,8 @@ func main() {
         ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin"},
         AllowCredentials: true,
     }))
+    beego.InsertFilter("/*", beego.BeforeRouter, FilterToken)
+
 
     beego.Run()
 }

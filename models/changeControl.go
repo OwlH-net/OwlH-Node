@@ -9,6 +9,6 @@ import (
 // }
 func GetChangeControlNode()(data map[string]map[string]string ,err error) {
     data, err = changecontrol.GetChangeControlNode()  
-    changecontrol.ChangeControlInsertData(err, "GetChangeControlNode")  
+    //changecontrol.ChangeControlInsertData(err, "GetChangeControlNode")  
     return data, err
 }
