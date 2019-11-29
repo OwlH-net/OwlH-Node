@@ -708,7 +708,7 @@ func PingAnalyzer()(data map[string]string ,err error) {
 
     analyzerData["status"] = analyzerStatus
     analyzerData["path"] = filePath
-    analyzerData["size"] = 0
+    analyzerData["size"] = "0"
     if analyzerData["status"] == "Disabled" {
         return analyzerData, nil
     }
