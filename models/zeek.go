@@ -33,11 +33,9 @@ func SetZeek(zeekdata zeek.Zeek) (status zeek.Zeek, err error) {
     }
 
     cc["actionDescription"] = "Set Zeek values and manage service status"
-    cc["user"] = "admin"
     
-    controlError := changecontrol.InsertChangeControl(cc)
-    if controlError!=nil { logs.Error("Set Zeek params controlError: "+controlError.Error()) }
-
+    changecontrol.InsertChangeControl(cc)
+    
     // changecontrol.ChangeControlInsertData(err, "SetZeek")    
     return status,err
 
@@ -67,9 +65,8 @@ func StartZeek(action string) (data string, err error) {
     }
     cc["actionDescription"] = "Start Zeek with action " + action
     
-    controlError := changecontrol.InsertChangeControl(cc)
-    if controlError!=nil { logs.Error("Start Zeek controlError: "+controlError.Error()) }
-
+    changecontrol.InsertChangeControl(cc)
+    
     // changecontrol.ChangeControlInsertData(err, "StartZeek")    
     return data,err
 }

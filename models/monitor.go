@@ -7,8 +7,6 @@ import (
 
 func GetNodeStats()(data monitor.Monitor) {
     data = monitor.GetLastMonitorInfo()
-    var err error
-    err = nil
     //changecontrol.ChangeControlInsertData(err, "GetNodeStats")    
     return data
 }
@@ -25,12 +23,46 @@ func AddMonitorFile(anode map[string]string)(err error) {
     delete(anode,"router")
 
     err = monitor.AddMonitorFile(anode)
+    
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Start monitoring a file"
+
+    changecontrol.InsertChangeControl(cc)
+
     //changecontrol.ChangeControlInsertData(err, "AddMonitorFile")    
     return err
 }
 
 func DeleteMonitorFile(anode map[string]string)(err error) {
+    cc := anode
+    logs.Info("============")
+    logs.Info("MONITOR - DeleteMonitorFile")
+    for key :=range cc {
+        logs.Info(key +" -> "+ cc[key])
+    }
+    delete(anode,"action")
+    delete(anode,"controller")
+    delete(anode,"router")
+    
     err = monitor.DeleteMonitorFile(anode)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Delete traffic transport values"
+
+    changecontrol.InsertChangeControl(cc)
+
     //changecontrol.ChangeControlInsertData(err, "DeleteMonitorFile")    
     return err
 }

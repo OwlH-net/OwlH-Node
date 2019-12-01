@@ -15,6 +15,23 @@ func GetWazuh() (status map[string]bool, err error) {
 func RunWazuh() (data string, err error) {
     logs.Info("Run RunWazuh system into node server")
     data,err = wazuh.RunWazuh()
+    var cc = make(map[string]string)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["action"] = "PUT"
+    cc["controller"] = "WAZUH"
+    cc["router"] = "@router /RunWazuh [put]"
+
+    cc["actionDescription"] = "Start Wazuh"
+    cc["actionReult"] = data
+
+    changecontrol.InsertChangeControl(cc)
     // changecontrol.ChangeControlInsertData(err, "RunWazuh")    
     return data,err
 }
@@ -22,6 +39,22 @@ func RunWazuh() (data string, err error) {
 func StopWazuh() (data string, err error) {
     logs.Info("Stops StopWazuh system into node server")
     data,err = wazuh.StopWazuh()
+    var cc = make(map[string]string)
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["action"] = "PUT"
+    cc["controller"] = "WAZUH"
+    cc["router"] = "@router /StopWazuh [put]"
+
+    cc["actionDescription"] = "Stop Wazuh"
+    cc["actionReult"] = data
+
+    changecontrol.InsertChangeControl(cc)
     // changecontrol.ChangeControlInsertData(err, "StopWazuh")    
     return data,err
 }
@@ -42,7 +75,19 @@ func DeleteWazuhFile(file map[string]interface{})(err error) {
     delete(file,"action")
     delete(file,"controller")
     delete(file,"router")
+
     err = wazuh.ModifyWazuhFile(file)
+
+    // if err!=nil { 
+    //     cc["actionStatus"] = "error"
+    //     cc["errorDescription"] = err.Error()
+    // }else{
+    //     cc["actionStatus"] = "success"
+    // }
+
+    // cc["actionDescription"] = "Delete Wazuh file to monitor"
+
+    // changecontrol.InsertChangeControl(cc)
     // changecontrol.ChangeControlInsertData(err, "DeleteWazuhFile")    
     return err
 }
@@ -81,6 +126,17 @@ func SaveFileContentWazuh(file map[string]string)(err error) {
     delete(file,"router")
     
      err = wazuh.SaveFileContentWazuh(file)
+
+         if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Save Wazuh config"
+
+    changecontrol.InsertChangeControl(cc)
     // changecontrol.ChangeControlInsertData(err, "SaveFileContentWazuh")    
     return  err
 }

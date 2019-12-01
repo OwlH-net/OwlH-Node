@@ -29,6 +29,17 @@ func UpdateNetworkInterface(data map[string]string) (err error) {
     delete(data,"router")
 
     err = net.UpdateNetworkInterface(data)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Update default network Interface"
+
+    changecontrol.InsertChangeControl(cc)
     //changecontrol.ChangeControlInsertData(err, "UpdateNetworkInterface")    
     return err
 }

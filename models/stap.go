@@ -18,6 +18,17 @@ func AddServer(anode map[string]string) (err error) {
     delete(anode,"router")
 
     err = stap.AddServer(anode)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Add a server"
+
+    changecontrol.InsertChangeControl(cc)
     // changecontrol.ChangeControlInsertData(err, "AddServer")    
     return err
 }
@@ -93,6 +104,18 @@ func EditStapServer(anode map[string]string) (err error) {
     delete(anode,"router")
 
     err = stap.EditStapServer(anode)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Edit Server - Software TAP"
+
+    changecontrol.InsertChangeControl(cc)
+
     // changecontrol.ChangeControlInsertData(err, "EditStapServer")    
     return err
 }

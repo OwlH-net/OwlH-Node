@@ -30,6 +30,18 @@ func SetBPF(anode map[string]string) (err error) {
     delete(anode,"router")
 
     err = suricata.SetBPF(anode)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Set BPF Filter"
+
+    changecontrol.InsertChangeControl(cc)
+
     // changecontrol.ChangeControlInsertData(err, "SetBPF")    
     return err
 }
@@ -46,6 +58,17 @@ func SyncRulesetFromMaster(n map[string][]byte) (err error) {
     delete(n,"router")
 
     err = suricata.SyncRulesetFromMaster(n)
+
+    // if err!=nil { 
+    //     cc["actionStatus"] = "error"
+    //     cc["errorDescription"] = err.Error()
+    // }else{
+    //     cc["actionStatus"] = "success"
+    // }
+
+    // cc["actionDescription"] = "Save new ruleset from master"
+
+    // changecontrol.InsertChangeControlByte(cc)
     // changecontrol.ChangeControlInsertData(err, "SyncRulesetFromMaster")    
     return err
 }

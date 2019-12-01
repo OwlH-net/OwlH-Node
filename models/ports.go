@@ -23,6 +23,17 @@ func ChangeMode(anode map[string]string) (err error) {
     delete(anode,"router")
 
     err = knownports.ChangeMode(anode)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "ChangeMode knownports Mode"
+
+    changecontrol.InsertChangeControl(cc)
     // changecontrol.ChangeControlInsertData(err, "ChangeMode")    
     return err
 }
@@ -40,6 +51,18 @@ func ChangeStatus(anode map[string]string) (err error) {
 
     err = knownports.ChangeStatus(anode)
     // changecontrol.ChangeControlInsertData(err, "ChangeStatus")    
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Start/stop knownports plugin"
+
+    changecontrol.InsertChangeControl(cc)
+
     return err
 }
 
@@ -55,6 +78,18 @@ func DeletePorts(anode map[string]string) (err error) {
     delete(anode,"router")
 
     err = knownports.DeletePorts(anode)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Clean Knownports data base"
+
+    changecontrol.InsertChangeControl(cc)
+
     // changecontrol.ChangeControlInsertData(err, "DeletePorts")    
     return err
 }
@@ -71,6 +106,18 @@ func DeleteAllPorts(anode map[string]string) (err error) {
     delete(anode,"router")
 
     err = knownports.DeleteAllPorts()
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Clean all known ports"
+
+    changecontrol.InsertChangeControl(cc)
+
     // changecontrol.ChangeControlInsertData(err, "DeleteAllPorts")    
     return err
 }

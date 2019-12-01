@@ -35,6 +35,17 @@ func PutIncidentNode(anode map[string]string)(err error){
     delete(anode,"router")
 
     err = incidents.PutIncidentNode(anode)
+        if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Record Incident"
+
+    changecontrol.InsertChangeControl(cc)
+
     //changecontrol.ChangeControlInsertData(err, "PutIncidentNode")    
     return err
 }

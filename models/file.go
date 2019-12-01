@@ -3,7 +3,8 @@ package models
 import (
     "owlhnode/file"
     "owlhnode/changeControl"
-    "github.com/astaxie/beego/logs")
+    "github.com/astaxie/beego/logs"
+)
 
 func SendFile(filename string) (data map[string]string, err error) {
     logs.Info("SendFile into Node file")
@@ -25,6 +26,18 @@ func SaveFile(data map[string]string) (err error) {
 
     logs.Info("SaveFile into Node file")
     err = file.SaveFile(data)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Save file"
+
+    changecontrol.InsertChangeControl(cc)
+
     //changecontrol.ChangeControlInsertData(err, "SaveFile")    
     return err
 }

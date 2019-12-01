@@ -80,6 +80,7 @@ func (n *SuricataController) SyncRulesetFromMaster() {
     }
 
     err := models.SyncRulesetFromMaster(anode)
+    
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         logs.Info("Ruleset retrieve OUT -- ERROR : %s", err.Error())
