@@ -101,3 +101,26 @@ func ReloadFilesData() (data map[string]map[string]string, err error) {
     logs.Notice(sendBackArray)
     return sendBackArray,nil
 }
+
+func RotateFile(path string){
+    // numberOfFiles := 5
+    // compress := true
+    
+    // oldpath := path+".4.tar.gz"
+    // if existsFile(oldpath) {
+    //     renameFile(oldpath, path+".5.tar.gz")
+    // }
+    // oldpath = path+".3.tar.gz"
+    // if existsFile(oldpath) {
+    //     renameFile(oldpath, path+".4.tar.gz")
+    // }
+    // oldpath = path+".2.tar.gz"
+    // if existsFile(oldpath) {
+    //     renameFile(oldpath, path+".3.tar.gz")
+    // }
+    // oldpath = path+".1"
+    // if existsFile(oldpath) {
+    //     renameFile(oldpath, path+".5.tar.gz")
+    // }
+    // os.Rename(src, dst)
+}
