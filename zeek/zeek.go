@@ -404,16 +404,11 @@ func SyncCluster(anode map[string]string, clusterType string) (err error) {
     h := 0
     fileContent := make(map[int]string)
 
-    zeekdata, err := ndb.GetMainconfData()
-    if zeekdata["zeek"]["status"] == "disabled" {return nil}
-
-    zeekinterface := zeekdata["zeek"]["interface"]
-
     if clusterType == "standalone" {
         fileContent[h] = "[bro]"; h++
         fileContent[h] = "type=standalone"; h++
         fileContent[h] = "host=localhost"; h++
-        fileContent[h] = "interface="+zeekinterface; h++
+        fileContent[h] = "interface="+anode["value"]; h++
     }else if clusterType == "cluster" {
         data,err := ndb.GetClusterData(); if err != nil {logs.Error("Error Zeek/SyncCluster: "+err.Error()); return err}
         
