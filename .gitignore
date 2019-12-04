@@ -1,0 +1,7 @@
+# Ignore this folders on Git
+/flock
+
+# ignore a file type
+*.tar.gz
+*.db
+/.DS_Store

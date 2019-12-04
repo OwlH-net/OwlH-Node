@@ -58,16 +58,12 @@ func LoadMonitorFiles()(data map[string]map[string]string, err error){
     sql := "select file_uniqueid, file_param, file_value from files;";
     
     rows, err := Monitordb.Query(sql)
-    if err != nil {
-        logs.Error("LoadDataflowValues Monitordb.Query Error : %s", err.Error())
-        return nil, err
-    }
+    if err != nil { logs.Error("LoadDataflowValues Monitordb.Query Error : %s", err.Error()); return nil, err}
+
     defer rows.Close()
     for rows.Next() {
-        if err = rows.Scan(&uniqid, &param, &value); err != nil {
-            logs.Error("LoadDataflowValues -- Query return error: %s", err.Error())
-            return nil, err
-        }
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("LoadDataflowValues -- Query return error: %s", err.Error()); return nil, err}
+
         if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
         pingData[uniqid][param]=value
     } 

@@ -12,7 +12,6 @@ import (
     "owlhnode/stap"
     "owlhnode/analyzer"
     "owlhnode/plugin"
-    "owlhnode/utils"
     "owlhnode/knownports"
     "owlhnode/geolocation"
     "owlhnode/monitor"
@@ -45,34 +44,6 @@ var FilterToken = func(ctx *context.Context) {
 
 
 func main() {
-
-    var err error
-
-
-    loadDataLogger := map[string]map[string]string{}
-    loadDataLogger["logs"] = map[string]string{}
-    loadDataLogger["logs"]["filename"] = ""
-    loadDataLogger["logs"]["maxlines"] = ""
-    loadDataLogger["logs"]["maxsize"] = ""
-    loadDataLogger["logs"]["daily"] = ""
-    loadDataLogger["logs"]["maxdays"] = ""
-    loadDataLogger["logs"]["rotate"] = ""
-    loadDataLogger["logs"]["level"] = ""
-    loadDataLogger, err = utils.GetConf(loadDataLogger)    
-    filename := loadDataLogger["logs"]["filename"]
-    maxlines := loadDataLogger["logs"]["maxlines"]
-    maxsize := loadDataLogger["logs"]["maxsize"]
-    daily := loadDataLogger["logs"]["daily"]
-    maxdays := loadDataLogger["logs"]["maxdays"]
-    rotate := loadDataLogger["logs"]["rotate"]
-    level := loadDataLogger["logs"]["level"]
-    if err != nil {
-        logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())
-    }
-    logs.NewLogger(10000)
-    logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
-
-
     //Application version
     logs.Info("Version OwlH Node: 0.12.0.20191130")
 
@@ -133,6 +104,9 @@ func main() {
     ndb.MConn() //monitor database
 
     //Launch StapInit for 1st time for check status and go concurrency if status==true
+    //launch logger    
+    monitor.Logger()
+    
     plugin.CheckServicesStatus()
     stap.StapInit()
     knownports.Init()
