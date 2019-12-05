@@ -134,8 +134,8 @@ func ZeekStatus() (zeekstatus []ZeekNode, err error) {
         logs.Error(newError)
         // return nil, newError
     }
-    logs.Info(command["zeek"]["zeekctl"])
-    logs.Info(command["zeek"]["currentstatus"])
+    logs.Info("Zeek CTL -> %s", command["zeek"]["zeekctl"])
+    logs.Info("Zeek currentstatus -> %s", command["zeek"]["currentstatus"])
     output, err:= exec.Command(command["zeek"]["zeekctl"], command["zeek"]["currentstatus"]).Output()
     if err != nil {
         newError := errors.New("ZEEK STATUS -> Error running status command -> " + err.Error())
