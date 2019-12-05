@@ -86,14 +86,14 @@ type Event struct {
 
 var monitorfiles            = map[string]bool{}
 
-var CHstartpipeline         = make (chan string, 1000)
-var CHprefilter             = make (chan string, 1000)
-var CHmapper                = make (chan string, 1000)
-var CHtag                   = make (chan string, 1000)
-var CHfeed                  = make (chan string, 1000)
-var CHpostfilter            = make (chan string, 1000)
-var CHwriter                = make (chan string, 1000)
-var CHdispatcher            = make (chan Event, 1000)
+var CHstartpipeline         = make (chan string, 10000)
+var CHprefilter             = make (chan string, 10000)
+var CHmapper                = make (chan string, 10000)
+var CHtag                   = make (chan string, 10000)
+var CHfeed                  = make (chan string, 10000)
+var CHpostfilter            = make (chan string, 10000)
+var CHwriter                = make (chan string, 10000)
+var CHdispatcher            = make (chan Event, 10000)
 
 
 var config Analyzer
@@ -596,7 +596,6 @@ func StartSource(file string) {
                 return
             }
             counters.lines += 1
-            logs.Info("new line from %s", file)
             ToDispatcher("start",line.Text)
         }
         logs.Info("End tailing - %s", file)
