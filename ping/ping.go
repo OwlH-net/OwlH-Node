@@ -87,14 +87,20 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
 
     for x := range allPlugins {
         if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata"{
-
-
-// change pid file name 
+            // change pid file name 
             if _, err := os.Stat("/var/run/suricata/"+x+"-pidfile.pid"); os.IsNotExist(err) {        
                 err = plugin.StopSuricataService(x, allPlugins[x]["status"])
                 if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error stopping suricata for launch again: "+err.Error()); return nil,err}
                 err = plugin.LaunchSuricataService(x, allPlugins[x]["interface"])
                 if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error launching suricata again: "+err.Error()); return nil, err}
+            }
+            //check pidfile
+            pid, err := exec.Command("bash","-c","ps -ef | grep suricata | grep "+x+" | grep -v grep | awk '{print $2}'").Output()
+            if err != nil {logs.Error("ping/PingPluginsNode Checking suricata PID: "+err.Error())}
+            if strings.Split(string(pid), "\n")[0] == "" {
+                allPlugins[x]["running"] = "false"
+            }else{
+                allPlugins[x]["running"] = "true"
             }
         }
     }
