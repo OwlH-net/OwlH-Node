@@ -619,7 +619,7 @@ func StopStapService(anode map[string]string)(err error) {
 }
 
 func ChangeSuricataTable(anode map[string]string)(err error) {
-    allPlugins,err := ndb.GetPlugins()
+    // allPlugins,err := ndb.GetPlugins()
     data, err := ndb.GetMainconfData()
 
     if anode["status"] == "expert" {
@@ -637,28 +637,28 @@ func ChangeSuricataTable(anode map[string]string)(err error) {
         }
     } 
 
-    for x := range allPlugins {
-        if anode["status"] == "expert" {
-            if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata"{
-                err = StopSuricataService(x, allPlugins[x]["status"])
-                if err != nil {logs.Error("StopSuricataService status Error: "+err.Error()); return err}
-            } 
-        }else{
-            if data["suricata"]["previousStatus"] == "enabled" {
-                if allPlugins[x]["previousState"] == "enabled" && allPlugins[x]["type"] == "suricata"{
-                    err = LaunchSuricataService(x, allPlugins[x]["interface"])
-                    if err != nil {logs.Error("LaunchSuricataService status Error: "+err.Error()); return err}
-                }          
-            }else if data["suricata"]["previousStatus"] == "disabled"{
-                if allPlugins[x]["previousStatus"] == "enabled" && allPlugins[x]["type"] == "suricata"{
-                    err = StopSuricataService(x, allPlugins[x]["status"])
-                    if err != nil {logs.Error("ChangeSuricataTable LaunchSuricataService status Error: "+err.Error()); return err}
-                }
-            }else {
-                ndb.InsertGetMainconfData("suricata", "previousStatus", "disabled")
-            }
-        } 
-    }
+    // for x := range allPlugins {
+    //     if anode["status"] == "expert" {
+    //         if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata"{
+    //             err = StopSuricataService(x, allPlugins[x]["status"])
+    //             if err != nil {logs.Error("StopSuricataService status Error: "+err.Error()); return err}
+    //         } 
+    //     }else{
+    //         if data["suricata"]["previousStatus"] == "enabled" {
+    //             if allPlugins[x]["previousState"] == "enabled" && allPlugins[x]["type"] == "suricata"{
+    //                 err = LaunchSuricataService(x, allPlugins[x]["interface"])
+    //                 if err != nil {logs.Error("LaunchSuricataService status Error: "+err.Error()); return err}
+    //             }          
+    //         }else if data["suricata"]["previousStatus"] == "disabled"{
+    //             if allPlugins[x]["previousStatus"] == "enabled" && allPlugins[x]["type"] == "suricata"{
+    //                 err = StopSuricataService(x, allPlugins[x]["status"])
+    //                 if err != nil {logs.Error("ChangeSuricataTable LaunchSuricataService status Error: "+err.Error()); return err}
+    //             }
+    //         }else {
+    //             ndb.InsertGetMainconfData("suricata", "previousStatus", "disabled")
+    //         }
+    //     } 
+    // }
     
     return nil
 }
