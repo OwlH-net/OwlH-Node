@@ -8,8 +8,42 @@ import (
     "strings"
     "owlhnode/utils"
     "owlhnode/plugin"
+    "owlhnode/zeek"
     "owlhnode/database"
 )
+
+type Zeek struct {
+    Path        bool                `json:"path"`
+    Rol         string              `json:"role"`
+    Bin         bool                `json:"bin"`
+    Action      string              `json:"action"`
+    Running     []ZeekNodeStatus    `json:"running"`
+    Mode        string              `json:"mode"`
+    Managed     bool                `json:"managed"`
+    Nodes       []ZeekNode          `json:"nodes"`
+    Extra       map[string]string   `json:"extra"`
+}
+
+type ZeekKeys struct {
+    Key         string              `json:"key"`
+    Value       string              `json:"value"`
+}
+
+type ZeekNode struct {
+    Name        string              `json:"name"`
+    Host        string              `json:"host"`
+    Status      string              `json:"status"`
+    Type        string              `json:"type"`
+    NInterface  string              `json:"interface"`
+    Pid         string              `json:"pid"`
+    Started     string              `json:"started"`
+    Extra       []ZeekKeys          `json:"extra"`
+}
+
+type ZeekNodeStatus struct {
+    Status      string              `json:"status"`
+    Nodes       int                 `json:"nodes"`
+}
 
 func PingService()(err error) {
     stapCollector := map[string]map[string]string{}
@@ -94,10 +128,47 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
                 err = plugin.LaunchSuricataService(x, allPlugins[x]["interface"])
                 if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error launching suricata again: "+err.Error()); return nil, err}
             }
-            //check pidfile
+            //check if process is running even though database status is enabled
             pid, err := exec.Command("bash","-c","ps -ef | grep suricata | grep "+x+" | grep -v grep | awk '{print $2}'").Output()
             if err != nil {logs.Error("ping/PingPluginsNode Checking suricata PID: "+err.Error())}
             if strings.Split(string(pid), "\n")[0] == "" {
+                allPlugins[x]["running"] = "false"
+            }else{
+                allPlugins[x]["running"] = "true"
+            }
+        }
+        //check if process is running even though database status is enabled
+        if allPlugins[x]["type"] == "zeek" && allPlugins[x]["pid"] != "none"{            
+            zk := zeek.GetZeek()
+            for node := range zk.Nodes {
+                if zk.Nodes[node].Status != "running"{
+                    allPlugins[x]["running"] = "false"
+                }else{
+                    allPlugins[x]["running"] = "true"
+                }
+            }
+        }
+
+        //check if process is running even though database status is enabled
+        if (allPlugins[x]["type"] == "socket-pcap" || allPlugins[x]["type"] == "socket-network") && allPlugins[x]["pid"] != "none"{
+            pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[x]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+            if err != nil {logs.Error("ping/PingPluginsNode Checking STAP PID: "+err.Error())}
+            if strings.Split(string(pid), "\n")[0] == "" {
+                allPlugins[x]["running"] = "false"
+            }else{
+                allPlugins[x]["running"] = "true"
+            }
+        }
+        //check if process is running even though database status is enabled        
+        if allPlugins[x]["type"] == "network-socket" && allPlugins[x]["pid"] != "none"{
+            pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[x]["collector"]+":"+allPlugins[x]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+            if err != nil {logs.Error("ping/PingPluginsNode Checking STAP network-socket PID: "+err.Error())}
+            pids := strings.Split(string(pid), "\n")
+            exists := false
+            for q := range pids {
+                if pids[q] == allPlugins[x]["pid"] { exists = true}
+            }
+            if !exists{
                 allPlugins[x]["running"] = "false"
             }else{
                 allPlugins[x]["running"] = "true"
