@@ -94,10 +94,35 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
                 err = plugin.LaunchSuricataService(x, allPlugins[x]["interface"])
                 if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error launching suricata again: "+err.Error()); return nil, err}
             }
-            //check pidfile
+            //check if process is running even though database status is enabled
             pid, err := exec.Command("bash","-c","ps -ef | grep suricata | grep "+x+" | grep -v grep | awk '{print $2}'").Output()
             if err != nil {logs.Error("ping/PingPluginsNode Checking suricata PID: "+err.Error())}
             if strings.Split(string(pid), "\n")[0] == "" {
+                allPlugins[x]["running"] = "false"
+            }else{
+                allPlugins[x]["running"] = "true"
+            }
+        }
+        //check if process is running even though database status is enabled
+        if (allPlugins[x]["type"] == "socket-pcap" || allPlugins[x]["type"] == "socket-network") && allPlugins[x]["pid"] != "none"{
+            pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[x]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+            if err != nil {logs.Error("ping/PingPluginsNode Checking STAP PID: "+err.Error())}
+            if strings.Split(string(pid), "\n")[0] == "" {
+                allPlugins[x]["running"] = "false"
+            }else{
+                allPlugins[x]["running"] = "true"
+            }
+        }
+        //check if process is running even though database status is enabled
+        if allPlugins[x]["type"] == "network-socket" && allPlugins[x]["pid"] != "none"{
+            pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[x]["collector"]+":"+allPlugins[x]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+            if err != nil {logs.Error("ping/PingPluginsNode Checking STAP network-socket PID: "+err.Error())}
+            pids := strings.Split(string(pid), "\n")
+            exists := false
+            for q := range pids {
+                if pids[q] == allPlugins[x]["pid"] { exists = true}
+            }
+            if !exists{
                 allPlugins[x]["running"] = "false"
             }else{
                 allPlugins[x]["running"] = "true"
