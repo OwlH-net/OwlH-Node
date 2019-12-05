@@ -142,10 +142,6 @@ func ZeekStatus() (zeekstatus []ZeekNode, err error) {
         logs.Error(newError)
         // return nil, newError
     }
-    logs.Debug(string(output))
-    logs.Debug(string(output))
-    logs.Debug(string(output))
-    logs.Debug(string(output))
     nodes := []ZeekNode{}
     outputlines := strings.Split(string(output),"\n")
     for outputline := range outputlines {
@@ -197,7 +193,6 @@ func GetZeek()(zeek Zeek) {
             zeek.Running = append(zeek.Running, newStatus)
         }
     }
-    logs.Info(zeek)
     return zeek
 }
 

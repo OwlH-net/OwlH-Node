@@ -356,7 +356,6 @@ func CheckServicesStatus()(){
 }
 
 func LaunchSuricataService(uuid string, iface string)(err error){
-    logs.Notice(uuid+"     --     "+iface)
     mainConfData, err := ndb.GetMainconfData()
     if (mainConfData["suricata"]["status"] == "disabled"){ return nil }
 
