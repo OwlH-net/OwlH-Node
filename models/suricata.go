@@ -103,3 +103,24 @@ func GetSuricataServices() (data map[string]map[string]string, err error) {
     // changecontrol.ChangeControlInsertData(err, "GetSuricataServices")    
     return data,err
 }
+
+func StartSuricataMainConf(anode map[string]string) (err error) {
+    err = suricata.StartSuricataMainConf(anode)
+    changecontrol.ChangeControlInsertData(err, "StartSuricataMainConf")    
+    return err
+}
+func StopSuricataMainConf(anode map[string]string) (err error) {
+    err = suricata.StopSuricataMainConf(anode)
+    changecontrol.ChangeControlInsertData(err, "StopSuricataMainConf")    
+    return err
+}
+func KillSuricataMainConf(anode map[string]string) (err error) {
+    err = suricata.KillSuricataMainConf(anode)
+    changecontrol.ChangeControlInsertData(err, "KillSuricataMainConf")    
+    return err
+}
+func ReloadSuricataMainConf(anode map[string]string) (err error) {
+    err = suricata.ReloadSuricataMainConf(anode)
+    changecontrol.ChangeControlInsertData(err, "ReloadSuricataMainConf")    
+    return err
+}

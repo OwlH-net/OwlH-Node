@@ -469,10 +469,32 @@ func SyncClusterFile(anode map[string][]byte) (err error) {
     zeekPath["zeek"] = map[string]string{}
     zeekPath["zeek"]["nodeconfig"] = ""
     zeekPath,err = utils.GetConf(zeekPath)
-    if err != nil {logs.Error("SyncCluster Error readding GetConf: "+err.Error())}
+    if err != nil {logs.Error("SyncClusterFile Error readding GetConf: "+err.Error())}
     path := zeekPath["zeek"]["nodeconfig"]
 
     err = utils.WriteNewDataOnFile(path, anode["data"])
     if err != nil{logs.Error("zeek/SyncClusterFile Error writting cluster file content: "+err.Error()); return err}
+    return err
+}
+
+func LaunchZeekMainConf(anode map[string]string) (err error) {
+    zeekPath := map[string]map[string]string{}
+    zeekPath["zeek"] = map[string]string{}
+    zeekPath["zeek"]["command"] = ""
+    zeekPath["zeek"]["param"] = ""
+    zeekPath["zeek"]["zeekctl"] = ""
+    zeekPath["zeek"][anode["param"]] = ""
+    zeekPath,err = utils.GetConf(zeekPath)
+    if err != nil {logs.Error("LaunchZeekMainConf Error readding GetConf: "+err.Error())}
+    command := zeekPath["zeek"]["command"]
+    param := zeekPath["zeek"]["param"]
+    path := zeekPath["zeek"]["zeekctl"]
+    cmd := zeekPath["zeek"][anode["param"]]
+    if err != nil{logs.Error("zeek/LaunchZeekMainConf Error getting main.conf file content: "+err.Error()); return err}
+
+    logs.Debug(path+" "+cmd)
+    _,err = exec.Command(command, param, path, cmd).Output()
+    if err != nil {logs.Error("zeek/LaunchZeekMainCon Error starting Zeek from main conf: "+err.Error());return err}
+
     return err
 }

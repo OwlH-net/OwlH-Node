@@ -176,3 +176,99 @@ func (n *SuricataController) GetSuricataServices() {
     }
     n.ServeJSON()
 }
+
+// @Title StartSuricataMainConf
+// @Description Start Suricata Main Conf
+// @Success 200 {object} models.suricata
+// @Failure 403 body is empty
+// @router /StartSuricataMainConf [put]
+func (n *SuricataController) StartSuricataMainConf() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    logs.Info("ACTION -> PUT")
+    logs.Info("CONTROLLER -> SURICATA")
+    logs.Info("ROUTER -> @router /StartSuricataMainConf [put]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+
+    err := models.StartSuricataMainConf(anode)
+    if err != nil {
+        logs.Info("StartSuricataMainConf OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title StopSuricataMainConf
+// @Description Stop Suricata Main Conf
+// @Success 200 {object} models.suricata
+// @Failure 403 body is empty
+// @router /StopSuricataMainConf [put]
+func (n *SuricataController) StopSuricataMainConf() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    logs.Info("ACTION -> PUT")
+    logs.Info("CONTROLLER -> SURICATA")
+    logs.Info("ROUTER -> @router /StopSuricataMainConf [put]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+
+    err := models.StopSuricataMainConf(anode)
+    if err != nil {
+        logs.Info("StopSuricataMainConf OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title KillSuricataMainConf
+// @Description Kill Suricata Main Conf
+// @Success 200 {object} models.suricata
+// @Failure 403 body is empty
+// @router /KillSuricataMainConf [put]
+func (n *SuricataController) KillSuricataMainConf() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    logs.Info("ACTION -> PUT")
+    logs.Info("CONTROLLER -> SURICATA")
+    logs.Info("ROUTER -> @router /KillSuricataMainConf [put]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+
+    err := models.KillSuricataMainConf(anode)
+    if err != nil {
+        logs.Info("KillSuricataMainConf OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ReloadSuricataMainConf
+// @Description Reload Suricata Main Conf
+// @Success 200 {object} models.suricata
+// @Failure 403 body is empty
+// @router /ReloadSuricataMainConf [put]
+func (n *SuricataController) ReloadSuricataMainConf() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    logs.Info("ACTION -> PUT")
+    logs.Info("CONTROLLER -> SURICATA")
+    logs.Info("ROUTER -> @router /ReloadSuricataMainConf [put]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+
+    err := models.ReloadSuricataMainConf(anode) 
+    if err != nil {
+        logs.Info("ReloadSuricataMainConf OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

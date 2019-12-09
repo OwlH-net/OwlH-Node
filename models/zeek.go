@@ -9,7 +9,6 @@ import (
 func GetZeek() (status zeek.Zeek, err error) {
     logs.Info("Zeek Status!!")
     status = zeek.GetZeek()
-    logs.Warn(status)
     // changecontrol.ChangeControlInsertData(err, "GetZeek")    
     return status,err
 }
@@ -195,6 +194,21 @@ func SyncClusterFile(anode map[string][]byte) (err error) {
     delete(anode,"router")
 
     err = zeek.SyncClusterFile(anode)
+    // changecontrol.ChangeControlInsertData(err, "SyncClusterFile")    
+    return err
+}
+
+func LaunchZeekMainConf(anode map[string]string) (err error) {
+    logs.Info("============")
+    logs.Info("ZEEK - LaunchZeekMainConf")
+    // for key :=range cc {
+    //     logs.Info(key +" -> " + cc[key])
+    // }
+    delete(anode,"action")
+    delete(anode,"controller")
+    delete(anode,"router")
+
+    err = zeek.LaunchZeekMainConf(anode)
     // changecontrol.ChangeControlInsertData(err, "SyncClusterFile")    
     return err
 }

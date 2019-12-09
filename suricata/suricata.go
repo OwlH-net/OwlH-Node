@@ -271,3 +271,76 @@ func SaveConfigFile(files map[string]map[string][]byte)(err error){
     }
     return nil
 }
+
+func StartSuricataMainConf(anode map[string]string) (err error) {
+    StopSuricata := map[string]map[string]string{}
+    StopSuricata["suricata"] = map[string]string{}
+    StopSuricata["suricata"]["start"] = ""
+    StopSuricata["suricata"]["param"] = ""
+    StopSuricata["suricata"]["command"] = ""
+    StopSuricata,err = utils.GetConf(StopSuricata)    
+    cmd := StopSuricata["suricata"]["start"]
+    param := StopSuricata["suricata"]["param"]
+    command := StopSuricata["suricata"]["command"]
+    if err != nil {
+        logs.Error("StartSuricataMainConf Error getting data from main.conf")
+    }
+    
+    _,err = exec.Command(command, param, cmd).Output()
+    if err != nil {logs.Error("StartSuricataMainConf/Error starting suricata from main conf: "+err.Error());return err}
+    return nil
+}
+func StopSuricataMainConf(anode map[string]string) (err error) {
+    StopSuricata := map[string]map[string]string{}
+    StopSuricata["suricata"] = map[string]string{}
+    StopSuricata["suricata"]["stop"] = ""
+    StopSuricata["suricata"]["param"] = ""
+    StopSuricata["suricata"]["command"] = ""
+    StopSuricata,err = utils.GetConf(StopSuricata)    
+    cmd := StopSuricata["suricata"]["stop"]
+    param := StopSuricata["suricata"]["param"]
+    command := StopSuricata["suricata"]["command"]
+    if err != nil {
+        logs.Error("StopSuricataMainConf Error getting data from main.conf")
+    }
+    
+    _,err = exec.Command(command, param, cmd).Output()
+    if err != nil {logs.Error("StopSuricataMainConf/Error starting suricata from main conf: "+err.Error());return err}
+    return nil
+}
+func KillSuricataMainConf(anode map[string]string) (err error) {
+    StopSuricata := map[string]map[string]string{}
+    StopSuricata["suricata"] = map[string]string{}
+    StopSuricata["suricata"]["kill"] = ""
+    StopSuricata["suricata"]["param"] = ""
+    StopSuricata["suricata"]["command"] = ""
+    StopSuricata,err = utils.GetConf(StopSuricata)    
+    cmd := StopSuricata["suricata"]["kill"]
+    param := StopSuricata["suricata"]["param"]
+    command := StopSuricata["suricata"]["command"]
+    if err != nil {
+        logs.Error("KillSuricataMainConf Error getting data from main.conf")
+    }
+    
+    _,err = exec.Command(command, param, cmd+" "+anode["pid"]).Output()
+    if err != nil {logs.Error("KillSuricataMainConf/Error starting suricata from main conf: "+err.Error());return err}
+    return nil
+}
+func ReloadSuricataMainConf(anode map[string]string) (err error) {
+    StopSuricata := map[string]map[string]string{}
+    StopSuricata["suricata"] = map[string]string{}
+    StopSuricata["suricata"]["reload"] = ""
+    StopSuricata["suricata"]["param"] = ""
+    StopSuricata["suricata"]["command"] = ""
+    StopSuricata,err = utils.GetConf(StopSuricata)    
+    cmd := StopSuricata["suricata"]["reload"]
+    param := StopSuricata["suricata"]["param"]
+    command := StopSuricata["suricata"]["command"]
+    if err != nil {
+        logs.Error("ReloadSuricataMainConf Error getting data from main.conf")
+    }
+
+    _,err = exec.Command(command, param, cmd+" "+anode["pid"]).Output()
+    if err != nil {logs.Error("ReloadSuricataMainConf/Error starting suricata from main conf: "+err.Error());return err}
+    return nil
+}

@@ -258,3 +258,26 @@ func (m *ZeekController) SyncClusterFile() {
     }
     m.ServeJSON()
 }
+
+// @Title LaunchZeekMainConf
+// @Description Sync Zeek cluster file
+// @Success 200 {object} models.zeek
+// @router /LaunchZeekMainConf [put]
+func (m *ZeekController) LaunchZeekMainConf() {
+    anode := map[string]string{}
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+
+    logs.Info("ACTION -> POST")
+    logs.Info("CONTROLLER -> ZEEK")
+    logs.Info("ROUTER -> @router /LaunchZeekMainConf [put]")
+    for key := range anode {
+        logs.Info("key -> "+key)
+    }
+    
+    err := models.LaunchZeekMainConf(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    m.ServeJSON()
+}
