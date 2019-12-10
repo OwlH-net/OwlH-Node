@@ -418,7 +418,7 @@ func DeleteClusterValue(anode map[string]string) (err error) {
     return err
 }
 
-func SyncCluster(anode map[string]string, clusterType string) (err error) {
+func SyncCluster(anode map[string]string, clusterType string) (err error) {            
     zeekPath := map[string]map[string]string{}
     zeekPath["loadDataZeekPath"] = map[string]string{}
     zeekPath["loadDataZeekPath"]["nodeConfig"] = ""
