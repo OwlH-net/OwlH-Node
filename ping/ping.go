@@ -184,7 +184,7 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
         }
     }
 
-    com, err := exec.Command("bash","-c","ps -ef | grep suricata | "+avoidUUIDS+" grep -v grep | awk '{print $2}'").Output()
+    com, err := exec.Command("bash","-c","ps -ef | grep \"suricata \" | "+avoidUUIDS+" grep -v grep | awk '{print $2}'").Output()
     if err != nil {logs.Error("PingPluginsNode error getting suricata shell launched: "+err.Error())}
     pidValue := strings.Split(string(com), "\n")
     for pid := range pidValue{

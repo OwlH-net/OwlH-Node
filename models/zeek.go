@@ -208,7 +208,15 @@ func LaunchZeekMainConf(anode map[string]string) (err error) {
     delete(anode,"controller")
     delete(anode,"router")
 
-    err = zeek.LaunchZeekMainConf(anode)
+    if anode["param"] == "start"{
+        err = zeek.StartingZeek()
+    }else if anode["param"] == "stop"{
+        err = zeek.StopingZeek()
+    }else if anode["param"] == "deploy"{
+        err = zeek.DeployZeek()
+    }
+
+    // err = zeek.LaunchZeekMainConf(anode)
     // changecontrol.ChangeControlInsertData(err, "SyncClusterFile")    
     return err
 }
