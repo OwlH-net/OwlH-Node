@@ -504,6 +504,25 @@ func SyncClusterFile(anode map[string][]byte) (err error) {
     return err
 }
 
+func SaveZeekValues(anode map[string]string) (err error) {
+    plugins,err := ndb.GetPlugins()
+    for x := range plugins{
+        if plugins[x]["type"] == "zeek"{
+            if anode["param"] == "nodeConfig"{err = ndb.InsertPluginService(x, anode["param"], anode["nodeConfig"]); if err != nil{logs.Error("zeek/SaveZeekValues Error writting node content: "+err.Error()); return err}}            
+            if anode["param"] == "networksConfig"{err = ndb.InsertPluginService(x, anode["param"], anode["networksConfig"]); if err != nil{logs.Error("zeek/SaveZeekValues Error writting networks content: "+err.Error()); return err}}            
+            if anode["param"] == "policies"{
+                err = ndb.InsertPluginService(x, "policiesMaster", anode["policiesMaster"]); if err != nil{logs.Error("zeek/SaveZeekValues Error writting policies content: "+err.Error()); return err}
+                err = ndb.InsertPluginService(x, "policiesNode", anode["policiesNode"]); if err != nil{logs.Error("zeek/SaveZeekValues Error writting policies content: "+err.Error()); return err}
+            }            
+            if anode["param"] == "variables"{
+                err = ndb.InsertPluginService(x, "variables1", anode["variables1"]); if err != nil{logs.Error("zeek/SaveZeekValues Error writting variables content: "+err.Error()); return err}
+                err = ndb.InsertPluginService(x, "variables2", anode["variables2"]); if err != nil{logs.Error("zeek/SaveZeekValues Error writting variables content: "+err.Error()); return err}
+            }            
+        }
+    }
+    return err
+}
+
 // func LaunchZeekMainConf(anode map[string]string) (err error) {
 //     zeekPath := map[string]map[string]string{}
 //     zeekPath["zeek"] = map[string]string{}

@@ -281,7 +281,7 @@ func CheckField(field Field)(ok bool){
     return true
 }
 
-func FieldExists (dbpath, qry string)(ok bool){
+func FieldExists(dbpath, qry string)(ok bool){
     dblink, err := sql.Open("sqlite3", dbpath)
     if err != nil {
         logs.Error("Configuration -> Check Field -> db " + dbpath + " can't be opened -> err: "+err.Error())
@@ -302,7 +302,7 @@ func FieldExists (dbpath, qry string)(ok bool){
     return true
 }
 
-func FieldCreate (dbpath string, insert string, name string)(ok bool){
+func FieldCreate(dbpath string, insert string, name string)(ok bool){
     logs.Info("Configuration -> Creating field "+name+" in "+dbpath)
 
     dblink, err := sql.Open("sqlite3", dbpath)

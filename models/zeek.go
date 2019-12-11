@@ -220,3 +220,20 @@ func LaunchZeekMainConf(anode map[string]string) (err error) {
     // changecontrol.ChangeControlInsertData(err, "SyncClusterFile")    
     return err
 }
+
+func SaveZeekValues(anode map[string]string) (err error) {
+    cc := anode
+    logs.Info("============")
+    logs.Info("ZEEK - SaveZeekValues")
+    for key :=range cc {
+        logs.Info(key +" -> " + cc[key])
+    }
+    delete(anode,"action")
+    delete(anode,"controller")
+    delete(anode,"router")
+
+
+    err = zeek.SaveZeekValues(anode)
+    // changecontrol.ChangeControlInsertData(err, "SaveZeekValues")    
+    return err
+}

@@ -281,3 +281,21 @@ func (m *ZeekController) LaunchZeekMainConf() {
     }
     m.ServeJSON()
 }
+
+// @Title SaveZeekValues
+// @Description Edit Zeek expert values
+// @Success 200 {object} models.zeek
+// @router /saveZeekValues [put]
+func (m *ZeekController) SaveZeekValues() {
+    var anode map[string]string
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+    anode["action"] = "PUT"
+    anode["controller"] = "ZEEK"
+    anode["router"] = "@router /SaveZeekValues [put]"
+    err := models.SaveZeekValues(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    m.ServeJSON()
+}
