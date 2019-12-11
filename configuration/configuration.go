@@ -227,6 +227,61 @@ func checkFields()(ok bool){
         return false
     }
 
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where pluginr_param='nodeConfig'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('a620ed7c-b102-4f68-1c41-aeb488ccc59c','nodeConfig','')"
+    field.Fname      = "plugin - nodeConfig"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where pluginr_param='networksConfig'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('a620ed7c-b102-4f68-1c41-aeb488ccc59c','networksConfig','')"
+    field.Fname      = "plugin - networksConfig"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where pluginr_param='policiesMaster'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('a620ed7c-b102-4f68-1c41-aeb488ccc59c','policiesMaster','')"
+    field.Fname      = "plugin - policiesMaster"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where pluginr_param='policiesNode'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('a620ed7c-b102-4f68-1c41-aeb488ccc59c','policiesNode','')"
+    field.Fname      = "plugin - policiesNode"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where pluginr_param='variables1'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('a620ed7c-b102-4f68-1c41-aeb488ccc59c','variables1','')"
+    field.Fname      = "plugin - variables1"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where pluginr_param='variables2'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('a620ed7c-b102-4f68-1c41-aeb488ccc59c','variables2','')"
+    field.Fname      = "plugin - variables2"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
     return true
 }
 
