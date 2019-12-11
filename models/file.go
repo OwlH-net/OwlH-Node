@@ -7,7 +7,7 @@ import (
 )
 
 func SendFile(filename string) (data map[string]string, err error) {
-    logs.Info("SendFile into Node file")
+    logs.Info("SendFile into Node file: "+filename)
     data,err = file.SendFile(filename)
     //changecontrol.ChangeControlInsertData(err, "SendFile")    
     return data,err

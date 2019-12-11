@@ -12,19 +12,30 @@ import (
 //read file and send back to webpage
 func SendFile(file string)(data map[string]string, err error){
     sendBackArray := make(map[string]string)
-    
-    //create map and obtain file
     loadData := map[string]map[string]string{}
-    loadData["files"] = map[string]string{}
-    loadData["files"][file] = ""
-    loadData,err = utils.GetConf(loadData)
-    if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
-        
+    var key string
+    var fileName string
+    if file == "node.cfg" || file == "networks.cfg" {
+        if file == "node.cfg"{key = "nodeconfig"}else{key = "networkconfig"}
+        //create map and obtain file
+        loadData["zeek"] = map[string]string{}
+        loadData["zeek"][key] = ""
+        loadData,err = utils.GetConf(loadData)
+        fileName = loadData["zeek"][key]
+        if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
+    }else{
+        //create map and obtain file
+        loadData["files"] = map[string]string{}
+        loadData["files"][file] = ""
+        loadData,err = utils.GetConf(loadData)
+        fileName = loadData["files"][file]
+        if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
+    }
+                
     //save url from file selected and open file
-    fileConfPath := loadData["files"][file]
-    fileReaded, err := ioutil.ReadFile(fileConfPath) // just pass the file name
+    fileReaded, err := ioutil.ReadFile(fileName) // just pass the file name
     if err != nil {
-        logs.Error("Error reading file for path: "+fileConfPath)
+        logs.Error("Error reading file for path: "+fileName)
         return nil,err
     }
     
