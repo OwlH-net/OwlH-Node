@@ -547,20 +547,47 @@ func SyncClusterFile(anode map[string][]byte) (err error) {
 
 func SyncZeekValues(anode map[string]string) (err error) {
 
-    logs.Warn(anode)
-    logs.Warn(anode)
-    logs.Warn(anode)
-    logs.Warn(anode)
-    logs.Warn(anode)
+    for x := range anode{
+        if x == "nodeConfig"{
+            zeekPath := map[string]map[string]string{}
+            zeekPath["zeek"] = map[string]string{}
+            zeekPath["zeek"]["nodeconfig"] = ""
+            zeekPath,err = utils.GetConf(zeekPath)
+            if err != nil {logs.Error("zeek/SyncZeekValues Error readding GetConf: "+err.Error())}
+        
+            err = utils.BackupFullPath(zeekPath["zeek"]["nodeconfig"])
+            if err != nil{logs.Error("zeek/SyncZeekValues Error backing up node.cfg file before overwrite: "+err.Error()); return err}
+            err = utils.WriteNewDataOnFile(zeekPath["zeek"]["nodeconfig"], []byte(anode["nodeConfig"]))
+            if err != nil{logs.Error("zeek/SyncZeekValues Error writting new file content: "+err.Error()); return err}
 
-    // zeekPath := map[string]map[string]string{}
-    // zeekPath["zeek"] = map[string]string{}
-    // zeekPath["zeek"]["nodeconfig"] = ""
-    // zeekPath,err = utils.GetConf(zeekPath)
-    // if err != nil {logs.Error("SyncZeekValues Error readding GetConf: "+err.Error())}
-    // path := zeekPath["zeek"]["nodeconfig"]
+        }else if x == "networksConfig"{
+            zeekPath := map[string]map[string]string{}
+            zeekPath["zeek"] = map[string]string{}
+            zeekPath["zeek"]["networkconfig"] = ""
+            zeekPath,err = utils.GetConf(zeekPath)
+            if err != nil {logs.Error("zeek/SyncZeekValues Error readding GetConf: "+err.Error())}
+        
+            err = utils.BackupFullPath(zeekPath["zeek"]["networkconfig"])
+            if err != nil{logs.Error("zeek/SyncZeekValues Error backing up networks.cfg file before overwrite: "+err.Error()); return err}
+            err = utils.WriteNewDataOnFile(zeekPath["zeek"]["networkconfig"], []byte(anode["networksConfig"]))
+            if err != nil{logs.Error("zeek/SyncZeekValues Error writting new file content: "+err.Error()); return err}
 
-    // err = utils.WriteNewDataOnFile(path, anode["data"])
-    // if err != nil{logs.Error("zeek/SyncZeekValues Error writting cluster file content: "+err.Error()); return err}
+        }else{
+            if _, err := os.Stat(anode["dst"]); os.IsNotExist(err) {
+                logs.Error("zeek/SyncZeekValues Destiny file down't exists: "+err.Error()); return err
+            }
+            err = utils.BackupFullPath(anode["dst"])
+            if err != nil{logs.Error("zeek/SyncZeekValues Error backing up file before overwrite: "+err.Error()); return err}
+            if x == "policiesMaster"{
+                err = utils.WriteNewDataOnFile(anode["dst"], []byte(anode["policiesMaster"]))
+                if err != nil{logs.Error("zeek/SyncZeekValues Error writting new file content: "+err.Error()); return err}
+            }
+            if x == "variables1"{
+                err = utils.WriteNewDataOnFile(anode["dst"], []byte(anode["variables1"]))
+                if err != nil{logs.Error("zeek/SyncZeekValues Error writting new file content: "+err.Error()); return err}
+            }
+        }
+    }
+    
     return err
 }
