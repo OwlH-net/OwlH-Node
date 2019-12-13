@@ -10,21 +10,18 @@ CREATE TABLE stap (
     stap_param text NOT NULL,
     stap_value text NOT NULL
 );
-
 CREATE TABLE knownports (
     kp_id integer PRIMARY KEY AUTOINCREMENT,
     kp_uniqueid text NOT NULL,
     kp_param text NOT NULL,
     kp_value text NOT NULL
 );
-
 CREATE TABLE plugins (
     plugin_id integer PRIMARY KEY AUTOINCREMENT,
     plugin_uniqueid text NOT NULL,
     plugin_param text NOT NULL,
     plugin_value text NOT NULL
 );
-
 CREATE TABLE analyzer (
     analyzer_id integer PRIMARY KEY AUTOINCREMENT,
     analyzer_uniqueid text NOT NULL,
@@ -78,4 +75,10 @@ CREATE TABLE node (
     incidents_uniqueid text NOT NULL,
     incidents_param text NOT NULL,
     incidents_value text NOT NULL
+);
+CREATE TABLE groups (
+    group_id integer PRIMARY KEY AUTOINCREMENT,
+    group_uniqueid text NOT NULL,
+    group_param text NOT NULL,
+    group_value text NOT NULL
 );

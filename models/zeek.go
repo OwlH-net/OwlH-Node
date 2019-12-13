@@ -173,12 +173,12 @@ func SyncCluster(anode map[string]string) (err error) {
 func SavePolicyFiles(files map[string]map[string][]byte) (err error) {
     cc := files
     logs.Info("============")
-    logs.Info("Zeek - SaveConfigFile")
+    logs.Info("Zeek - SavePolicyFiles")
     for key :=range cc {
         logs.Info(key +" -> ")
     }
 
-    err = zeek.SaveConfigFile(files)
+    err = zeek.SavePolicyFiles(files)
     // changecontrol.ChangeControlInsertData(err, "SavePolicyFiles")    
     return err
 }

@@ -60,7 +60,7 @@ func MainCheck()(cancontinue bool){
 }
 
 func checkDatabases()(ok bool){
-    dbs := []string{"monitorConn","stapConn","pluginConn","nodeConn"}
+    dbs := []string{"monitorConn","stapConn","pluginConn","nodeConn","groupConn"}
     for db := range dbs {
         ok := CheckDB(dbs[db])
         if !ok {
@@ -178,6 +178,23 @@ func checkTables()(ok bool){
     if !ok {
         return false
     }
+
+    // table.Tname = "groups"
+    // table.Tconn = "groupConn"
+    // table.Tcreate = "CREATE TABLE groups (group_id integer PRIMARY KEY AUTOINCREMENT,group_uniqueid text NOT NULL,group_param text NOT NULL,group_value text NOT NULL);"
+    // ok = CheckTable(table)
+    // if !ok {
+    //     return false
+    // }
+
+    table.Tname = "suricata"
+    table.Tconn = "groupConn"
+    table.Tcreate = "CREATE TABLE suricata (suri_id integer PRIMARY KEY AUTOINCREMENT,suri_uniqueid text NOT NULL,suri_param text NOT NULL,suri_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     return true
 }
 
@@ -186,6 +203,61 @@ func checkFields()(ok bool){
 
     var field Field
 
+
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='BPFfile'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','BPFfile','')"
+    field.Fname      = "suricata - BPFfile"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='configFile'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','configFile','')"
+    field.Fname      = "suricata - configFile"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='interface'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','interface','')"
+    field.Fname      = "suricata - interface"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='name'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','name','')"
+    field.Fname      = "suricata - name"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='BPFrule'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','BPFrule','')"
+    field.Fname      = "suricata - BPFrule"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='commandLine'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','commandLine','')"
+    field.Fname      = "suricata - commandLine"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
 
     field.Fconn      = "pluginConn"
     field.Ftable     = "plugins"
@@ -287,7 +359,6 @@ func CheckDB(conn string)(ok bool) {
         return false
     }
     dbpath := loadDataSQL[conn]["path"]
-
     exists := DbExists(dbpath)
 
     if exists {

@@ -24,6 +24,11 @@ func init() {
                 &controllers.ZeekController{},
             ),
         ),
+        beego.NSNamespace("/group",
+            beego.NSInclude(
+                &controllers.GroupController{},
+            ),
+        ),
         beego.NSNamespace("/wazuh",
             beego.NSInclude(
                 &controllers.WazuhController{},

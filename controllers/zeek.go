@@ -211,7 +211,7 @@ func (m *ZeekController) SyncCluster() {
     m.ServeJSON()
 }
 
-// @Title SaveConfigFile
+// @Title SavePolicyFiles
 // @Description Save Configuration files from Master
 // @Success 200 {object} models.Node
 // @Failure 403 body is empty

@@ -102,6 +102,8 @@ func main() {
     ndb.NConn() //node database
     logs.Info ("Main Starting -> reading MONITOR DB")
     ndb.MConn() //monitor database
+    logs.Info ("Main Starting -> reading GROUP DB")
+    ndb.GConn() //monitor database
 
     //Launch StapInit for 1st time for check status and go concurrency if status==true
     //launch logger    
