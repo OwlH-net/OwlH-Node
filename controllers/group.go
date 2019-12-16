@@ -27,3 +27,20 @@ func (n *GroupController) SyncSuricataGroupValues() {
     }
     n.ServeJSON()
 }
+
+// @Title SuricataGroupService
+// @Description Suricata start/stop for group node
+// @Success 200 {object} models.suricata
+// @router /suricata [put]
+func (n *GroupController) SuricataGroupService() {
+	var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SuricataGroupService(anode)
+
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Error("SuricataGroupService controller -> GET -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

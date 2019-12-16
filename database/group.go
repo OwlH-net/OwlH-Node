@@ -60,3 +60,24 @@ func UpdateSuricataGroupValue(uuid string, param string, value string)(err error
     
     return nil
 }
+
+func GetAllGroupData()(data map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select suri_uniqueid, suri_param, suri_value from suricata;";
+    
+    rows, err := Groupdb.Query(sql)
+    if err != nil { logs.Error("GetAllGroupData Groupdb.Query Error : %s", err.Error()); return nil, err}
+
+    defer rows.Close()
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetAllGroupData -- Query return error: %s", err.Error()); return nil, err}
+
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
