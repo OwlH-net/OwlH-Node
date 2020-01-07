@@ -145,7 +145,7 @@ func GetPluginsByParam(uniqueid string, param string)(value string, err error){
     return value,nil
 }
 
-func GetMainconfParam(uniqid, param string) (value string, err error) {
+func GetMainconfParam(uniqid string, param string) (value string, err error) {
     sql := "select main_value from mainconf where main_uniqueid='"+uniqid+ "' and main_param='"+param+"'" 
     rows, err := Pdb.Query(sql)
     if err != nil {

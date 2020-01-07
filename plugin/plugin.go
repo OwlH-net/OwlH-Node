@@ -143,6 +143,12 @@ func DeleteService(anode map[string]string)(err error) {
 
 func AddPluginService(anode map[string]string) (err error) {
     uuid := utils.Generate()    
+    if anode["type"] == "socket-network" || anode["type"] == "socket-pcap" || anode["type"] == "network-socket" {
+        if _, err := os.Stat(anode["cert"]); os.IsNotExist(err) {
+            return errors.New("STAP certificate does not exists")
+        }
+    }
+
     if anode["type"] == "socket-network"{
         err = ndb.InsertPluginService(uuid, "node", anode["uuid"]); if err != nil {logs.Error("InsertPluginService node Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "name", anode["name"]); if err != nil {logs.Error("InsertPluginService name Error: "+err.Error()); return err}

@@ -69,7 +69,6 @@ func SaveNewLocal(anode map[string]string)(err error) {
         return errors.New("Name in use. Use other name.")
     }else{
         uuid := utils.Generate()
-        logs.Warn(uuid)
         err = ndb.InsertDataflowValues(uuid, "name", anode["name"])
         if (err != nil){ logs.Error("SaveSocketToNetwork error inserting name dataflow values: "+err.Error()); return err}
         err = ndb.InsertDataflowValues(uuid, "mtu", anode["mtu"])

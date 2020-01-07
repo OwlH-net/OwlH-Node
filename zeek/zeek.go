@@ -9,6 +9,8 @@ import (
     "owlhnode/utils"
     "owlhnode/database"
     "errors"
+    "regexp"
+    "bufio"
 )
 
 type Zeek struct {
@@ -197,7 +199,6 @@ func GetZeek()(zeek Zeek) {
 }
 
 func SetZeek(zeekdata Zeek)(newzeekdata Zeek, err error) {
-    logs.Warn(zeekdata)
     for node := range zeekdata.Nodes {
         logs.Warn("=============")
         logs.Warn("name - "+zeekdata.Nodes[node].Name)
@@ -218,11 +219,33 @@ func SetZeek(zeekdata Zeek)(newzeekdata Zeek, err error) {
 }
 
 func ZeekMode()(mode string) {
-    currentmode, err := ndb.GetMainconfParam("zeek","mode")
-    if err != nil {
-        logs.Error("Error Zeek Mode Get current Mode: "+err.Error())
-        return "Error: Zeek Mode Get current Mode: "+err.Error()
+    //get current mode from node.cfg
+    ZeekCurrentMode := map[string]map[string]string{}
+    ZeekCurrentMode["zeek"] = map[string]string{}
+    ZeekCurrentMode["zeek"]["nodeconfig"] = ""
+    ZeekCurrentMode,err := utils.GetConf(ZeekCurrentMode)
+    if err != nil {logs.Error(err); return}
+
+    file, err := os.Open(ZeekCurrentMode["zeek"]["nodeconfig"])
+    if err != nil {logs.Error(err); return}
+    defer file.Close()
+
+    scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        var init = regexp.MustCompile(`type=`)
+        owlhInit := init.FindStringSubmatch(scanner.Text())
+        if owlhInit != nil {
+            val := strings.Trim(scanner.Text(), "type=")
+            //save current mode into DB
+            err = ndb.UpdateMainconfValue("zeek","mode",val) //uuid, param, value
+            if err != nil {logs.Error("Error Zeek Mode Get current Mode: "+err.Error()); return "Error: Zeek Mode PUT current Mode at DB: "+err.Error()}
+        }
     }
+
+    //get current mode into DB
+    currentmode, err := ndb.GetMainconfParam("zeek","mode")
+    if err != nil {logs.Error("Error Zeek Mode Get current Mode: "+err.Error()); return "Error: Zeek Mode Get current Mode at DB: "+err.Error()}
+
     logs.Info("ZEEK -> current Mode: " + currentmode)
     return currentmode
 }
@@ -291,15 +314,15 @@ func StartZeek(action string)(data string, err error){
     return string(output), nil
 }
 func StartingZeek()(err error){
-    StopZeek := map[string]map[string]string{}
-    StopZeek["zeek"] = map[string]string{}
-    StopZeek["zeek"]["start"] = ""
-    StopZeek["zeek"]["zeekctl"] = ""
-    StopZeek,err = utils.GetConf(StopZeek)    
+    StartZeek := map[string]map[string]string{}
+    StartZeek["zeek"] = map[string]string{}
+    StartZeek["zeek"]["start"] = ""
+    StartZeek["zeek"]["zeekctl"] = ""
+    StartZeek,err = utils.GetConf(StartZeek)    
     if err != nil {
-        logs.Error("StopZeek Error getting data from main.conf: "+err.Error())
+        logs.Error("StartZeek Error getting data from main.conf: "+err.Error())
     }
-    err = utils.RunCommand(StopZeek["zeek"]["zeekctl"],StopZeek["zeek"]["start"])
+    err = utils.RunCommand(StartZeek["zeek"]["zeekctl"],StartZeek["zeek"]["start"])
     if err != nil {logs.Error("Error deploying zeek: "+err.Error()); return err}
 
     return nil

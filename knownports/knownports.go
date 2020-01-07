@@ -211,7 +211,7 @@ func NewPorts()(){
                     }
                 }
             }else{
-                logs.Warn("not LEARNING MODE")
+                logs.Warn("NOT LEARNING MODE")
                 notPortprotProd := false
                 for x := range portsData { 
                     if portsData[x]["portprot"] == protoport{
