@@ -311,7 +311,7 @@ func LoadFileLastLines(file map[string]string)(data map[string]string, err error
         linesResult["result"] = string(lines)
     }else{
         fileReaded, err := ioutil.ReadFile(file["path"]) // just pass the file name
-        if err != nil {logs.Error("Error reading file for path: "+file["path"]); return nil,err}
+        if err != nil {logs.Error("Error reading Wazuh file for path: "+file["path"]); return nil,err}
 
         linesResult["result"] = string(fileReaded)
     }
