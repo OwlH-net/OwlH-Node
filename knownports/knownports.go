@@ -5,7 +5,6 @@ import (
     "owlhnode/database"
     "owlhnode/utils"
     // "owlhnode/analyzer"
-    "errors"
     "regexp"
     "strconv"
     "encoding/json"
@@ -174,8 +173,7 @@ func NewPorts()(){
                         timeNow := time.Now() 
                         value := strconv.FormatInt(timeNow.Unix(), 10)
                         notPortprotLearn = true
-                        protoportUpdate, err := ndb.Pdb.Prepare("update knownports set kp_value = ? where kp_param = ? and kp_uniqueid = ?")
-                        _, err = protoportUpdate.Exec(&value, "last", &x)
+                        err = ndb.UpdateKnownports(value, "last", x)
                         if err != nil {
                             logs.Error("LEARNING MODE --> knownports[last] update error-> %s", err.Error())
                             Status = "Disabled"
@@ -218,8 +216,7 @@ func NewPorts()(){
                         notPortprotProd = true
                         t := time.Now()
                         value := strconv.FormatInt(t.Unix(), 10)
-                        protoportUpdate, err := ndb.Pdb.Prepare("update knownports set kp_value = ? where kp_param = ? and kp_uniqueid = ?")
-                        _, err = protoportUpdate.Exec(&value, "last", &x)
+                        err = ndb.UpdateKnownports(value, "last", x)
                         if err != nil {
                             logs.Error("PRODUCTION MODE --> knownports[last] update error-> %s", err.Error())
                             Status = "Disabled"
@@ -303,61 +300,19 @@ func NewPorts()(){
 }
 
 func LoadPortsData()(data map[string]map[string]string, err error){
-    var uniqueid string
-    var param string
-    var value string
-    var allKnownPorts = map[string]map[string]string{}
-
-    //database connection
-    if ndb.Pdb == nil {
-        logs.Error("LoadPorts knownports -- Can't access to database")
-        return nil,errors.New("LoadPorts knownports -- Can't access to database")
-    } 
-    //query and make map[]map[]
-    sql := "select kp_uniqueid, kp_param, kp_value from knownports;"
-    rows, err := ndb.Pdb.Query(sql)
-    defer rows.Close()
-    if err != nil {
-        logs.Error("LoadPorts knownports Error executing query: %s", err.Error())
-        return nil, err
-    }
-    for rows.Next() {
-        if err = rows.Scan(&uniqueid, &param, &value); err != nil {
-            logs.Error("LoadPorts knownports -- Can't read query result: %s", err.Error())
-            return nil, err
-        }
-        if allKnownPorts[uniqueid] == nil { allKnownPorts[uniqueid] = map[string]string{}}
-        allKnownPorts[uniqueid][param]=value
-    } 
-    return allKnownPorts, nil
+    values,err := ndb.LoadPortsData()
+    if err != nil {logs.Error("knownports LoadPortsData -- Can't read query result: %s", err.Error()); return nil,err}
+    return values, nil
 }
 
 func CheckParamKnownports(param string)(data string, err error){
-    var res string
-    res = "Disabled"
-    sql := "select plugin_value from plugins where plugin_uniqueid = 'knownports' and plugin_param='"+param+"'"
-    rows, err := ndb.Pdb.Query(sql)
-    defer rows.Close()
-    if err != nil {
-        logs.Error("knownports CheckParamKnownports Error executing query: %s", err.Error())
-        return "",err
-    }
-    if rows.Next() {
-        if err = rows.Scan(&res); err != nil {
-            logs.Error("knownports CheckParamKnownports -- Can't read query result: %s", err.Error())
-            return "",err
-        }
-    } 
-    return res, nil
+    values, err := ndb.CheckParamKnownports(param)
+    if err != nil  {logs.Error("knownports CheckParamKnownports -- Can't read query result: %s", err.Error()); return "",err} 
+    return values, nil
 }
 
 func InsertknownportsElements(uuid string, param string, value string)(err error){
-    insertKP, err := ndb.Pdb.Prepare("insert into knownports (kp_uniqueid, kp_param, kp_value) values (?,?,?);")
-    _, err = insertKP.Exec(&uuid, &param, &value)  
-    defer insertKP.Close()
-    if err != nil{
-        logs.Error("Error InsertknownportsElements: "+err.Error())
-        return err
-    }
+    err = ndb.InsertKnownports(uuid, param, value)
+    if err != nil{logs.Error("Error InsertknownportsElements: "+err.Error()); return err}
     return nil
 }
