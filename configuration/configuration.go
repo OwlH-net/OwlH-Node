@@ -163,6 +163,14 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "users"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE users (user_id integer PRIMARY KEY AUTOINCREMENT,user_uniqueid text NOT NULL,user_param text NOT NULL,user_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "servers"
     table.Tconn = "stapConn"
     table.Tcreate = "CREATE TABLE servers (server_id integer PRIMARY KEY AUTOINCREMENT,server_uniqueid text NOT NULL,server_param text NOT NULL,server_value text NOT NULL);"

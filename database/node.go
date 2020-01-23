@@ -273,3 +273,23 @@ func PutIncidentNode(uuid string, param string, value string)(err error){
     
     return nil
 }
+
+func GetLoginData()(groups map[string]map[string]string, err error){
+    if Nodedb == nil { logs.Error("no access to database"); return nil, err}
+    var allusers = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    
+    sql := "select user_uniqueid, user_param, user_value from users;"
+    rows, err := Nodedb.Query(sql)
+    if err != nil { logs.Error("GetLoginData Nodedb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetLoginData rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allusers[uniqid] == nil { allusers[uniqid] = map[string]string{}}
+        allusers[uniqid][param]=value
+    } 
+    return allusers, nil
+}

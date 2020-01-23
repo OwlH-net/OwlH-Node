@@ -4,6 +4,7 @@ import (
     "owlhnode/models"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
+    "owlhnode/validation"
 )
 
 type CollectorController struct {
@@ -16,11 +17,17 @@ type CollectorController struct {
 // @Failure 403 body is empty
 // @router /play [get]
 func (n *CollectorController) PlayCollector() {
-    err := models.PlayCollector()
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{    
+        err := models.PlayCollector()
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -31,11 +38,17 @@ func (n *CollectorController) PlayCollector() {
 // @Failure 403 body is empty
 // @router /stop [get]
 func (n *CollectorController) StopCollector() {
-    err := models.StopCollector()
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{    
+        err := models.StopCollector()
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -46,12 +59,18 @@ func (n *CollectorController) StopCollector() {
 // @Failure 403 body is empty
 // @router /show [get]
 func (n *CollectorController) ShowCollector() {
-    data, err := models.ShowCollector()
-    n.Data["json"] = data
-
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{    
+        data, err := models.ShowCollector()
+        n.Data["json"] = data
+    
+        if err != nil {
+            logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }

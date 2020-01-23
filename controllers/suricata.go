@@ -2,6 +2,7 @@ package controllers
 
 import (
     "owlhnode/models"
+    "owlhnode/validation"
     "encoding/json"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
@@ -45,20 +46,26 @@ func (n *SuricataController) Get() {
 // @Success 200 {object} models.suricata
 // @router /bpf [put]
 func (n *SuricataController) SetBPF() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
-    anode["action"] = "PUT"
-    anode["controller"] = "SURICATA"
-    anode["router"] = "@router /bpf [put]"
-
-    
-    err := models.SetBPF(anode)
-
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("BPF JSON RECEIVED -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        
+        anode["action"] = "PUT"
+        anode["controller"] = "SURICATA"
+        anode["router"] = "@router /bpf [put]"
+    
+        
+        err := models.SetBPF(anode)
+    
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Info("BPF JSON RECEIVED -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -69,22 +76,28 @@ func (n *SuricataController) SetBPF() {
 // @Failure 403 body is empty
 // @router /sync [put]
 func (n *SuricataController) SyncRulesetFromMaster() {
-    var anode map[string][]byte
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-
-    logs.Info("ACTION -> PUT")
-    logs.Info("CONTROLLER -> SURICATA")
-    logs.Info("ROUTER -> @router /sync [put]")
-    for key := range anode {
-        logs.Info("key -> "+key)
-    }
-
-    err := models.SyncRulesetFromMaster(anode)
-    
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("Ruleset retrieve OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string][]byte
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        logs.Info("ACTION -> PUT")
+        logs.Info("CONTROLLER -> SURICATA")
+        logs.Info("ROUTER -> @router /sync [put]")
+        for key := range anode {
+            logs.Info("key -> "+key)
+        }
+    
+        err := models.SyncRulesetFromMaster(anode)
+        
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Info("Ruleset retrieve OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -95,21 +108,27 @@ func (n *SuricataController) SyncRulesetFromMaster() {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *SuricataController) SaveConfigFile() {
-    var anode map[string]map[string][]byte
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-
-    logs.Info("ACTION -> POST")
-    logs.Info("CONTROLLER -> SURICATA")
-    logs.Info("ROUTER -> @router / [post]")
-    for key := range anode {
-        logs.Info("key -> "+key)
-    }
-
-    err := models.SaveConfigFile(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("Save configuration files -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]map[string][]byte
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        logs.Info("ACTION -> POST")
+        logs.Info("CONTROLLER -> SURICATA")
+        logs.Info("ROUTER -> @router / [post]")
+        for key := range anode {
+            logs.Info("key -> "+key)
+        }
+    
+        err := models.SaveConfigFile(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Info("Save configuration files -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -120,20 +139,26 @@ func (n *SuricataController) SaveConfigFile() {
 // @Failure 403 body is empty
 // @router /RunSuricata [put]
 func (n *SuricataController) RunSuricata() {
-    var anode map[string]string
-    anode["action"] = "PUT"
-    anode["controller"] = "SURICATA"
-    anode["router"] = "@router /RunSuricata [put]"
-    logs.Info("============")
-    logs.Info("SURICATA - RunSuricata")
-    for key :=range anode {
-        logs.Info(key +" -> "+anode[key])
-    }
-    data,err := models.RunSuricata()
-    n.Data["json"] = data
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("RunSuricata OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]string
+        anode["action"] = "PUT"
+        anode["controller"] = "SURICATA"
+        anode["router"] = "@router /RunSuricata [put]"
+        logs.Info("============")
+        logs.Info("SURICATA - RunSuricata")
+        for key :=range anode {
+            logs.Info(key +" -> "+anode[key])
+        }
+        data,err := models.RunSuricata()
+        n.Data["json"] = data
+        if err != nil {
+            logs.Info("RunSuricata OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -144,20 +169,26 @@ func (n *SuricataController) RunSuricata() {
 // @Failure 403 body is empty
 // @router /StopSuricata [put]
 func (n *SuricataController) StopSuricata() {
-    var anode map[string]string
-    anode["action"] = "PUT"
-    anode["controller"] = "SURICATA"
-    anode["router"] = "@router /StopSuricata [put]"
-    logs.Info("============")
-    logs.Info("SURICATA - StopSuricata")
-    for key :=range anode {
-        logs.Info(key +" -> "+anode[key])
-    }
-    data,err := models.StopSuricata()
-    n.Data["json"] = data
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("StopSuricata OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]string
+        anode["action"] = "PUT"
+        anode["controller"] = "SURICATA"
+        anode["router"] = "@router /StopSuricata [put]"
+        logs.Info("============")
+        logs.Info("SURICATA - StopSuricata")
+        for key :=range anode {
+            logs.Info(key +" -> "+anode[key])
+        }
+        data,err := models.StopSuricata()
+        n.Data["json"] = data
+        if err != nil {
+            logs.Info("StopSuricata OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -166,14 +197,20 @@ func (n *SuricataController) StopSuricata() {
 // @Description get all Suricata services
 // @Success 200 {object} models.suricata
 // @router /get [get]
-func (n *SuricataController) GetSuricataServices() {    
-    servicesSuricata,err := models.GetSuricataServices()
-    n.Data["json"] = servicesSuricata
-
+func (n *SuricataController) GetSuricataServices() {   
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("GetSuricataServices ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        servicesSuricata,err := models.GetSuricataServices()
+        n.Data["json"] = servicesSuricata
+    
+        if err != nil {
+            logs.Info("GetSuricataServices ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     n.ServeJSON()
 }
 
@@ -183,20 +220,26 @@ func (n *SuricataController) GetSuricataServices() {
 // @Failure 403 body is empty
 // @router /StartSuricataMainConf [put]
 func (n *SuricataController) StartSuricataMainConf() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-
-    logs.Info("ACTION -> PUT")
-    logs.Info("CONTROLLER -> SURICATA")
-    logs.Info("ROUTER -> @router /StartSuricataMainConf [put]")
-    for key := range anode {
-        logs.Info("key -> "+key)
-    }
-
-    err := models.StartSuricataMainConf(anode)
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("StartSuricataMainConf OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        logs.Info("ACTION -> PUT")
+        logs.Info("CONTROLLER -> SURICATA")
+        logs.Info("ROUTER -> @router /StartSuricataMainConf [put]")
+        for key := range anode {
+            logs.Info("key -> "+key)
+        }
+    
+        err := models.StartSuricataMainConf(anode)
+        if err != nil {
+            logs.Info("StartSuricataMainConf OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -207,20 +250,26 @@ func (n *SuricataController) StartSuricataMainConf() {
 // @Failure 403 body is empty
 // @router /StopSuricataMainConf [put]
 func (n *SuricataController) StopSuricataMainConf() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-
-    logs.Info("ACTION -> PUT")
-    logs.Info("CONTROLLER -> SURICATA")
-    logs.Info("ROUTER -> @router /StopSuricataMainConf [put]")
-    for key := range anode {
-        logs.Info("key -> "+key)
-    }
-
-    err := models.StopSuricataMainConf(anode)
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("StopSuricataMainConf OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        logs.Info("ACTION -> PUT")
+        logs.Info("CONTROLLER -> SURICATA")
+        logs.Info("ROUTER -> @router /StopSuricataMainConf [put]")
+        for key := range anode {
+            logs.Info("key -> "+key)
+        }
+    
+        err := models.StopSuricataMainConf(anode)
+        if err != nil {
+            logs.Info("StopSuricataMainConf OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -231,20 +280,26 @@ func (n *SuricataController) StopSuricataMainConf() {
 // @Failure 403 body is empty
 // @router /KillSuricataMainConf [put]
 func (n *SuricataController) KillSuricataMainConf() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-
-    logs.Info("ACTION -> PUT")
-    logs.Info("CONTROLLER -> SURICATA")
-    logs.Info("ROUTER -> @router /KillSuricataMainConf [put]")
-    for key := range anode {
-        logs.Info("key -> "+key)
-    }
-
-    err := models.KillSuricataMainConf(anode)
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("KillSuricataMainConf OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        logs.Info("ACTION -> PUT")
+        logs.Info("CONTROLLER -> SURICATA")
+        logs.Info("ROUTER -> @router /KillSuricataMainConf [put]")
+        for key := range anode {
+            logs.Info("key -> "+key)
+        }
+    
+        err := models.KillSuricataMainConf(anode)
+        if err != nil {
+            logs.Info("KillSuricataMainConf OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -255,20 +310,26 @@ func (n *SuricataController) KillSuricataMainConf() {
 // @Failure 403 body is empty
 // @router /ReloadSuricataMainConf [put]
 func (n *SuricataController) ReloadSuricataMainConf() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-
-    logs.Info("ACTION -> PUT")
-    logs.Info("CONTROLLER -> SURICATA")
-    logs.Info("ROUTER -> @router /ReloadSuricataMainConf [put]")
-    for key := range anode {
-        logs.Info("key -> "+key)
-    }
-
-    err := models.ReloadSuricataMainConf(anode) 
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("ReloadSuricataMainConf OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        logs.Info("ACTION -> PUT")
+        logs.Info("CONTROLLER -> SURICATA")
+        logs.Info("ROUTER -> @router /ReloadSuricataMainConf [put]")
+        for key := range anode {
+            logs.Info("key -> "+key)
+        }
+    
+        err := models.ReloadSuricataMainConf(anode) 
+        if err != nil {
+            logs.Info("ReloadSuricataMainConf OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }

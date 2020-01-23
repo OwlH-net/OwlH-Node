@@ -2,7 +2,9 @@ package controllers
 
 import (
     "github.com/astaxie/beego"
+    "github.com/astaxie/beego/logs"
     "owlhnode/models"
+    "owlhnode/validation"
     "encoding/json"
 )
 
@@ -13,27 +15,39 @@ type NetController struct {
 // @Title GetNetworkData
 // @Description get network data
 // @router / [get]
-func (m *NetController) GetNetworkData() {
-    values,err := models.GetNetworkData()
-    
-    m.Data["json"] = values
+func (n *NetController) GetNetworkData() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        values,err := models.GetNetworkData()
+        
+        n.Data["json"] = values
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title LoadNetworkValuesSelected
 // @Description get network values selected by user
 // @router /values [get]
-func (m *NetController) LoadNetworkValuesSelected() {
-    values,err := models.LoadNetworkValuesSelected()
-    
-    m.Data["json"] = values
+func (n *NetController) LoadNetworkValuesSelected() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        values,err := models.LoadNetworkValuesSelected()
+        
+        n.Data["json"] = values
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title UpdateNetworkInterface
@@ -42,15 +56,21 @@ func (m *NetController) LoadNetworkValuesSelected() {
 // @Failure 403 body is empty
 // @router / [put]
 func (n *NetController) UpdateNetworkInterface() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    anode["action"] = "PUT"
-    anode["controller"] = "NET"
-    anode["router"] = "@router / [put]"
-    err := models.UpdateNetworkInterface(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "NET"
+        anode["router"] = "@router / [put]"
+        err := models.UpdateNetworkInterface(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -58,12 +78,12 @@ func (n *NetController) UpdateNetworkInterface() {
 // // @Title LoadNetworkValuesSuricata
 // // @Description get network data
 // // @router /loadNetworkValuesSuricata [get]
-// func (m *NetController) LoadNetworkValuesSuricata() {
+// func (n *NetController) LoadNetworkValuesSuricata() {
 //     values,err := models.LoadNetworkValuesSuricata()
     
-//     m.Data["json"] = values
+//     n.Data["json"] = values
 //     if err != nil {
-//         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 //     }
-//     m.ServeJSON()
+//     n.ServeJSON()
 // }

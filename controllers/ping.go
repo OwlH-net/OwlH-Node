@@ -4,7 +4,7 @@ import (
     "github.com/astaxie/beego"
     "owlhnode/models"
     "encoding/json"
-//    "owlhnode/changeControl"
+    "owlhnode/validation"
     "github.com/astaxie/beego/logs"
 )
 
@@ -16,7 +16,13 @@ type PingController struct {
 // @Description get ping for node
 // @router / [get]
 func (n *PingController) PingNode() {
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if err != nil {
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{    
+        n.Data["json"] = map[string]string{"ack": "true"}
+    }
     n.ServeJSON()
 }
 
@@ -24,18 +30,24 @@ func (n *PingController) PingNode() {
 // @Description update node data
 // @router /updateNode [put]
 func (n *PingController) UpdateNodeData() {
-    var anode map[string]map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    logs.Info("ACTION -> PUT")
-    logs.Info("CONTROLLER -> PING")
-    logs.Info("ROUTER -> @router /updateNode [put]")
-    for key := range anode {
-        logs.Info("key -> "+key)
-    }
-    err := models.UpdateNodeData(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        logs.Info("ACTION -> PUT")
+        logs.Info("CONTROLLER -> PING")
+        logs.Info("ROUTER -> @router /updateNode [put]")
+        for key := range anode {
+            logs.Info("key -> "+key)
+        }
+        err := models.UpdateNodeData(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -44,10 +56,16 @@ func (n *PingController) UpdateNodeData() {
 // @Description get ping for node
 // @router /services [get]
 func (n *PingController) PingService() {
-    err := models.PingService()
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        err := models.PingService()
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -56,15 +74,21 @@ func (n *PingController) PingService() {
 // @Description get ping for node
 // @router /deployservice [put]
 func (n *PingController) DeployService() {
-    var anode map[string]map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    logs.Info("ACTION -> PUT")
-    logs.Info("CONTROLLER -> PING")
-    logs.Info("ROUTER -> @router /deployservice [put]")
-    err := models.DeployService(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        logs.Info("ACTION -> PUT")
+        logs.Info("CONTROLLER -> PING")
+        logs.Info("ROUTER -> @router /deployservice [put]")
+        err := models.DeployService(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -73,10 +97,16 @@ func (n *PingController) DeployService() {
 // @Description get ping for node
 // @router /mainconf [get]
 func (n *PingController) GetMainconfData() {
-    data,err := models.GetMainconfData()
-    n.Data["json"] = data
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        data,err := models.GetMainconfData()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -85,11 +115,17 @@ func (n *PingController) GetMainconfData() {
 // @Description PingPluginsNode status
 // @Success 200 {object} models.ports
 // @router /PingPluginsNode [get]
-func (m *PingController) PingPluginsNode() {
-    data, err := models.PingPluginsNode()
-    m.Data["json"] = data
+func (n *PingController) PingPluginsNode() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        data, err := models.PingPluginsNode()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
