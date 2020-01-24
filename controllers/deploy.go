@@ -18,7 +18,7 @@ type DeployController struct {
 // @Failure 403 body is empty
 // @router / [put]
 func (n *DeployController) DeployNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -43,7 +43,7 @@ func (n *DeployController) DeployNode() {
 // @Failure 403 body is empty
 // @router / [get]
 func (n *DeployController) CheckDeployFiles() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}

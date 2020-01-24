@@ -4,7 +4,6 @@ import (
     "owlhnode/analyzer"
     "owlhnode/changeControl"
     "github.com/astaxie/beego/logs"
-
 )
 
 func PingAnalyzer()(data map[string]string, err error) {

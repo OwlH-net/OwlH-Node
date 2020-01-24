@@ -18,9 +18,9 @@ type AnalyzerController struct {
 // @Success 200 {object} models.analyzer
 // @router /pingAnalyzer [get]
 func (n *AnalyzerController) PingAnalyzer() {  
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("PingAnalyzer Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{    
         data, err := models.PingAnalyzer()
@@ -38,32 +38,26 @@ func (n *AnalyzerController) PingAnalyzer() {
 // @Success 200 {object} models.analyzer
 // @router /changeAnalyzerStatus [put]
 func (n *AnalyzerController) ChangeAnalyzerStatus() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{    
-        err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "ANALYZER"
+        anode["router"] = "@router /changeAnalyzerStatus [put]"
+        err := models.ChangeAnalyzerStatus(anode)
+    
+        n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
-            logs.Error("Error validating token from master")
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-        }else{    
-            var anode map[string]string
-            json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-            anode["action"] = "PUT"
-            anode["controller"] = "ANALYZER"
-            anode["router"] = "@router /changeAnalyzerStatus [put]"
-            err := models.ChangeAnalyzerStatus(anode)
-        
-            n.Data["json"] = map[string]string{"ack": "true"}
-            if err != nil {
-                logs.Error("ChangeAnalyzerStatus OUT -- ERROR : %s", err.Error())
-                n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-            }else{
-                analyzer.Init()
-            }
-        }   
-    }
+            logs.Error("ChangeAnalyzerStatus OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else{
+            analyzer.Init()
+        }
+    }   
     
     n.ServeJSON()
 }
@@ -74,9 +68,9 @@ func (n *AnalyzerController) ChangeAnalyzerStatus() {
 // @router /sync [put]
 func (n *AnalyzerController) SyncAnalyzer() { 
     
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("SyncAnalyzer Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{    
         var anode map[string][]byte

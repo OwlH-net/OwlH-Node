@@ -18,7 +18,7 @@ type ZeekController struct {
 // @Success 200 {object} models.zeek
 // @router / [get]
 func (n *ZeekController) Get() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -40,7 +40,7 @@ func (n *ZeekController) Get() {
 // @Success 200 {object} models.zeek
 // @router / [put]
 func (n *ZeekController) Set() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -71,7 +71,7 @@ func (n *ZeekController) Set() {
 // @Failure 403 body is empty
 // @router /RunZeek [put]
 func (n *ZeekController) RunZeek() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -103,7 +103,7 @@ func (n *ZeekController) RunZeek() {
 // @Failure 403 body is empty
 // @router /StopZeek [put]
 func (n *ZeekController) StopZeek() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -134,7 +134,7 @@ func (n *ZeekController) StopZeek() {
 // @Success 200 {object} models.zeek
 // @router /changeZeekMode [put]
 func (n *ZeekController) ChangeZeekMode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -159,7 +159,7 @@ func (n *ZeekController) ChangeZeekMode() {
 // @Success 200 {object} models.zeek
 // @router /addClusterValue [post]
 func (n *ZeekController) AddClusterValue() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -184,7 +184,7 @@ func (n *ZeekController) AddClusterValue() {
 // @Success 200 {object} models.zeek
 // @router /pingCluster [get]
 func (n *ZeekController) PingCluster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -203,7 +203,7 @@ func (n *ZeekController) PingCluster() {
 // @Success 200 {object} models.zeek
 // @router /editClusterValue [put]
 func (n *ZeekController) EditClusterValue() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -227,7 +227,7 @@ func (n *ZeekController) EditClusterValue() {
 // @Success 200 {object} models.zeek
 // @router /deleteClusterValue [delete]
 func (n *ZeekController) DeleteClusterValue() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -251,7 +251,7 @@ func (n *ZeekController) DeleteClusterValue() {
 // @Success 200 {object} models.zeek
 // @router /syncCluster [put]
 func (n *ZeekController) SyncCluster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -277,7 +277,7 @@ func (n *ZeekController) SyncCluster() {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *ZeekController) SavePolicyFiles() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -307,7 +307,7 @@ func (n *ZeekController) SavePolicyFiles() {
 // @Success 200 {object} models.zeek
 // @router /syncClusterFile [put]
 func (n *ZeekController) SyncClusterFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -336,7 +336,7 @@ func (n *ZeekController) SyncClusterFile() {
 // @Success 200 {object} models.zeek
 // @router /LaunchZeekMainConf [put]
 func (n *ZeekController) LaunchZeekMainConf() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -383,7 +383,7 @@ func (n *ZeekController) LaunchZeekMainConf() {
 // @Success 200 {object} models.zeek
 // @router /syncZeekValues [put]
 func (n *ZeekController) SyncZeekValues() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}

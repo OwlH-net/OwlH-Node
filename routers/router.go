@@ -99,6 +99,11 @@ func init() {
                 &controllers.IncidentslController{},
             ),
         ),
+        beego.NSNamespace("/autentication",
+            beego.NSInclude(
+                &controllers.AutenticationController{},
+            ),
+        ),
     )
     beego.AddNamespace(ns)
 }

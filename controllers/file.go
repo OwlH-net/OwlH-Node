@@ -18,7 +18,7 @@ type FileController struct {
 // @Failure 403 body is empty
 // @router /:fileName [get]
 func (n *FileController) SendFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -42,7 +42,7 @@ func (n *FileController) SendFile() {
 // @Failure 403 body is empty
 // @router / [put]
 func (n *FileController) SaveFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -70,7 +70,7 @@ func (n *FileController) SaveFile() {
 // @Failure 403 body is empty
 // @router / [get]
 func (n *FileController) GetAllFiles() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -93,7 +93,7 @@ func (n *FileController) GetAllFiles() {
 // @Failure 403 body is empty
 // @router /reloadFilesData [get]
 func (n *FileController) ReloadFilesData() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}

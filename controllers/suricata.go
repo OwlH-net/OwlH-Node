@@ -46,7 +46,7 @@ func (n *SuricataController) Get() {
 // @Success 200 {object} models.suricata
 // @router /bpf [put]
 func (n *SuricataController) SetBPF() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -76,7 +76,7 @@ func (n *SuricataController) SetBPF() {
 // @Failure 403 body is empty
 // @router /sync [put]
 func (n *SuricataController) SyncRulesetFromMaster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -108,7 +108,7 @@ func (n *SuricataController) SyncRulesetFromMaster() {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *SuricataController) SaveConfigFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -139,7 +139,7 @@ func (n *SuricataController) SaveConfigFile() {
 // @Failure 403 body is empty
 // @router /RunSuricata [put]
 func (n *SuricataController) RunSuricata() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -169,7 +169,7 @@ func (n *SuricataController) RunSuricata() {
 // @Failure 403 body is empty
 // @router /StopSuricata [put]
 func (n *SuricataController) StopSuricata() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -198,7 +198,7 @@ func (n *SuricataController) StopSuricata() {
 // @Success 200 {object} models.suricata
 // @router /get [get]
 func (n *SuricataController) GetSuricataServices() {   
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -220,7 +220,7 @@ func (n *SuricataController) GetSuricataServices() {
 // @Failure 403 body is empty
 // @router /StartSuricataMainConf [put]
 func (n *SuricataController) StartSuricataMainConf() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -250,7 +250,7 @@ func (n *SuricataController) StartSuricataMainConf() {
 // @Failure 403 body is empty
 // @router /StopSuricataMainConf [put]
 func (n *SuricataController) StopSuricataMainConf() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -280,7 +280,7 @@ func (n *SuricataController) StopSuricataMainConf() {
 // @Failure 403 body is empty
 // @router /KillSuricataMainConf [put]
 func (n *SuricataController) KillSuricataMainConf() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -310,7 +310,7 @@ func (n *SuricataController) KillSuricataMainConf() {
 // @Failure 403 body is empty
 // @router /ReloadSuricataMainConf [put]
 func (n *SuricataController) ReloadSuricataMainConf() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}

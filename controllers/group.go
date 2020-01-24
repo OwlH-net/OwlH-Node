@@ -17,9 +17,9 @@ type GroupController struct {
 // @Success 200 {object} models.suricata
 // @router /sync [put]
 func (n *GroupController) SyncSuricataGroupValues() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Group Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{         
         var anode map[string]string
@@ -40,9 +40,9 @@ func (n *GroupController) SyncSuricataGroupValues() {
 // @Success 200 {object} models.suricata
 // @router /suricata [put]
 func (n *GroupController) SuricataGroupService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Group Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{         
         var anode map[string]string

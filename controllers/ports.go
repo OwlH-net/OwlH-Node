@@ -18,7 +18,7 @@ type PortsController struct {
 // @Success 200 {object} models.ports
 // @router /PingPorts [get]
 func (n *PortsController) PingPorts() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -38,7 +38,7 @@ func (n *PortsController) PingPorts() {
 // @Success 200 {object} models.ports
 // @router / [get]
 func (n *PortsController) ShowPorts() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -59,7 +59,7 @@ func (n *PortsController) ShowPorts() {
 // @Success 200 {object} models.ports
 // @router /mode [put]
 func (n *PortsController) ChangeMode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -85,7 +85,7 @@ func (n *PortsController) ChangeMode() {
 // @Success 200 {object} models.ports
 // @router /status [put]
 func (n *PortsController) ChangeStatus() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -115,7 +115,7 @@ func (n *PortsController) ChangeStatus() {
 // @Success 200 {object} models.ports
 // @router /delete [put]
 func (n *PortsController) DeletePorts() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -141,7 +141,7 @@ func (n *PortsController) DeletePorts() {
 // @Success 200 {object} models.ports
 // @router /deleteAll [put]
 func (n *PortsController) DeleteAllPorts() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}

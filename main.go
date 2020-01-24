@@ -118,34 +118,9 @@ func main() {
         ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin"},
         AllowCredentials: true,
     }))
-    // beego.InsertFilter("/*", beego.BeforeRouter, FilterToken)
 
     beego.Run()
 }
-
-
-// var FilterToken = func(ctx *context.Context) {
-
-//     // logs.Warn(ctx.Input.IP())
-//     // logs.Warn(ctx.Input.Header("token"))
-//     // logs.Warn(ctx.Input.Host())
-
-//     err := validation.CheckToken(n.ctx.Input.Header("token"), n.ctx.Input.Header("user"), n.ctx.Input.Header("uuid"))
-//     if err != nil {
-//         logs.Error("Error invalid master token: %s", err)
-//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-//         n.ServeJSON()
-//     }
-//     // if ctx.Input.Header("token") == "" {
-//     //     logs.Error("no token, we will stop this 403")
-//     //     ctx.Abort(403, "Token not allowed")
-//     // } 
-//     // _, ok := ctx.Input.Session("uid").(int)
-//     // if !ok {
-//     //     ctx.Redirect(302, "/login")
-//     // }
-// }
-
 
 func OperativeSystemValues()(values map[string]string){
     if (runtime.GOOS == "linux"){

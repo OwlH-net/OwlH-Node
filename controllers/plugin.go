@@ -16,7 +16,7 @@ type PluginController struct {
 // @Description Change a specific plugin service status
 // @router /ChangeServiceStatus [put]
 func (n *PluginController) ChangeServiceStatus() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -40,7 +40,7 @@ func (n *PluginController) ChangeServiceStatus() {
 // @Description Change a specific plugin service status
 // @router /ChangeMainServiceStatus [put]
 func (n *PluginController) ChangeMainServiceStatus() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -63,7 +63,7 @@ func (n *PluginController) ChangeMainServiceStatus() {
 // @Description delete a specific plugin service
 // @router /deleteService [delete]
 func (n *PluginController) DeleteService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -87,7 +87,7 @@ func (n *PluginController) DeleteService() {
 // @Success 200 {object} models.suricata
 // @router /addService [put]
 func (n *PluginController) AddPluginService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -111,7 +111,7 @@ func (n *PluginController) AddPluginService() {
 // @Description Change a specific plugin service status
 // @router /SaveSuricataInterface [put]
 func (n *PluginController) SaveSuricataInterface() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -134,7 +134,7 @@ func (n *PluginController) SaveSuricataInterface() {
 // @Description Change a specific plugin service status
 // @router /deployStapService [put]
 func (n *PluginController) DeployStapService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -157,7 +157,7 @@ func (n *PluginController) DeployStapService() {
 // @Description Change a specific plugin service status
 // @router /stopStapService [put]
 func (n *PluginController) StopStapService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -180,7 +180,7 @@ func (n *PluginController) StopStapService() {
 // @Description Change a specific plugin service status
 // @router /modifyStapValues [put]
 func (n *PluginController) ModifyStapValues() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -203,7 +203,7 @@ func (n *PluginController) ModifyStapValues() {
 // @Description Change a specific plugin service status
 // @router /changeSuricataTable [put]
 func (n *PluginController) ChangeSuricataTable() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
