@@ -213,11 +213,17 @@ type AllFiles struct {
 
 
 func ModifyWazuhFile(anode map[string]interface{})(err error) {
+    ModifyWazuhFile := map[string]map[string]string{}
+    ModifyWazuhFile["loadDataWazuhPath"] = map[string]string{}
+    ModifyWazuhFile["loadDataWazuhPath"]["ossec"] = ""
+    ModifyWazuhFile,err = utils.GetConf(ModifyWazuhFile)    
+    if err != nil {logs.Error("ModifyWazuhFile Error getting data from main.conf"); return err}
+
     receivedWazuhFiles := AllFiles{}
     byteData, _ := json.Marshal(anode)
     json.Unmarshal(byteData, &receivedWazuhFiles)
 
-    file, err := os.Open("/var/ossec/etc/ossec.conf")
+    file, err := os.Open(ModifyWazuhFile["loadDataWazuhPath"]["ossec"])
     if err != nil {logs.Error("Error ModifyWazuhFile readding file: "+err.Error()); return err}
     defer file.Close()
 
@@ -288,7 +294,7 @@ func ModifyWazuhFile(anode map[string]interface{})(err error) {
 
     if err := scanner.Err(); err != nil {logs.Error("ModifyWazuhFile. Scanner file error: "+err.Error()); return err}
 
-    saveIntoFile, err := os.OpenFile("/var/ossec/etc/ossec.conf", os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+    saveIntoFile, err := os.OpenFile(ModifyWazuhFile["loadDataWazuhPath"]["ossec"], os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
     if err != nil {logs.Error("Error ModifyWazuhFile readding file: "+err.Error()); return err}
     defer saveIntoFile.Close()
     saveIntoFile.Truncate(0)

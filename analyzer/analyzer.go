@@ -722,9 +722,7 @@ func PingAnalyzer()(data map[string]string ,err error) {
     analyzerData["size"] = "0"
 
     fi, err := os.Stat(filePath)
-    //logs.Info("analyzer outputfile stats -->")
-    //logs.Info(fi)
-    //logs.Info("fileinfo.Sys() = %#v\n", fi.Sys())
+
     if err != nil { logs.Error("Can't access Analyzer ouput file data: "+err.Error()); return analyzerData,nil}
     size := fi.Size()
 
@@ -742,7 +740,13 @@ func ChangeAnalyzerStatus(anode map[string]string) (err error) {
 }
 
 func SyncAnalyzer(file map[string][]byte) (err error) {
-    err = utils.WriteNewDataOnFile("conf/analyzer.json", file["data"])
+    alertFile := map[string]map[string]string{}
+    alertFile["analyzer"] = map[string]string{}
+    alertFile["analyzer"]["analyzerconf"] = ""
+    alertFile,err = utils.GetConf(alertFile)    
+    if err != nil {logs.Error("SyncAnalyzer Error getting data from main.conf")}
+
+    err = utils.WriteNewDataOnFile(alertFile["analyzer"]["analyzerconf"], file["data"])
     if err != nil { logs.Error("Analyzer/SyncAnalyzer Error updating Analyzer file: "+err.Error()); return err}
     return err
 }
