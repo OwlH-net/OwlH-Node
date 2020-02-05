@@ -134,7 +134,6 @@ func DeleteService(anode map[string]string)(err error) {
             if err != nil {logs.Error("plugin/DeleteService error stopping Zeek: "+err.Error())}
         }
     }else if allPlugins[anode["service"]]["type"] == "socket-network" || allPlugins[anode["service"]]["type"] == "socket-pcap" || allPlugins[anode["service"]]["type"] == "network-socket"{        
-        logs.Notice("STAP STAP STAP")
         if allPlugins[anode["service"]]["pid"] != "none" {
             err := StopStapService(anode);
             if err != nil {logs.Error("plugin/DeleteService error stopping STAP service: "+err.Error())}

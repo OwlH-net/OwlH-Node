@@ -277,18 +277,18 @@ func StartSuricataMainConf(anode map[string]string) (err error) {
     StopSuricata["suricata"] = map[string]string{}
     StopSuricata["suricata"]["start"] = ""
     StopSuricata["suricata"]["param"] = ""
-    // StopSuricata["suricata"]["command"] = ""
+    StopSuricata["suricata"]["command"] = ""
     StopSuricata,err = utils.GetConf(StopSuricata)    
     cmd := StopSuricata["suricata"]["start"]
     param := StopSuricata["suricata"]["param"]
-    // command := StopSuricata["suricata"]["command"]
+    command := StopSuricata["suricata"]["command"]
     if err != nil {
         logs.Error("StartSuricataMainConf Error getting data from main.conf")
     }
     
 
-    err = utils.RunCommand(cmd, param)
-    // _,err = exec.Command(command, param, cmd).Output()
+    // err = utils.RunCommand(cmd, param)
+    _,err = exec.Command(command, param, cmd).Output()
     if err != nil {logs.Error("StartSuricataMainConf/Error starting suricata: "+err.Error());return err}
     return nil
 }
@@ -297,17 +297,17 @@ func StopSuricataMainConf(anode map[string]string) (err error) {
     StopSuricata["suricata"] = map[string]string{}
     StopSuricata["suricata"]["stop"] = ""
     StopSuricata["suricata"]["param"] = ""
-    // StopSuricata["suricata"]["command"] = ""
+    StopSuricata["suricata"]["command"] = ""
     StopSuricata,err = utils.GetConf(StopSuricata)    
     cmd := StopSuricata["suricata"]["stop"]
     param := StopSuricata["suricata"]["param"]
-    // command := StopSuricata["suricata"]["command"]
+    command := StopSuricata["suricata"]["command"]
     if err != nil {
         logs.Error("StopSuricataMainConf Error getting data from main.conf")
     }
     
-    // _,err = exec.Command(command, param, cmd).Output()
-    err = utils.RunCommand(cmd, param)
+    _,err = exec.Command(command, param, cmd).Output()
+    // err = utils.RunCommand(cmd, param)
     if err != nil {logs.Error("StopSuricataMainConf/Error stopping suricata: "+err.Error());return err}
     return nil
 }
