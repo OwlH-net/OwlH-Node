@@ -221,8 +221,10 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
 func UpdateNodeData(data map[string]map[string]string)(err error) {
     var action string
     currentData, err := ndb.GetNodeData()    
-
-    if len(currentData) == 0{
+    logs.Notice(len(currentData))
+    logs.Notice(currentData != nil)
+    // if len(currentData) == 0{
+    if currentData != nil{
         action = "insert"
     }else{
         action = "update"
@@ -242,3 +244,16 @@ func UpdateNodeData(data map[string]map[string]string)(err error) {
 
     return nil
 }
+
+// func PingNodeCheckSecret()(data string, err error) {
+//     node, err := ndb.GetNodeData()
+//     for x := range node{
+//         if node[x]["secret"] == ""{
+//             uuid := utils.Generate()
+//             err = ndb.InsertNodeData(x,"secret",uuid)
+//             if err != nil { logs.Error("Error inserting node token data: "+err.Error()); return nil, err }
+//         }
+//     }
+
+//     return uuid,err
+// }

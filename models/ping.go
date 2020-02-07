@@ -76,3 +76,9 @@ func UpdateNodeData(data map[string]map[string]string)(err error) {
     //changecontrol.ChangeControlInsertData(err, "UpdateNodeData")    
     return err
 }
+
+// func PingNodeCheckSecret()(data string, err error) {
+//     data,err = ping.PingNodeCheckSecret()
+//     //changecontrol.ChangeControlInsertData(err, "PingNode")    
+//     return data,err
+// }

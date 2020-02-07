@@ -18,6 +18,7 @@ type PingController struct {
 func (n *PingController) PingNode() {
     err := validation.CheckToken(n.Ctx.Input.Header("token"))
     if err != nil {
+        // newToken,err := models.PingNodeCheckSecret()
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "nodeToken":"none"}
     }else{    
