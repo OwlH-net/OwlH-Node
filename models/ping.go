@@ -77,8 +77,14 @@ func UpdateNodeData(data map[string]map[string]string)(err error) {
     return err
 }
 
-// func PingNodeCheckSecret()(data string, err error) {
-//     data,err = ping.PingNodeCheckSecret()
-//     //changecontrol.ChangeControlInsertData(err, "PingNode")    
-//     return data,err
-// }
+func SaveNodeInformation(anode map[string]map[string]string)(err error) {
+    err = ping.SaveNodeInformation(anode)
+    //changecontrol.ChangeControlInsertData(err, "SaveNodeInformation")    
+    return err
+}
+
+func DeleteNode()(err error) {
+    err = ping.DeleteNode()
+    //changecontrol.ChangeControlInsertData(err, "DeleteNode")    
+    return err
+}

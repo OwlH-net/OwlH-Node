@@ -9,6 +9,7 @@ import (
     // "io"
     // "errors"
     "owlhnode/utils"
+    "owlhnode/validation"
     "os"
     // "time"
     // "os/exec"
@@ -211,6 +212,36 @@ func checkFields()(ok bool){
 
     var field Field
 
+    userAdmin := utils.Generate()
+    secretKey := utils.Generate()
+    hashedPass,err := validation.HashPassword("admin"); if err != nil { logs.Error("Configuration Error HashPassword: "+err.Error())}
+    field.Fconn      = "nodeConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='secret'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','secret','"+secretKey+"')"
+    field.Fname      = "secret - key"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "nodeConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='pass'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','pass','"+hashedPass+"')"
+    field.Fname      = "pass - admin"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "nodeConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='user'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','user','admin')"
+    field.Fname      = "user - admin"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
 
     field.Fconn      = "groupConn"
     field.Ftable     = "suricata"

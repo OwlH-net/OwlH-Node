@@ -212,6 +212,18 @@ func InsertNodeData(uuid string, param string, value string)(err error){
     return nil
 }
 
+func InsertUserData(uuid string, param string, value string)(err error){
+    InsertUserDataValues, err := Nodedb.Prepare("insert into users(user_uniqueid, user_param, user_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertUserData prepare error: "+err.Error()); return err}
+
+    _, err = InsertUserDataValues.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertUserData exec error: "+err.Error()); return err}
+
+    defer InsertUserDataValues.Close()
+    
+    return nil
+}
+
 func GetNodeData()(path map[string]map[string]string, err error){
     var configValues = map[string]map[string]string{}
     var uniqid string
@@ -292,4 +304,31 @@ func GetLoginData()(groups map[string]map[string]string, err error){
         allusers[uniqid][param]=value
     } 
     return allusers, nil
+}
+
+func GetUserByValue(value string)(path string, err error){
+    var uniqid string
+
+    sql := "select user_uniqueid from users where user_param = 'user' and user_value = '"+value+"';";
+    rows, err := Nodedb.Query(sql)
+    if err != nil {
+        logs.Error("GetUserByValue Nodedb.Query Error : %s", err.Error())
+        return "", err
+    }
+    defer rows.Close()
+    for rows.Next() {
+        if err = rows.Scan(&uniqid); err != nil {
+            logs.Error("GetUserByValue -- Query return error: %s", err.Error())
+            return "", err
+        }    
+    } 
+    return uniqid,nil
+}
+
+func DeleteNodeInformation()(err error){
+    deleteNodeData, err := Nodedb.Prepare("delete from node;")
+    _, err = deleteNodeData.Exec()
+    defer deleteNodeData.Close()
+    if err != nil {logs.Error("DeleteNodeInformation ERROR deleting: "+err.Error());return err}
+    return nil
 }

@@ -14,11 +14,9 @@ func CreateMasterToken() (token string, err error) {
 	token,err = validation.Encode(secret)
 	if err != nil {logs.Error("Error generating token for master: %s",err); return "",err}
 	//add token and secret key to DB
-	node,err := ndb.GetNodeData()
-	for x := range node{
-		err = ndb.InsertNodeData(x, "secret", secret); if err != nil {logs.Error("Error inserting master token into DB: %s",err); return "",err}
-	}
-
+	node,err := ndb.GetUserByValue("admin")
+	err = ndb.InsertUserData(node, "secret", secret); if err != nil {logs.Error("CreateMasterToken Error inserting master token into DB: %s",err); return "",err}
+	
 	//send token to master
 	return token, err
 }

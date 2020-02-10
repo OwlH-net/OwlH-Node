@@ -114,7 +114,7 @@ func (n *PingController) GetMainconfData() {
 
 // @Title PingPluginsNode
 // @Description PingPluginsNode status
-// @Success 200 {object} models.ports
+// @Success 200 {object} models.ping
 // @router /PingPluginsNode [get]
 func (n *PingController) PingPluginsNode() {
     err := validation.CheckToken(n.Ctx.Input.Header("token"))
@@ -124,6 +124,52 @@ func (n *PingController) PingPluginsNode() {
     }else{         
         data, err := models.PingPluginsNode()
         n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveNodeInformation
+// @Description Save node information
+// @Success 200 {object} models.ping
+// @router /saveNodeInformation [put]
+func (n *PingController) SaveNodeInformation() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    if err != nil {
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        logs.Info("ACTION -> PUT")
+        logs.Info("CONTROLLER -> PING")
+        logs.Info("ROUTER -> @router /SaveNodeInformation [put]")
+        err := models.SaveNodeInformation(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteNode
+// @Description Save node information
+// @Success 200 {object} models.ping
+// @router / [delete]
+func (n *PingController) DeleteNode() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    if err != nil {
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        logs.Info("ACTION -> PUT")
+        logs.Info("CONTROLLER -> PING")
+        logs.Info("ROUTER -> @router /DeleteNode [put]")
+        err := models.DeleteNode()
+        n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }

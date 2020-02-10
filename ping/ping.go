@@ -219,41 +219,31 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
 }
 
 func UpdateNodeData(data map[string]map[string]string)(err error) {
-    var action string
-    currentData, err := ndb.GetNodeData()    
-    logs.Notice(len(currentData))
-    logs.Notice(currentData != nil)
-    // if len(currentData) == 0{
-    if currentData != nil{
-        action = "insert"
-    }else{
-        action = "update"
-    }
-
     for x,y := range data {
         for y,_ := range y {
-            if action == "insert"{
-                err = ndb.InsertNodeData(x,y,data[x][y])
-                if err != nil { logs.Error("Error inserting node data: "+err.Error()); return err }
-            }else if action == "update"{
-                err = ndb.UpdateNodeData(x,y,data[x][y])
-                if err != nil { logs.Error("Error updating node data: "+err.Error()); return err }
-            }
+            err = ndb.UpdateNodeData(x,y,data[x][y])
+            if err != nil { logs.Error("UpdateNodeData Error updating node data: "+err.Error()); return err }
         }
     }
 
     return nil
 }
 
-// func PingNodeCheckSecret()(data string, err error) {
-//     node, err := ndb.GetNodeData()
-//     for x := range node{
-//         if node[x]["secret"] == ""{
-//             uuid := utils.Generate()
-//             err = ndb.InsertNodeData(x,"secret",uuid)
-//             if err != nil { logs.Error("Error inserting node token data: "+err.Error()); return nil, err }
-//         }
-//     }
+func SaveNodeInformation(anode map[string]map[string]string)(err error) {
+    for x,y := range anode {
+        for y,_ := range y {
+            err = ndb.InsertNodeData(x,y,anode[x][y])
+            if err != nil { logs.Error("SaveNodeInformation Error inserting node data: "+err.Error()); return err }
+        }
+    }
 
-//     return uuid,err
-// }
+    return nil
+}
+
+func DeleteNode()(err error) {
+    //delete node information
+    err = ndb.DeleteNodeInformation()
+    if err != nil { logs.Error("DeleteNode Error deleting node data: "+err.Error()); return err }
+    
+    return err
+}
