@@ -6,12 +6,12 @@ import (
     "github.com/astaxie/beego/logs"
 )
 
-func CreateMasterToken() (token string, err error) {
+func CreateMasterToken(login map[string]string) (token string, err error) {
     logs.Info("============")
     logs.Info("AUTENTICATION - CreateMasterToken")
     cc := make(map[string]string)
     
-    token,err = autentication.CreateMasterToken()
+    token,err = autentication.CreateMasterToken(login)
     
     if err!=nil { 
         cc["actionStatus"] = "error"

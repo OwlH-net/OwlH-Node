@@ -33,10 +33,11 @@ func Encode(secret string) (val string, err error) {
 	return tokenString, err
 }
 
-func CheckToken(token string)(err error){
-	users,err := ndb.GetLoginData()
-	for x := range users{
-		tkn, err := Encode(users[x]["secret"])
+func CheckToken(token string, user string, pass string)(err error){	
+	//check token
+	masters,err := ndb.GetMasters()
+	for x := range masters{
+		tkn, err := Encode(masters[x]["secret"])
 		if err != nil {
 			logs.Error("Error checking Master token: %s", err); return err
 		}else{
@@ -47,5 +48,5 @@ func CheckToken(token string)(err error){
 			}
 		}		
 	}
-	return errors.New("There are not token. Error checking token Token")
+	return errors.New("There are no token.")
 }

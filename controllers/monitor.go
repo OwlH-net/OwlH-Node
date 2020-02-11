@@ -29,7 +29,7 @@ func (n *MonitorController) GetLastStatus() {
 // @Success 200 {object} models.monitor
 // @router /addFile [post]
 func (n *MonitorController) AddMonitorFile() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("AddMonitorFile Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -55,7 +55,7 @@ func (n *MonitorController) AddMonitorFile() {
 // @Success 200 {object} models.monitor
 // @router /pingMonitorFiles [get]
 func (n *MonitorController) PingMonitorFiles() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("PingMonitorFiles Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -73,7 +73,7 @@ func (n *MonitorController) PingMonitorFiles() {
 // @Success 200 {object} models.monitor
 // @router /deleteFile [delete]
 func (n *MonitorController) DeleteMonitorFile() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("DeleteMonitorFile Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}

@@ -1,8 +1,9 @@
 package controllers
 
 import (
-    "github.com/astaxie/beego"
-    "owlhnode/models"
+	"github.com/astaxie/beego"
+	"owlhnode/models"
+	"encoding/json"
 )
 
 type AutenticationController struct {
@@ -11,9 +12,11 @@ type AutenticationController struct {
 
 // @Title CreateMasterToken
 // @Description Get Master Token
-// @router / [get]
+// @router / [put]
 func (n *AutenticationController) CreateMasterToken() {
-	token,err := models.CreateMasterToken()
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	token,err := models.CreateMasterToken(anode)
 	n.Data["json"] = map[string]string{"ack": "true", "token": token}
 	if err != nil {
 		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

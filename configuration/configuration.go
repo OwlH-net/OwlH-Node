@@ -108,6 +108,14 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "masters"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE masters (master_id integer PRIMARY KEY AUTOINCREMENT,master_uniqueid text NOT NULL,master_param text NOT NULL,master_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "cluster"
     table.Tconn = "pluginConn"
     table.Tcreate = "CREATE TABLE cluster (cluster_id integer PRIMARY KEY AUTOINCREMENT,cluster_uniqueid text NOT NULL,cluster_param text NOT NULL,cluster_value text NOT NULL)"
@@ -213,17 +221,7 @@ func checkFields()(ok bool){
     var field Field
 
     userAdmin := utils.Generate()
-    secretKey := utils.Generate()
     hashedPass,err := validation.HashPassword("admin"); if err != nil { logs.Error("Configuration Error HashPassword: "+err.Error())}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "users"
-    field.Fquery     = "select user_param from users where user_param='secret'"
-    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','secret','"+secretKey+"')"
-    field.Fname      = "secret - key"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
     field.Fconn      = "nodeConn"
     field.Ftable     = "users"
     field.Fquery     = "select user_param from users where user_param='pass'"

@@ -230,11 +230,27 @@ func UpdateNodeData(data map[string]map[string]string)(err error) {
 }
 
 func SaveNodeInformation(anode map[string]map[string]string)(err error) {
-    for x,y := range anode {
-        for y,_ := range y {
-            err = ndb.InsertNodeData(x,y,anode[x][y])
-            if err != nil { logs.Error("SaveNodeInformation Error inserting node data: "+err.Error()); return err }
-        }
+    // nodeData, err := ndb.GetNodeData()
+    if err != nil { logs.Error("SaveNodeInformation Error getting node data: "+err.Error()); return err }
+    for x := range anode {
+        // for y := range nodeData {
+        //     if x != y || anode[x]["ip"] == nodeData[y]["ip"] || anode[x]["port"] == nodeData[y]["port"] || anode[x]["name"] == nodeData[y]["name"] {
+                // err = ndb.UpdateNodeData(x, "name", anode[x]["name"])
+                // if err != nil { logs.Error("SaveNodeInformation Error updating node name: "+err.Error()); return err }
+                // err = ndb.UpdateNodeData(x, "ip", anode[x]["ip"])
+                // if err != nil { logs.Error("SaveNodeInformation Error updating node ip: "+err.Error()); return err }
+                // err = ndb.UpdateNodeData(x, "port", anode[x]["port"])
+                // if err != nil { logs.Error("SaveNodeInformation Error updating node port: "+err.Error()); return err }
+        err = ndb.DeleteNodeInformation()
+        if err != nil { logs.Error("SaveNodeInformation Error updating node values: "+err.Error()); return err }
+
+        err = ndb.InsertNodeData(x,"ip",anode[x]["ip"])
+        if err != nil { logs.Error("SaveNodeInformation Error inserting node ip: "+err.Error()); return err }
+        err = ndb.InsertNodeData(x,"name",anode[x]["name"])
+        if err != nil { logs.Error("SaveNodeInformation Error inserting node name: "+err.Error()); return err }
+        err = ndb.InsertNodeData(x,"port",anode[x]["port"])
+        if err != nil { logs.Error("SaveNodeInformation Error inserting node port: "+err.Error()); return err }                     
+        
     }
 
     return nil

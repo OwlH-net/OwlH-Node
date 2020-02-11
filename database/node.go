@@ -332,3 +332,40 @@ func DeleteNodeInformation()(err error){
     if err != nil {logs.Error("DeleteNodeInformation ERROR deleting: "+err.Error());return err}
     return nil
 }
+
+func GetMasters()(data map[string]map[string]string, err error){
+    var allmasters = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select master_uniqueid, master_param, master_value from masters;";
+    
+    rows, err := Nodedb.Query(sql)
+    if err != nil {
+        logs.Error("GetMasters Nodedb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    defer rows.Close()
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetMasters -- Query return error: %s", err.Error())
+            return nil, err
+        }
+        if allmasters[uniqid] == nil { allmasters[uniqid] = map[string]string{}}
+        allmasters[uniqid][param]=value
+    } 
+    return allmasters,nil
+}
+
+func InsertMaster(uuid string, param string, value string)(err error){
+    InsertMasterValues, err := Nodedb.Prepare("insert into masters(master_uniqueid, master_param, master_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertMaster prepare error: "+err.Error()); return err}
+
+    _, err = InsertMasterValues.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertMaster exec error: "+err.Error()); return err}
+
+    defer InsertMasterValues.Close()
+    
+    return nil
+}

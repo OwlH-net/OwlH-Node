@@ -18,7 +18,7 @@ type AnalyzerController struct {
 // @Success 200 {object} models.analyzer
 // @router /pingAnalyzer [get]
 func (n *AnalyzerController) PingAnalyzer() {  
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("PingAnalyzer Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -38,7 +38,7 @@ func (n *AnalyzerController) PingAnalyzer() {
 // @Success 200 {object} models.analyzer
 // @router /changeAnalyzerStatus [put]
 func (n *AnalyzerController) ChangeAnalyzerStatus() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -68,7 +68,7 @@ func (n *AnalyzerController) ChangeAnalyzerStatus() {
 // @router /sync [put]
 func (n *AnalyzerController) SyncAnalyzer() { 
     
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("SyncAnalyzer Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}

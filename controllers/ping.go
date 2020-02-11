@@ -16,7 +16,7 @@ type PingController struct {
 // @Description get ping for node
 // @router / [get]
 func (n *PingController) PingNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         // newToken,err := models.PingNodeCheckSecret()
         logs.Error("Error validating token from master")
@@ -31,7 +31,7 @@ func (n *PingController) PingNode() {
 // @Description update node data
 // @router /updateNode [put]
 func (n *PingController) UpdateNodeData() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -57,7 +57,7 @@ func (n *PingController) UpdateNodeData() {
 // @Description get ping for node
 // @router /services [get]
 func (n *PingController) PingService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -75,7 +75,7 @@ func (n *PingController) PingService() {
 // @Description get ping for node
 // @router /deployservice [put]
 func (n *PingController) DeployService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -98,7 +98,7 @@ func (n *PingController) DeployService() {
 // @Description get ping for node
 // @router /mainconf [get]
 func (n *PingController) GetMainconfData() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -117,7 +117,7 @@ func (n *PingController) GetMainconfData() {
 // @Success 200 {object} models.ping
 // @router /PingPluginsNode [get]
 func (n *PingController) PingPluginsNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -136,7 +136,7 @@ func (n *PingController) PingPluginsNode() {
 // @Success 200 {object} models.ping
 // @router /saveNodeInformation [put]
 func (n *PingController) SaveNodeInformation() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -160,7 +160,7 @@ func (n *PingController) SaveNodeInformation() {
 // @Success 200 {object} models.ping
 // @router / [delete]
 func (n *PingController) DeleteNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}

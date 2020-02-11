@@ -16,7 +16,7 @@ type ChangecontrolController struct {
 // @Success 200 {object} models.changecontrol
 // @router / [get]
 func (n *ChangecontrolController) GetChangeControlNode() {  
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("GetChangeControlNode Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}

@@ -17,7 +17,7 @@ type WazuhController struct {
 // @Success 200 {object} models.wazuh
 // @router / [get]
 func (n *WazuhController) Get() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -39,7 +39,7 @@ func (n *WazuhController) Get() {
 // @Failure 403 body is empty
 // @router /RunWazuh [put]
 func (n *WazuhController) RunWazuh() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -71,7 +71,7 @@ func (n *WazuhController) RunWazuh() {
 // @Failure 403 body is empty
 // @router /StopWazuh [put]
 func (n *WazuhController) StopWazuh() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -102,7 +102,7 @@ func (n *WazuhController) StopWazuh() {
 // @Success 200 {object} models.wazuh
 // @router /pingWazuhFiles [get]
 func (n *WazuhController) PingWazuhFiles() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -122,7 +122,7 @@ func (n *WazuhController) PingWazuhFiles() {
 // @Failure 403 body is empty
 // @router /deleteWazuhFile [delete]
 func (n *WazuhController) DeleteWazuhFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -146,7 +146,7 @@ func (n *WazuhController) DeleteWazuhFile() {
 // @Failure 403 body is empty
 // @router /addWazuhFile [put]
 func (n *WazuhController) AddWazuhFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -170,7 +170,7 @@ func (n *WazuhController) AddWazuhFile() {
 // @Failure 403 body is empty
 // @router /loadFileLastLines [put]
 func (n *WazuhController) LoadFileLastLines() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -194,7 +194,7 @@ func (n *WazuhController) LoadFileLastLines() {
 // @Failure 403 body is empty
 // @router /saveFileContentWazuh [put]
 func (n *WazuhController) SaveFileContentWazuh() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
