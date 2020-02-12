@@ -26,3 +26,24 @@ func CreateMasterToken(login map[string]string) (token string, err error) {
     changecontrol.InsertChangeControl(cc)
     return token, err
 }
+
+func AddUserFromMaster(user map[string]string) (err error) {
+    logs.Info("============")
+    logs.Info("AUTENTICATION - AddUserFromMaster")
+    cc := make(map[string]string)
+    
+    err = autentication.AddUserFromMaster(user)
+    
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Add users from Master"
+
+
+    changecontrol.InsertChangeControl(cc)
+    return err
+}

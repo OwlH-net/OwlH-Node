@@ -51,3 +51,13 @@ func CreateMasterToken(login map[string]string) (token string, err error) {
 	}
 	return "", errors.New("CreateMasterToken Incorrect Login credentials")
 }
+
+func AddUserFromMaster(user map[string]string) (err error) {
+	logs.Notice(user)
+	// uuid := utils.Generate()
+	// err = ndb.InsertUserData(uuid, "type", user["type"]); if err != nil {logs.Error("AddUserFromMaster Error inserting type: %s",err); return err} 
+	// err = ndb.InsertUserData(uuid, "user", user["user"]); if err != nil {logs.Error("AddUserFromMaster Error inserting user: %s",err); return err} 
+	// err = ndb.InsertUserData(uuid, "master", user["master"]); if err != nil {logs.Error("AddUserFromMaster Error inserting master id: %s",err); return err} 
+
+	return nil
+}

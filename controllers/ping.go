@@ -16,14 +16,13 @@ type PingController struct {
 // @Description get ping for node
 // @router / [get]
 func (n *PingController) PingNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
-    if err != nil {
-        // newToken,err := models.PingNodeCheckSecret()
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "nodeToken":"none"}
-    }else{    
+    // err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
+    // if err != nil {
+    //     logs.Error("Error validating token from master")
+    //     n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "nodeToken":"none"}
+    // }else{    
         n.Data["json"] = map[string]string{"ack": "true"}
-    }
+    // }
     n.ServeJSON()
 }
 
