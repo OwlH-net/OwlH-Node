@@ -52,12 +52,36 @@ func CreateMasterToken(login map[string]string) (token string, err error) {
 	return "", errors.New("CreateMasterToken Incorrect Login credentials")
 }
 
-func AddUserFromMaster(user map[string]string) (err error) {
-	logs.Notice(user)
-	// uuid := utils.Generate()
-	// err = ndb.InsertUserData(uuid, "type", user["type"]); if err != nil {logs.Error("AddUserFromMaster Error inserting type: %s",err); return err} 
-	// err = ndb.InsertUserData(uuid, "user", user["user"]); if err != nil {logs.Error("AddUserFromMaster Error inserting user: %s",err); return err} 
-	// err = ndb.InsertUserData(uuid, "master", user["master"]); if err != nil {logs.Error("AddUserFromMaster Error inserting master id: %s",err); return err} 
+func AddUserFromMaster(masterUser map[string]map[string]string) (err error) {
+	nodeUsers, err := ndb.GetLoginData(); if err != nil {logs.Error("AddUserFromMaster Error getting Node users: %s",err); return err} 
+	//update all masters to "deleted" status
+	for w := range nodeUsers{
+		if nodeUsers[w]["type"] == "master"{
+			err = ndb.UpdateUsers(w,"status", "deleted")
+			if err != nil {logs.Error("AddUserFromMaster Error updating status before update: %s",err); return err} 
+		}
+	}
+	//update users
+	nodeUsers, err = ndb.GetLoginData()
+	var existsUser bool
+	for y := range masterUser{	
+		existsUser = false
+		for x := range nodeUsers{
+			if x == y{existsUser = true}
+		}
+		if existsUser {
+			err = ndb.UpdateUsers(y,"type", masterUser[y]["type"]); if err != nil {logs.Error("AddUserFromMaster Error updating node user type: %s",err); return err} 
+			err = ndb.UpdateUsers(y,"user", masterUser[y]["user"]); if err != nil {logs.Error("AddUserFromMaster Error updating node user name: %s",err); return err} 
+			err = ndb.UpdateUsers(y,"masterID", masterUser[y]["masterID"]); if err != nil {logs.Error("AddUserFromMaster Error updating node user masterID: %s",err); return err} 
+			err = ndb.UpdateUsers(y,"status", masterUser[y]["status"]); if err != nil {logs.Error("AddUserFromMaster Error updating node user status: %s",err); return err} 
+		}else{
+			err = ndb.InsertUserData(y, "type", masterUser[y]["type"]); if err != nil {logs.Error("AddUserFromMaster Error inserting type: %s",err); return err} 
+			err = ndb.InsertUserData(y, "user", masterUser[y]["user"]); if err != nil {logs.Error("AddUserFromMaster Error inserting user: %s",err); return err} 
+			err = ndb.InsertUserData(y, "masterID", masterUser[y]["masterID"]); if err != nil {logs.Error("AddUserFromMaster Error inserting master id: %s",err); return err} 
+			err = ndb.InsertUserData(y, "status", masterUser[y]["status"]); if err != nil {logs.Error("AddUserFromMaster Error inserting status id: %s",err); return err} 
+		}
+	}
+
 
 	return nil
 }

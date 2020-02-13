@@ -369,3 +369,13 @@ func InsertMaster(uuid string, param string, value string)(err error){
     
     return nil
 }
+
+func UpdateUsers(uuid string, param string, value string) (err error) {
+    updateNodeUsers, err := Nodedb.Prepare("update users set user_value = ? where user_uniqueid = ? and user_param = ?;")
+    if (err != nil){logs.Error("UpdateUsers UPDATE prepare error: "+err.Error()); return err}
+    
+    _, err = updateNodeUsers.Exec(&value, &uuid, &param)
+    defer updateNodeUsers.Close()
+    if (err != nil){logs.Error("UpdateUsers UPDATE error: "+err.Error()); return err}
+    return nil
+}

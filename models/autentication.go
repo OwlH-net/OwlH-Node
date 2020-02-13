@@ -27,7 +27,7 @@ func CreateMasterToken(login map[string]string) (token string, err error) {
     return token, err
 }
 
-func AddUserFromMaster(user map[string]string) (err error) {
+func AddUserFromMaster(user map[string]map[string]string) (err error) {
     logs.Info("============")
     logs.Info("AUTENTICATION - AddUserFromMaster")
     cc := make(map[string]string)

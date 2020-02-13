@@ -35,7 +35,7 @@ func (n *AutenticationController) AddUserFromMaster() {
         logs.Error("AddUserFromMaster Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{ 
-		var anode map[string]string
+		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 		err := models.AddUserFromMaster(anode)
 		n.Data["json"] = map[string]string{"ack": "true"}

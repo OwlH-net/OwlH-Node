@@ -42,7 +42,12 @@ func CheckToken(token string, user string, pass string)(err error){
 			logs.Error("Error checking Master token: %s", err); return err
 		}else{
 			if token == tkn {
-				return nil
+				status,err := UserPrivilegeValidation(user); if err != nil {logs.Error("Privileges error: %s",err); return err}
+					if status{
+						return nil
+					}else{
+						return errors.New("This user has not enough privileges level")
+					}
 			}else{
 				return errors.New("The token retrieved is false")
 			}
