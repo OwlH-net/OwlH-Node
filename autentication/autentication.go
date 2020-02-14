@@ -23,7 +23,7 @@ func CreateMasterToken(login map[string]string) (token string, err error) {
 
 	for x := range users{
 		hashedPassFromMaster, err := validation.CheckPasswordHash(login["pass"], users[x]["pass"])
-		if err != nil {logs.Error("CreateMasterToken Node pass encode error: %s", err); return "",err}
+		if err != nil {logs.Error("CreateMasterToken Node pass encode error: %s", err)}
 
 		if login["user"] == users[x]["user"] && hashedPassFromMaster{			
 			masters,err := ndb.GetMasters()
