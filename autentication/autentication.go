@@ -9,13 +9,6 @@ import (
 )
 
 func CreateMasterToken(login map[string]string) (token string, err error) {
-	//check master uuid with login uuid
-		//EXIST --> create token and send back
-		//NO --> insert master uuid
-			   //create and insert secret key
-			   //insert login uuid
-			   //create token and send back
-
 	//check user/pass
 	masterExists := false
 	users,err := ndb.GetLoginData()
