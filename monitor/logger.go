@@ -84,4 +84,6 @@ func Logger() {
 	// }
 }
 
-func FileRotation(path string)(err error)
+func FileRotation(path string)(err error){
+	
+}
