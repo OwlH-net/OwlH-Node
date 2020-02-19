@@ -29,6 +29,9 @@ func main() {
     //Application version
     logs.Info("Version OwlH Node: 0.12.0.20200218")
 
+    //launch logger    
+    monitor.Logger()
+
     cancontinue := configuration.MainCheck()
     if !cancontinue {
         logs.Error("can't continue, see previous logs")
@@ -86,11 +89,7 @@ func main() {
     ndb.MConn() //monitor database
     logs.Info ("Main Starting -> reading GROUP DB")
     ndb.GConn() //group database
-
-    //Launch StapInit for 1st time for check status and go concurrency if status==true
-    //launch logger    
-    monitor.Logger()
-    
+ 
     plugin.CheckServicesStatus()
     stap.StapInit()
     knownports.Init()

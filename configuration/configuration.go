@@ -75,10 +75,17 @@ func checkDatabases()(ok bool){
 func checkTables()(ok bool){
     var table Table
 
+    // table.Tname = "fileRotation"
+    // table.Tconn = "monitorConn"
+    // table.Tcreate = "CREATE TABLE fileRotation (rotate_id integer PRIMARY KEY AUTOINCREMENT,rotate_uniqueid text NOT NULL,rotate_param text NOT NULL,rotate_value text NOT NULL)"
+    // ok = CheckTable(table)
+    // if !ok {
+    //     return false
+    // }
+
     table.Tname = "plugins"
     table.Tconn = "pluginConn"
     table.Tcreate = "CREATE TABLE plugins (plugin_id integer PRIMARY KEY AUTOINCREMENT,plugin_uniqueid text NOT NULL,plugin_param text NOT NULL,plugin_value text NOT NULL)"
-
     ok = CheckTable(table)
     if !ok {
         return false
@@ -196,14 +203,6 @@ func checkTables()(ok bool){
         return false
     }
 
-    // table.Tname = "groups"
-    // table.Tconn = "groupConn"
-    // table.Tcreate = "CREATE TABLE groups (group_id integer PRIMARY KEY AUTOINCREMENT,group_uniqueid text NOT NULL,group_param text NOT NULL,group_value text NOT NULL);"
-    // ok = CheckTable(table)
-    // if !ok {
-    //     return false
-    // }
-
     table.Tname = "suricata"
     table.Tconn = "groupConn"
     table.Tcreate = "CREATE TABLE suricata (suri_id integer PRIMARY KEY AUTOINCREMENT,suri_uniqueid text NOT NULL,suri_param text NOT NULL,suri_value text NOT NULL);"
@@ -216,8 +215,6 @@ func checkTables()(ok bool){
 }
 
 func checkFields()(ok bool){
-// plugins -             UUID - "suricata", param - "previousStatus", data["suricata"]["status"]
-
     var field Field
 
     userAdmin := utils.Generate()
@@ -249,6 +246,15 @@ func checkFields()(ok bool){
     if !ok {
         return false
     }
+
+    // //alert.json file rotation
+    // field.Fconn      = "monitorConn"
+    // field.Ftable     = "fileRotation"
+    // field.Fquery     = "select rotate_param from fileRotation where rotate_param='path'"
+    // field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('alert ','path','')"
+    // field.Fname      = "suricata - BPFfile"
+    // ok = CheckField(field)
+    // if !ok {return false}
 
     field.Fconn      = "groupConn"
     field.Ftable     = "suricata"
