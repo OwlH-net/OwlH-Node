@@ -27,10 +27,7 @@ import (
 
 func main() {
     //Application version
-    logs.Info("Version OwlH Node: 0.12.0.20200218")
-
-    //launch logger    
-    monitor.Logger()
+    logs.Info("Version OwlH Node: 0.12.0.20200220")
 
     cancontinue := configuration.MainCheck()
     if !cancontinue {
@@ -90,6 +87,9 @@ func main() {
     logs.Info ("Main Starting -> reading GROUP DB")
     ndb.GConn() //group database
  
+    //launch logger    
+    monitor.Logger()
+    monitor.FileRotation()
     plugin.CheckServicesStatus()
     stap.StapInit()
     knownports.Init()

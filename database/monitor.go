@@ -77,3 +77,23 @@ func DeleteMonitorFile(uuid string)(err error){
     if err != nil {logs.Error("DeleteMonitorFile ERROR deleting: "+err.Error());return err}
     return nil
 }
+
+func LoadRotationFiles()(data map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select rot_uniqueid, rot_param, rot_value from rotation;";
+    rows, err := Monitordb.Query(sql)
+    if err != nil { logs.Error("LoadRotationFiles Monitordb.Query Error : %s", err.Error()); return nil, err}
+
+    defer rows.Close()
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("LoadRotationFiles -- Query return error: %s", err.Error()); return nil, err}
+
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
