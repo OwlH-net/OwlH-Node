@@ -48,6 +48,7 @@ func InsertSuricataGroupValue(uuid string, param string, value string)(err error
     
     return nil
 }
+
 func UpdateSuricataGroupValue(uuid string, param string, value string)(err error){
     if Groupdb == nil {logs.Error("no access to database group");return errors.New("no access to database group")}
     

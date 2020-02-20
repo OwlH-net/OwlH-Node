@@ -72,3 +72,30 @@ func PingMonitorFiles()(data map[string]map[string]string, err error) {
     //changecontrol.ChangeControlInsertData(err, "PingMonitorFiles")    
     return data,err
 }
+
+
+func ChangeRotationStatus(anode map[string]string)(err error) {
+    cc := anode
+    logs.Info("============")
+    logs.Info("MONITOR - ChangeRotationStatus")
+    for key :=range cc {
+        logs.Info(key +" -> "+ cc[key])
+    }
+    delete(anode,"action")
+    delete(anode,"controller")
+    delete(anode,"router")
+    
+    err = monitor.ChangeRotationStatus(anode)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Change rotation status"
+
+    changecontrol.InsertChangeControl(cc)  
+    return err
+}

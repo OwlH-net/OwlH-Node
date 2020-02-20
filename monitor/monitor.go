@@ -151,8 +151,11 @@ func bToMb(b uint64) uint64 {
 
 func AddMonitorFile(anode map[string]string)(err error) {
     uuid := utils.Generate()
-    err = ndb.InsertMonitorValue(uuid, "path", anode["path"])
-    if err != nil {logs.Error("AddMonitorFile error inserting new path into database: %s", err.Error());return err}
+    err = ndb.InsertMonitorValue(uuid, "path", anode["path"]); if err != nil {logs.Error("AddMonitorFile error inserting path into database: %s", err.Error());return err}
+    err = ndb.InsertMonitorValue(uuid, "maxSize", anode["maxSize"]); if err != nil {logs.Error("AddMonitorFile error inserting maxSize into database: %s", err.Error());return err}
+    err = ndb.InsertMonitorValue(uuid, "maxDays", anode["maxDays"]); if err != nil {logs.Error("AddMonitorFile error inserting maxDays into database: %s", err.Error());return err}
+    err = ndb.InsertMonitorValue(uuid, "rotate", "Enabled"); if err != nil {logs.Error("AddMonitorFile error inserting rotate into database: %s", err.Error());return err}
+    err = ndb.InsertMonitorValue(uuid, "maxLines", anode["maxLines"]); if err != nil {logs.Error("AddMonitorFile error inserting maxLines into database: %s", err.Error());return err}
     
     return nil
 }
@@ -178,4 +181,12 @@ func PingMonitorFiles()(data map[string]map[string]string, err error) {
     }
 
     return data,err
+}
+
+func ChangeRotationStatus(anode map[string]string)(err error) {
+    logs.Notice(anode)
+    err = ndb.UpdateMonitorFileValue(anode["file"], "rotate", anode["status"])
+    if err != nil {logs.Error("ChangeRotationStatus error updating monitor file value: %s", err.Error());return err}
+
+    return nil
 }

@@ -89,7 +89,7 @@ func main() {
  
     //launch logger    
     monitor.Logger()
-    monitor.FileRotation()
+    go monitor.FileRotation()
     plugin.CheckServicesStatus()
     stap.StapInit()
     knownports.Init()

@@ -93,3 +93,29 @@ func (n *MonitorController) DeleteMonitorFile() {
     
     n.ServeJSON()
 }
+
+// @Title ChangeRotationStatus
+// @Description Change monitor rotation file status
+// @Success 200 {object} models.monitor
+// @router /changeRotationStatus [put]
+func (n *MonitorController) ChangeRotationStatus() { 
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
+    if err != nil {
+        logs.Error("ChangeRotationStatus Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "MONITOR"
+        anode["router"] = "@router /changeRotationStatus [put]"
+        
+        err := models.ChangeRotationStatus(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }   
+    
+    n.ServeJSON()
+}
