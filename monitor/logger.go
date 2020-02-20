@@ -94,20 +94,20 @@ func FileRotation()(){
 
 		if err != nil {logs.Error("FileRotation ERROR readding rotation files from DB: "+err.Error())}
 		for x := range rotate {
+			if rotate[x]["rotate"] == "Enabled"{
 
-			//delete more than 7 days
-			currentTime := time.Now()
-			fileDateModified, err := os.Stat(rotate[x]["path"]); if err != nil {logs.Error("FileRotation ERROR Checking file modification date: "+err.Error())}
-			modifiedtime := fileDateModified.ModTime()
-			minusDays,_ := strconv.Atoi(rotate[x]["maxDays"])
-			lastDays = currentTime.AddDate(0, 0, -minusDays)
+				//delete more than 7 days
+				currentTime := time.Now()
+				fileDateModified, err := os.Stat(rotate[x]["path"]); if err != nil {logs.Error("FileRotation ERROR Checking file modification date: "+err.Error())}
+				modifiedtime := fileDateModified.ModTime()
+				// minusDays,_ := strconv.Atoi(rotate[x]["maxDays"])
+				// lastDays = currentTime.AddDate(0, 0, -minusDays)
 
-			//delete file if is older than max days
-			if modifiedtime.Format("2006-01-02") < lastDays.Format("2006-01-02"){
-				err = os.Remove(rotate[x]["path"]); if err != nil {logs.Error("FileRotation ERROR deleting older files than max days: "+err.Error())}
-				err = ndb.DeleteMonitorFile(x); if err != nil {logs.Error("FileRotation ERROR deleting older files than max days at database: "+err.Error())}
-			}else{
-				if rotate[x]["rotate"] == "Enabled"{
+				// //delete file if is older than max days
+				// if modifiedtime.Format("2006-01-02") < lastDays.Format("2006-01-02"){
+				// 	err = os.Remove(rotate[x]["path"]); if err != nil {logs.Error("FileRotation ERROR deleting older files than max days: "+err.Error())}
+				// 	err = ndb.DeleteMonitorFile(x); if err != nil {logs.Error("FileRotation ERROR deleting older files than max days at database: "+err.Error())}
+				// }else{
 					// file, err := os.Open(rotate[x]["path"])
 					file, err := os.OpenFile(rotate[x]["path"], os.O_RDWR, 0755); if err != nil {logs.Error("FileRotation ERROR readding file: "+err.Error())}
 					defer file.Close()
@@ -144,7 +144,7 @@ func FileRotation()(){
 						err = file.Truncate(0); if err != nil {logs.Error("FileRotation ERROR: "+err.Error())}
 						_,err = file.Seek(0,0); if err != nil {logs.Error("FileRotation ERROR2: "+err.Error())}
 					}
-				}				
+				// }				
 			}
 		}
 		logs.Info("Monitor files rotated!")
