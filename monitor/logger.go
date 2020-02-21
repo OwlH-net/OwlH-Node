@@ -2,15 +2,15 @@ package monitor
 
 import (
 	"github.com/astaxie/beego/logs"
-	// "encoding/json"
-	// "io/ioutil"
 	"os"
-	// "path/filepath"
 	"owlhnode/utils"
 	"owlhnode/database"
 	"strconv"
 	"time"
+	"path/filepath"
 	"bufio"
+	"strings"
+	// "io/ioutil"
 )
 
 
@@ -91,60 +91,63 @@ func FileRotation()(){
 	for{
 		var err error
 		rotate, err := ndb.LoadMonitorFiles()
-
 		if err != nil {logs.Error("FileRotation ERROR readding rotation files from DB: "+err.Error())}
+		
 		for x := range rotate {
-			if rotate[x]["rotate"] == "Enabled"{
-
-				//delete more than 7 days
+			//Check if file exists.
+			_, err := os.Stat(rotate[x]["path"]);
+			if err==nil && rotate[x]["rotate"] == "Enabled"{
 				currentTime := time.Now()
 				fileDateModified, err := os.Stat(rotate[x]["path"]); if err != nil {logs.Error("FileRotation ERROR Checking file modification date: "+err.Error())}
 				modifiedtime := fileDateModified.ModTime()
-				// minusDays,_ := strconv.Atoi(rotate[x]["maxDays"])
-				// lastDays = currentTime.AddDate(0, 0, -minusDays)
 
-				// //delete file if is older than max days
-				// if modifiedtime.Format("2006-01-02") < lastDays.Format("2006-01-02"){
-				// 	err = os.Remove(rotate[x]["path"]); if err != nil {logs.Error("FileRotation ERROR deleting older files than max days: "+err.Error())}
-				// 	err = ndb.DeleteMonitorFile(x); if err != nil {logs.Error("FileRotation ERROR deleting older files than max days at database: "+err.Error())}
-				// }else{
-					// file, err := os.Open(rotate[x]["path"])
-					file, err := os.OpenFile(rotate[x]["path"], os.O_RDWR, 0755); if err != nil {logs.Error("FileRotation ERROR readding file: "+err.Error())}
-					defer file.Close()
+				//delete files older than maxDays
+				err = filepath.Walk(filepath.Dir(rotate[x]["path"]),
+					func(fileSearch string, info os.FileInfo, err error) error {
+					if err != nil {return err}
+					if !info.IsDir() {
+						if strings.Contains(fileSearch, filepath.Base(rotate[x]["path"])+"-"){
+							maxDays,_ := strconv.Atoi(rotate[x]["maxDays"])
+							oldFile := info.ModTime().AddDate(0, 0, maxDays)
+							if oldFile.Format("2006-01-02") < currentTime.Format("2006-01-02") {
+								err = os.Remove(filepath.Dir(rotate[x]["path"])+"/"+info.Name())
+								if err != nil {logs.Error("FileRotation Error deleting file: "+filepath.Dir(rotate[x]["path"])+"/"+info.Name())}								
+							}
+						}
+					}
+					return nil
+				})
+				if err != nil {logs.Error("FileRotation Error filepath walk finish: "+err.Error())}
+
+				file, err := os.OpenFile(rotate[x]["path"], os.O_RDWR, 0755); if err != nil {logs.Error("FileRotation ERROR readding file: "+err.Error())}
+				defer file.Close()
+				fileInfo, err := file.Stat()
 	
-					fileInfo, err := file.Stat()
-		
-					lines := 0
-					scanner := bufio.NewScanner(file)
-					for scanner.Scan() {
-						lines++
-					}
-		
+				//get number of lines for check maxLines
+				lines := 0
+				scanner := bufio.NewScanner(file)
+				for scanner.Scan() {
+					lines++
+				}
+
+				fileLines,_ := strconv.Atoi(rotate[x]["maxLines"])
+				fileSize,_ := strconv.ParseInt(rotate[x]["maxSize"], 10, 64)	
+				if lines > fileLines{
 					//CHECK MAX LINES
-					fileLines,_ := strconv.Atoi(rotate[x]["maxLines"])
-					fileSize,_ := strconv.ParseInt(rotate[x]["maxSize"], 10, 64)	
-					if lines > fileLines{
-						err = utils.BackupFullPath(rotate[x]["path"])
-						if err != nil {logs.Error("FileRotation ERROR creating backup by maxLines: "+err.Error())}
-						err = file.Truncate(0); if err != nil {logs.Error("FileRotation ERROR: "+err.Error())}
-						_,err = file.Seek(0,0); if err != nil {logs.Error("FileRotation ERROR2: "+err.Error())}
-					}
+					err = utils.BackupFullPath(rotate[x]["path"]); if err != nil {logs.Error("FileRotation ERROR creating backup by maxLines: "+err.Error())}						
+					err = file.Truncate(0); if err != nil {logs.Error("FileRotation ERROR: "+err.Error())}
+					_,err = file.Seek(0,0); if err != nil {logs.Error("FileRotation ERROR2: "+err.Error())}
+				}else if fileInfo.Size() > fileSize{
 					//CHECK FILE SIZE			
-					if fileInfo.Size() > fileSize{
-						err = utils.BackupFullPath(rotate[x]["path"])
-						if err != nil {logs.Error("FileRotation ERROR creating backup by maxSize: "+err.Error())}
-						err = file.Truncate(0); if err != nil {logs.Error("FileRotation ERROR: "+err.Error())}
-						_,err = file.Seek(0,0); if err != nil {logs.Error("FileRotation ERROR2: "+err.Error())}
-					}
+					err = utils.BackupFullPath(rotate[x]["path"]); if err != nil {logs.Error("FileRotation ERROR creating backup by maxSize: "+err.Error())}
+					err = file.Truncate(0); if err != nil {logs.Error("FileRotation ERROR: "+err.Error())}
+					_,err = file.Seek(0,0); if err != nil {logs.Error("FileRotation ERROR2: "+err.Error())}
+				}else if currentTime.Format("2006-01-02") >  modifiedtime.Format("2006-01-02"){
 					//CHECK FILE MODIFICATION DATE				
-					if currentTime.Format("2006-01-02") >  modifiedtime.Format("2006-01-02"){
-						logs.Notice("DAILY")
-						err = utils.BackupFullPath(rotate[x]["path"])
-						if err != nil {logs.Error("FileRotation ERROR creating backup by maxSize: "+err.Error())}
-						err = file.Truncate(0); if err != nil {logs.Error("FileRotation ERROR: "+err.Error())}
-						_,err = file.Seek(0,0); if err != nil {logs.Error("FileRotation ERROR2: "+err.Error())}
-					}
-				// }				
+					err = utils.BackupFullPath(rotate[x]["path"]); if err != nil {logs.Error("FileRotation ERROR creating backup by maxSize: "+err.Error())}
+					err = file.Truncate(0); if err != nil {logs.Error("FileRotation ERROR: "+err.Error())}
+					_,err = file.Seek(0,0); if err != nil {logs.Error("FileRotation ERROR2: "+err.Error())}
+				}			
 			}
 		}
 		logs.Info("Monitor files rotated!")

@@ -66,6 +66,7 @@ func BackupFullPath(path string) (err error) {
         logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error())
         return err
     }
+
     return nil
 }
 
