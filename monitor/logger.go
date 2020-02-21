@@ -154,3 +154,11 @@ func FileRotation()(){
         time.Sleep(time.Minute*1)
 	}
 }
+
+func EditRotation(anode map[string]string)(err error){
+	err = ndb.UpdateMonitorFileValue(anode["file"], "path", anode["path"]); if err != nil {logs.Error("EditRotation monitor files edit path Error: "+err.Error()); return err}
+	err = ndb.UpdateMonitorFileValue(anode["file"], "maxSize", anode["size"]); if err != nil {logs.Error("EditRotation monitor files edit maxSize Error: "+err.Error()); return err}
+	err = ndb.UpdateMonitorFileValue(anode["file"], "maxLines", anode["lines"]); if err != nil {logs.Error("EditRotation monitor files edit maxLines Error: "+err.Error()); return err}
+	err = ndb.UpdateMonitorFileValue(anode["file"], "maxDays", anode["days"]); if err != nil {logs.Error("EditRotation monitor files edit maxDays Error: "+err.Error()); return err}
+	return nil
+}

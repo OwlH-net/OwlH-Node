@@ -119,3 +119,29 @@ func (n *MonitorController) ChangeRotationStatus() {
     
     n.ServeJSON()
 }
+
+// @Title EditRotation
+// @Description Edit monitor rotation file parameters
+// @Success 200 {object} models.monitor
+// @router /editRotation [put]
+func (n *MonitorController) EditRotation() { 
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
+    if err != nil {
+        logs.Error("EditRotation Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "MONITOR"
+        anode["router"] = "@router /editRotation [put]"
+        
+        err := models.EditRotation(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }   
+    
+    n.ServeJSON()
+}
