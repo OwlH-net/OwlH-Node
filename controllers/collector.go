@@ -17,10 +17,12 @@ type CollectorController struct {
 // @Failure 403 body is empty
 // @router /play [get]
 func (n *CollectorController) PlayCollector() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
         err := models.PlayCollector()
         n.Data["json"] = map[string]string{"ack": "true"}
@@ -38,10 +40,12 @@ func (n *CollectorController) PlayCollector() {
 // @Failure 403 body is empty
 // @router /stop [get]
 func (n *CollectorController) StopCollector() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
         err := models.StopCollector()
         n.Data["json"] = map[string]string{"ack": "true"}
@@ -59,10 +63,12 @@ func (n *CollectorController) StopCollector() {
 // @Failure 403 body is empty
 // @router /show [get]
 func (n *CollectorController) ShowCollector() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
         data, err := models.ShowCollector()
         n.Data["json"] = data

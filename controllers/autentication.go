@@ -27,17 +27,85 @@ func (n *AutenticationController) CreateMasterToken() {
 }
 
 // @Title AddUserFromMaster
-// @Description Get Master user
+// @Description Add users from Master
 // @router /addUser [put]
 func (n *AutenticationController) AddUserFromMaster() {
-	err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
+	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         logs.Error("AddUserFromMaster Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 		err := models.AddUserFromMaster(anode)
+		n.Data["json"] = map[string]string{"ack": "true"}
+		if err != nil {
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+		n.ServeJSON()
+	}
+}
+
+// @Title AddRolesFromMaster
+// @Description Add roles from Master
+// @router /addRole [put]
+func (n *AutenticationController) AddRolesFromMaster() {
+	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        logs.Error("AddRolesFromMaster Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{ 
+		var anode map[string]map[string]string
+		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+		err := models.AddRolesFromMaster(anode)
+		n.Data["json"] = map[string]string{"ack": "true"}
+		if err != nil {
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+		n.ServeJSON()
+	}
+}
+
+// @Title AddGroupFromMaster
+// @Description Add groups from Master
+// @router /addGroup [put]
+func (n *AutenticationController) AddGroupFromMaster() {
+	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        logs.Error("AddGroupFromMaster Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{ 
+		var anode map[string]map[string]string
+		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+		err := models.AddGroupFromMaster(anode)
+		n.Data["json"] = map[string]string{"ack": "true"}
+		if err != nil {
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+		n.ServeJSON()
+	}
+}
+
+// @Title AddUserGroupRolesFromMaster
+// @Description Add userGroupRoles from Master
+// @router /addUgr [put]
+func (n *AutenticationController) AddUserGroupRolesFromMaster() {
+	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        logs.Error("AddUserGroupRolesFromMaster Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{ 
+		var anode map[string]map[string]string
+		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+		err := models.AddUserGroupRolesFromMaster(anode)
 		n.Data["json"] = map[string]string{"ack": "true"}
 		if err != nil {
 			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

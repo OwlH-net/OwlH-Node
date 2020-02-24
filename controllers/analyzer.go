@@ -18,10 +18,12 @@ type AnalyzerController struct {
 // @Success 200 {object} models.analyzer
 // @router /pingAnalyzer [get]
 func (n *AnalyzerController) PingAnalyzer() {  
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         logs.Error("PingAnalyzer Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
         data, err := models.PingAnalyzer()
         n.Data["json"] = data
@@ -38,10 +40,12 @@ func (n *AnalyzerController) PingAnalyzer() {
 // @Success 200 {object} models.analyzer
 // @router /changeAnalyzerStatus [put]
 func (n *AnalyzerController) ChangeAnalyzerStatus() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -68,10 +72,12 @@ func (n *AnalyzerController) ChangeAnalyzerStatus() {
 // @router /sync [put]
 func (n *AnalyzerController) SyncAnalyzer() { 
     
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("user"))
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         logs.Error("SyncAnalyzer Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
         var anode map[string][]byte
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

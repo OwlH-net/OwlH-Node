@@ -379,3 +379,131 @@ func UpdateUsers(uuid string, param string, value string) (err error) {
     if (err != nil){logs.Error("UpdateUsers UPDATE error: "+err.Error()); return err}
     return nil
 }
+
+
+func GetUserGroupRoles()(groups map[string]map[string]string, err error){
+    if Nodedb == nil { logs.Error("no access to database"); return nil, err}
+    var allugr = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    
+    sql := "select ugr_uniqueid, ugr_param, ugr_value from usergrouproles;"
+    rows, err := Nodedb.Query(sql)
+    if err != nil { logs.Error("GetUserGroupRoles Nodedb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetUserGroupRoles rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allugr[uniqid] == nil { allugr[uniqid] = map[string]string{}}
+        allugr[uniqid][param]=value
+    } 
+    return allugr, nil
+}
+
+func GetUserGroup()(groups map[string]map[string]string, err error){
+    if Nodedb == nil { logs.Error("no access to database"); return nil, err}
+    var allgroups = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    
+    sql := "select group_uniqueid, group_param, group_value from userGroups;"
+    rows, err := Nodedb.Query(sql)
+    if err != nil { logs.Error("GetUserGroup Nodedb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetUserGroup rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
+        allgroups[uniqid][param]=value
+    } 
+    return allgroups, nil
+}
+
+
+func GetUserRole()(groups map[string]map[string]string, err error){
+    if Nodedb == nil { logs.Error("no access to database"); return nil, err}
+    var allroles = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    
+    sql := "select role_uniqueid, role_param, role_value from userRoles;"
+    rows, err := Nodedb.Query(sql)
+    if err != nil { logs.Error("GetUserRole Nodedb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetUserRole rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allroles[uniqid] == nil { allroles[uniqid] = map[string]string{}}
+        allroles[uniqid][param]=value
+    } 
+    return allroles, nil
+}
+
+func UpdateUserRoles(uuid string, param string, value string) (err error) {
+    updateNodeRoles, err := Nodedb.Prepare("update userRoles set role_value = ? where role_uniqueid = ? and role_param = ?;")
+    if (err != nil){logs.Error("UpdateUserRoles UPDATE prepare error: "+err.Error()); return err}
+    
+    _, err = updateNodeRoles.Exec(&value, &uuid, &param)
+    defer updateNodeRoles.Close()
+    if (err != nil){logs.Error("UpdateUserRoles UPDATE error: "+err.Error()); return err}
+    return nil
+}
+
+func UpdateUserGroup(uuid string, param string, value string) (err error) {
+    updateNodeGroup, err := Nodedb.Prepare("update userGroups set group_value = ? where group_uniqueid = ? and group_param = ?;")
+    if (err != nil){logs.Error("UpdateUserGroup UPDATE prepare error: "+err.Error()); return err}
+    
+    _, err = updateNodeGroup.Exec(&value, &uuid, &param)
+    defer updateNodeGroup.Close()
+    if (err != nil){logs.Error("UpdateUserGroup UPDATE error: "+err.Error()); return err}
+    return nil
+}
+
+func UpdateUserGroupRoles(uuid string, param string, value string) (err error) {
+    updateNodeUserGroupRoles, err := Nodedb.Prepare("update usergrouproles set ugr_value = ? where ugr_uniqueid = ? and ugr_param = ?;")
+    if (err != nil){logs.Error("UpdateUserGroupRoles UPDATE prepare error: "+err.Error()); return err}
+    
+    _, err = updateNodeUserGroupRoles.Exec(&value, &uuid, &param)
+    defer updateNodeUserGroupRoles.Close()
+    if (err != nil){logs.Error("UpdateUserGroupRoles UPDATE error: "+err.Error()); return err}
+    return nil
+}
+
+func InsertUserGroup(uuid string, param string, value string)(err error){
+    dataValues, err := Nodedb.Prepare("insert into userGroups(group_uniqueid, group_param, group_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertUserGroup prepare error: "+err.Error()); return err}
+
+    _, err = dataValues.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertUserGroup exec error: "+err.Error()); return err}
+
+    defer dataValues.Close()
+    
+    return nil
+}
+
+func InsertUserRole(uuid string, param string, value string)(err error){
+    dataValues, err := Nodedb.Prepare("insert into userRoles(role_uniqueid, role_param, role_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertRoleData prepare error: "+err.Error()); return err}
+
+    _, err = dataValues.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertRoleData exec error: "+err.Error()); return err}
+
+    defer dataValues.Close()
+    
+    return nil
+}
+
+func InsertUserGroupRole(uuid string, param string, value string)(err error){
+    dataValues, err := Nodedb.Prepare("insert into usergrouproles(ugr_uniqueid, ugr_param, ugr_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertUserGroupRole prepare error: "+err.Error()); return err}
+
+    _, err = dataValues.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertUserGroupRole exec error: "+err.Error()); return err}
+
+    defer dataValues.Close()
+    
+    return nil
+}

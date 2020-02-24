@@ -162,7 +162,6 @@ func readpreexcludes() {
         logs.Error("pre filters to json -> Unmarshal error: %s", err.Error())
     }
     logs.Info("prefilters loaded")
-    logs.Warn(prefilters)
 }
 
 func readpostexcludes() {
@@ -179,7 +178,6 @@ func readpostexcludes() {
         logs.Error("post filters to json -> Unmarshal error: %s", err.Error())
     }
     logs.Info("postfilters loaded")
-    logs.Warn(postfilters)
 }
 
 

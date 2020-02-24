@@ -47,3 +47,66 @@ func AddUserFromMaster(user map[string]map[string]string) (err error) {
     changecontrol.InsertChangeControl(cc)
     return err
 }
+
+func AddRolesFromMaster(roles map[string]map[string]string) (err error) {
+    logs.Info("============")
+    logs.Info("AUTENTICATION - AddRolesFromMaster")
+    cc := make(map[string]string)
+    
+    err = autentication.AddRolesFromMaster(roles)
+    
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Add roles from Master"
+
+
+    changecontrol.InsertChangeControl(cc)
+    return err
+}
+
+func AddGroupFromMaster(groups map[string]map[string]string) (err error) {
+    logs.Info("============")
+    logs.Info("AUTENTICATION - AddGroupFromMaster")
+    cc := make(map[string]string)
+    
+    err = autentication.AddGroupFromMaster(groups)
+    
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Add groups from Master"
+
+
+    changecontrol.InsertChangeControl(cc)
+    return err
+}
+
+func AddUserGroupRolesFromMaster(ugr map[string]map[string]string) (err error) {
+    logs.Info("============")
+    logs.Info("AUTENTICATION - AddUserGroupRolesFromMaster")
+    cc := make(map[string]string)
+    
+    err = autentication.AddUserGroupRolesFromMaster(ugr)
+    
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Add userGroupRoles from Master"
+
+
+    changecontrol.InsertChangeControl(cc)
+    return err
+}

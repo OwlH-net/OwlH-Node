@@ -33,25 +33,25 @@ func Encode(secret string) (val string, err error) {
 	return tokenString, err
 }
 
-func CheckToken(token string, user string, pass string)(err error){	
+func CheckToken(token string, user string, pass string, permission string)(hasPrivileges bool, err error){	
 	//check token
 	masters,err := ndb.GetMasters()
 	for x := range masters{
 		tkn, err := Encode(masters[x]["secret"])
 		if err != nil {
-			logs.Error("Error checking Master token: %s", err); return err
+			logs.Error("Error checking Master token: %s", err); return false, err
 		}else{
 			if token == tkn {
-				status,err := UserPrivilegeValidation(user); if err != nil {logs.Error("Privileges error: %s",err); return err}
+				status,err := UserPrivilegeValidation(user, permission); if err != nil {logs.Error("Privileges error: %s",err); return false,err}
 					if status{
-						return nil
+						return true,nil
 					}else{
-						return errors.New("This user has not enough privileges level")
+						return false,errors.New("This user has not enough privileges level")
 					}
 			}else{
-				return errors.New("The token retrieved is false")
+				return false,errors.New("The token retrieved is false")
 			}
 		}		
 	}
-	return errors.New("There are no token.")
+	return false,errors.New("There are no token.")
 }

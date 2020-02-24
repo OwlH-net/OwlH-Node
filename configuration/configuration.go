@@ -187,6 +187,30 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "userGroups"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE userGroups (group_id integer PRIMARY KEY AUTOINCREMENT,group_uniqueid text NOT NULL,group_param text NOT NULL,group_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "userRoles"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE userRoles (role_id integer PRIMARY KEY AUTOINCREMENT,role_uniqueid text NOT NULL,role_param text NOT NULL,role_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "usergrouproles"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE usergrouproles (ugr_id integer PRIMARY KEY AUTOINCREMENT,ugr_uniqueid text NOT NULL,ugr_param text NOT NULL,ugr_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "servers"
     table.Tconn = "stapConn"
     table.Tcreate = "CREATE TABLE servers (server_id integer PRIMARY KEY AUTOINCREMENT,server_uniqueid text NOT NULL,server_param text NOT NULL,server_value text NOT NULL);"
