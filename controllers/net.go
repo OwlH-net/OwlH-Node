@@ -37,18 +37,26 @@ func (n *NetController) GetNetworkData() {
 // @Description get network values selected by user
 // @router /values [get]
 func (n *NetController) LoadNetworkValuesSelected() {
+    values := make(map[string]map[string]string)
+    values["node"] = map[string]string{}
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+        values["node"]["ack"] = "false"
+        values["node"]["error"] = err.Error()
+        values["node"]["token"] = "none"
+        n.Data["json"] = values
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        values["node"]["ack"] = "false"
+        values["node"]["permissions"] = "none"
+        n.Data["json"] = values
     }else{         
         values,err := models.LoadNetworkValuesSelected()
         
         n.Data["json"] = values
         if err != nil {
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+            values["node"]["ack"] = "false"
+            values["node"]["error"] = err.Error()
+            n.Data["json"] = values
         }
     }
     n.ServeJSON()

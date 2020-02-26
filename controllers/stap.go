@@ -48,12 +48,18 @@ func (n *StapController) AddServer() {
 // @Success 200 {object} models.stap
 // @router / [get]
 func (n *StapController) GetAllServers() {
+    values := make(map[string]map[string]string)
+    values["node"] = map[string]string{} 
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+        values["node"]["ack"] = "false"
+        values["node"]["error"] = err.Error()
+        values["node"]["token"] = "none"
+        n.Data["json"] = values
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        values["node"]["ack"] = "false"
+        values["node"]["permissions"] = "none"
+        n.Data["json"] = values
     }else{         
         logs.Info ("stap controller -> GetAllServers")
     
@@ -62,8 +68,9 @@ func (n *StapController) GetAllServers() {
         n.Data["json"] = servers
     
         if err != nil {
-            logs.Info("GetAllServers JSON RECEIVED -- ERROR : %s", err.Error())
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+            values["node"]["ack"] = "false"
+            values["node"]["error"] = err.Error()
+            n.Data["json"] = values
         }
     }
     n.ServeJSON()
@@ -74,12 +81,17 @@ func (n *StapController) GetAllServers() {
 // @Success 200 {object} models.stap
 // @router /server/:uuid [get]
 func (n *StapController) GetServer() {
+    values := make(map[string]map[string]string)
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+        values["node"]["ack"] = "false"
+        values["node"]["error"] = err.Error()
+        values["node"]["token"] = "none"
+        n.Data["json"] = values
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        values["node"]["ack"] = "false"
+        values["node"]["permissions"] = "none"
+        n.Data["json"] = values
     }else{         
         logs.Info ("stap controller -> GetServer")
         uuid := n.GetString(":uuid") 
@@ -88,8 +100,9 @@ func (n *StapController) GetServer() {
         n.Data["json"] = server
     
         if err != nil {
-            logs.Info("GetServer JSON RECEIVED -- ERROR : %s", err.Error())
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+            values["node"]["ack"] = "false"
+            values["node"]["permissions"] = "none"
+            n.Data["json"] = values
         }
     }
     n.ServeJSON()

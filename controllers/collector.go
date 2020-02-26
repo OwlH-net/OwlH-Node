@@ -71,7 +71,7 @@ func (n *CollectorController) ShowCollector() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
         data, err := models.ShowCollector()
-        n.Data["json"] = data
+        n.Data["json"] =  map[string]string{"data": data}
     
         if err != nil {
             logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
