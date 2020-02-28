@@ -18,10 +18,11 @@ type PluginController struct {
 func (n *PluginController) ChangeServiceStatus() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Plugin Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -44,10 +45,11 @@ func (n *PluginController) ChangeServiceStatus() {
 func (n *PluginController) ChangeMainServiceStatus() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Plugin Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -69,10 +71,11 @@ func (n *PluginController) ChangeMainServiceStatus() {
 func (n *PluginController) DeleteService() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Plugin Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -95,10 +98,11 @@ func (n *PluginController) DeleteService() {
 func (n *PluginController) AddPluginService() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Plugin Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -121,10 +125,11 @@ func (n *PluginController) AddPluginService() {
 func (n *PluginController) SaveSuricataInterface() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Plugin Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -146,10 +151,11 @@ func (n *PluginController) SaveSuricataInterface() {
 func (n *PluginController) DeployStapService() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Plugin Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -171,10 +177,11 @@ func (n *PluginController) DeployStapService() {
 func (n *PluginController) StopStapService() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Plugin Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -196,10 +203,11 @@ func (n *PluginController) StopStapService() {
 func (n *PluginController) ModifyStapValues() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Plugin Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -221,10 +229,11 @@ func (n *PluginController) ModifyStapValues() {
 func (n *PluginController) ChangeSuricataTable() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Plugin Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

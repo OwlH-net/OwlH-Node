@@ -48,10 +48,11 @@ func (n *SuricataController) Get() {
 func (n *SuricataController) SetBPF() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Suricata Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -80,10 +81,11 @@ func (n *SuricataController) SetBPF() {
 func (n *SuricataController) SyncRulesetFromMaster() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Suricata Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string][]byte
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -114,10 +116,11 @@ func (n *SuricataController) SyncRulesetFromMaster() {
 func (n *SuricataController) SaveConfigFile() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Suricata Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]map[string][]byte
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -147,10 +150,11 @@ func (n *SuricataController) SaveConfigFile() {
 func (n *SuricataController) RunSuricata() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Suricata Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         anode["action"] = "PUT"
@@ -179,10 +183,11 @@ func (n *SuricataController) RunSuricata() {
 func (n *SuricataController) StopSuricata() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Suricata Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         anode["action"] = "PUT"
@@ -210,10 +215,11 @@ func (n *SuricataController) StopSuricata() {
 func (n *SuricataController) GetSuricataServices() {   
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Suricata Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         servicesSuricata,err := models.GetSuricataServices()
         n.Data["json"] = servicesSuricata
@@ -234,10 +240,11 @@ func (n *SuricataController) GetSuricataServices() {
 func (n *SuricataController) StartSuricataMainConf() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Suricata Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -266,10 +273,11 @@ func (n *SuricataController) StartSuricataMainConf() {
 func (n *SuricataController) StopSuricataMainConf() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Suricata Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -298,10 +306,11 @@ func (n *SuricataController) StopSuricataMainConf() {
 func (n *SuricataController) KillSuricataMainConf() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Suricata Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -330,10 +339,11 @@ func (n *SuricataController) KillSuricataMainConf() {
 func (n *SuricataController) ReloadSuricataMainConf() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Suricata Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

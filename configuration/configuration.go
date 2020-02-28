@@ -265,7 +265,7 @@ func checkFields()(ok bool){
     field.Ftable     = "users"
     field.Fquery     = "select user_param from users where user_param='type'"
     field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','type','local')"
-    field.Fname      = "user - admin"
+    field.Fname      = "type - local"
     ok = CheckField(field)
     if !ok {
         return false

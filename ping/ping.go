@@ -233,17 +233,8 @@ func SaveNodeInformation(anode map[string]map[string]string)(err error) {
     // nodeData, err := ndb.GetNodeData()
     if err != nil { logs.Error("SaveNodeInformation Error getting node data: "+err.Error()); return err }
     for x := range anode {
-        // for y := range nodeData {
-        //     if x != y || anode[x]["ip"] == nodeData[y]["ip"] || anode[x]["port"] == nodeData[y]["port"] || anode[x]["name"] == nodeData[y]["name"] {
-                // err = ndb.UpdateNodeData(x, "name", anode[x]["name"])
-                // if err != nil { logs.Error("SaveNodeInformation Error updating node name: "+err.Error()); return err }
-                // err = ndb.UpdateNodeData(x, "ip", anode[x]["ip"])
-                // if err != nil { logs.Error("SaveNodeInformation Error updating node ip: "+err.Error()); return err }
-                // err = ndb.UpdateNodeData(x, "port", anode[x]["port"])
-                // if err != nil { logs.Error("SaveNodeInformation Error updating node port: "+err.Error()); return err }
         err = ndb.DeleteNodeInformation()
         if err != nil { logs.Error("SaveNodeInformation Error updating node values: "+err.Error()); return err }
-
         err = ndb.InsertNodeData(x,"ip",anode[x]["ip"])
         if err != nil { logs.Error("SaveNodeInformation Error inserting node ip: "+err.Error()); return err }
         err = ndb.InsertNodeData(x,"name",anode[x]["name"])
@@ -256,10 +247,12 @@ func SaveNodeInformation(anode map[string]map[string]string)(err error) {
     return nil
 }
 
-func DeleteNode()(err error) {
+func DeleteNode(masterID string)(err error) {
     //delete node information
     err = ndb.DeleteNodeInformation()
     if err != nil { logs.Error("DeleteNode Error deleting node data: "+err.Error()); return err }
+    err = ndb.DeleteMastesInformation(masterID)
+    if err != nil { logs.Error("DeleteNode Error deleting master data: "+err.Error()); return err }
     
     return err
 }

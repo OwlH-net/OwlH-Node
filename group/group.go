@@ -19,10 +19,6 @@ func SyncSuricataGroupValues(data map[string]string) (err error) {
 }
 
 func SuricataGroupService(data map[string]string) (err error) {
-	logs.Debug(data)
-	logs.Debug(data)
-	logs.Debug(data)
-	logs.Debug(data)
 	group,err := ndb.GetAllGroupData()
 	if err != nil {logs.Error("SuricataGroupService Error getting Suricata group values: %s", err.Error());return err}
 

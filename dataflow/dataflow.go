@@ -115,7 +115,6 @@ func SaveVxLAN(anode map[string]string)(err error) {
 }
 
 func SaveSocketToNetworkSelected(anode map[string]string)(err error) {
-    logs.Notice(anode["uuidNode"])
     return nil
 }
 

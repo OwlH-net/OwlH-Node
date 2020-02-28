@@ -20,9 +20,10 @@ func (n *GroupController) SyncSuricataGroupValues() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         logs.Error("Group Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -45,9 +46,10 @@ func (n *GroupController) SuricataGroupService() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         logs.Error("Group Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

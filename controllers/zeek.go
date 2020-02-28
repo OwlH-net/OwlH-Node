@@ -20,10 +20,11 @@ type ZeekController struct {
 func (n *ZeekController) Get() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+        logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         logs.Info ("Zeek controller -> GET")
         mstatus,err := models.GetZeek()
@@ -44,10 +45,11 @@ func (n *ZeekController) Get() {
 func (n *ZeekController) Set() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         logs.Info ("Zeek controller -> PUT")
         var zeekdata zeek.Zeek
@@ -77,10 +79,11 @@ func (n *ZeekController) Set() {
 func (n *ZeekController) RunZeek() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         logs.Info("RunZeek -> In")
         anode := map[string]string{}
@@ -111,10 +114,11 @@ func (n *ZeekController) RunZeek() {
 func (n *ZeekController) StopZeek() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         logs.Info("StopZeek -> In")
         var anode map[string]string
@@ -144,10 +148,11 @@ func (n *ZeekController) StopZeek() {
 func (n *ZeekController) ChangeZeekMode() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -171,10 +176,11 @@ func (n *ZeekController) ChangeZeekMode() {
 func (n *ZeekController) AddClusterValue() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -198,10 +204,11 @@ func (n *ZeekController) AddClusterValue() {
 func (n *ZeekController) PingCluster() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         data,err := models.PingCluster()
         n.Data["json"] = data
@@ -219,10 +226,11 @@ func (n *ZeekController) PingCluster() {
 func (n *ZeekController) EditClusterValue() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -245,10 +253,11 @@ func (n *ZeekController) EditClusterValue() {
 func (n *ZeekController) DeleteClusterValue() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -271,10 +280,11 @@ func (n *ZeekController) DeleteClusterValue() {
 func (n *ZeekController) SyncCluster() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         anode := map[string]string{}
         // var anode map[string]string
@@ -299,10 +309,11 @@ func (n *ZeekController) SyncCluster() {
 func (n *ZeekController) SavePolicyFiles() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]map[string][]byte
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -331,10 +342,11 @@ func (n *ZeekController) SavePolicyFiles() {
 func (n *ZeekController) SyncClusterFile() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         anode := map[string][]byte{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -362,10 +374,11 @@ func (n *ZeekController) SyncClusterFile() {
 func (n *ZeekController) LaunchZeekMainConf() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         anode := map[string]string{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -411,10 +424,11 @@ func (n *ZeekController) LaunchZeekMainConf() {
 func (n *ZeekController) SyncZeekValues() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Zeek Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         anode := map[string]string{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

@@ -109,7 +109,6 @@ func ReloadFilesData() (data map[string]map[string]string, err error) {
         sendBackArray["wazuh"][wazuhFiles[x]["path"]] = wazuhFiles[x]["size"]
     }
 
-    logs.Notice(sendBackArray)
     return sendBackArray,nil
 }
 

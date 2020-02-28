@@ -18,25 +18,18 @@ type PortsController struct {
 // @Success 200 {object} models.ports
 // @router /PingPorts [get]
 func (n *PortsController) PingPorts() {
-    values := make(map[string]map[string]string)
-    values["node"] = map[string]string{} 
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        values["node"]["ack"] = "false"
-        values["node"]["error"] = err.Error()
-        values["node"]["token"] = "none"
-        n.Data["json"] = values
-    }else if !permissions{
-        values["node"]["ack"] = "false"
-        values["node"]["permissions"] = "none"
-        n.Data["json"] = values
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         data, err := models.PingPorts()
         n.Data["json"] = data
         if err != nil {
-            values["node"]["ack"] = "false"
-            values["node"]["error"] = err.Error()
-            n.Data["json"] = values
+            logs.Info("PingPorts OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
     n.ServeJSON()
@@ -47,27 +40,19 @@ func (n *PortsController) PingPorts() {
 // @Success 200 {object} models.ports
 // @router / [get]
 func (n *PortsController) ShowPorts() {
-    values := make(map[string]map[string]string)
-    values["node"] = map[string]string{} 
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         logs.Error("Error validating token from master")
-        values["node"]["ack"] = "false"
-        values["node"]["error"] = err.Error()
-        values["node"]["token"] = "none"
-        n.Data["json"] = values
-    }else if !permissions{
-        values["node"]["ack"] = "false"
-        values["node"]["permissions"] = "none"
-        n.Data["json"] = values
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         logs.Info ("ports controller -> GET")
         data,err := models.ShowPorts()
         n.Data["json"] = data
         if err != nil {
-            values["node"]["ack"] = "false"
-            values["node"]["error"] = err.Error()
-            n.Data["json"] = values
+            logs.Info("ShowPorts OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
     n.ServeJSON()
@@ -82,8 +67,8 @@ func (n *PortsController) ChangeMode() {
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -110,8 +95,8 @@ func (n *PortsController) ChangeStatus() {
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -138,12 +123,12 @@ func (n *PortsController) ChangeStatus() {
 // @Success 200 {object} models.ports
 // @router /delete [put]
 func (n *PortsController) DeletePorts() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -160,17 +145,18 @@ func (n *PortsController) DeletePorts() {
     n.ServeJSON()
 }
 
+
 // @Title DeleteAllPorts
 // @Description delete all ports
 // @Success 200 {object} models.ports
-// @router /deleteAll [delete]
+// @router /deleteAll [put]
 func (n *PortsController) DeleteAllPorts() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         anode["action"] = "PUT"

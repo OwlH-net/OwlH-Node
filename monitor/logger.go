@@ -79,7 +79,6 @@ func Logger() {
 	// if err != nil {logs.Error("Error getting monitor files for logger: "+err.Error())}
 	// for id,path := range data {
 	// 	for path,_ := range path {
-	// 		logs.Notice(data[id][path])
 			logs.NewLogger(10000)
 			logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 			// logs.SetLogger(logs.AdapterFile,`{"filename":"`+data[id][path]+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)

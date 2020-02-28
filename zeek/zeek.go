@@ -546,7 +546,6 @@ func SyncClusterFile(anode map[string][]byte) (err error) {
 //     cmd := zeekPath["zeek"][anode["param"]]
 //     if err != nil{logs.Error("zeek/LaunchZeekMainConf Error getting main.conf file content: "+err.Error()); return err}
 
-//     logs.Debug(path+" "+cmd)
 //     _,err = exec.Command(command, param, path, cmd).Output()
 //     if err != nil {logs.Error("zeek/LaunchZeekMainCon Error starting Zeek from main conf: "+err.Error());return err}
 

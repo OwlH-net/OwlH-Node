@@ -16,7 +16,7 @@ func HashPassword(password string) (string, error) {
 
 func CheckPasswordHash(password string, hash string) (bool, error) {
     err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))	
-	if err != nil {logs.Error(err); return false, err}
+	if err != nil {logs.Error("validation/CheckPasswordHash "+err.Error()); return false, err}
     return true, nil
 }
 
@@ -33,21 +33,25 @@ func Encode(secret string) (val string, err error) {
 	return tokenString, err
 }
 
-func CheckToken(token string, user string, pass string, permission string)(hasPrivileges bool, err error){	
+func CheckToken(token string, userUuid string, masterUuid string, permission string)(hasPrivileges bool, err error){	
 	//check token
-	masters,err := ndb.GetMasters()
+	masters,err := ndb.GetMasters(); if err != nil {logs.Error("CheckToken error getting master data: %s", err); return false, err}
 	for x := range masters{
 		tkn, err := Encode(masters[x]["secret"])
 		if err != nil {
 			logs.Error("Error checking Master token: %s", err); return false, err
 		}else{
 			if token == tkn {
-				status,err := UserPrivilegeValidation(user, permission); if err != nil {logs.Error("Privileges error: %s",err); return false,err}
+				if userUuid == "none"{
+					return true,nil
+				}else{
+					status,err := UserPrivilegeValidation(userUuid, permission); if err != nil {logs.Error("Privileges error: %s",err); return false,err}
 					if status{
 						return true,nil
 					}else{
 						return false,errors.New("This user has not enough privileges level")
 					}
+				}
 			}else{
 				return false,errors.New("The token retrieved is false")
 			}

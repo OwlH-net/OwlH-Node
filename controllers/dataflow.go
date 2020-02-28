@@ -22,9 +22,9 @@ func (n *DataflowController) ChangeDataflowValues() {
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{    
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
         err := models.ChangeDataflowValues(anode)
@@ -46,25 +46,17 @@ func (n *DataflowController) ChangeDataflowValues() {
 // @Failure 403 body is empty
 // @router /loadDataflowValues [get]
 func (n *DataflowController) LoadDataflowValues() {
-    values := make(map[string]map[string]string)
-    values["node"] = map[string]string{}
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        values["node"]["ack"] = "false"
-        values["node"]["error"] = err.Error()
-        values["node"]["token"] = "none"
-        n.Data["json"] = values
-    }else if !permissions{
-        values["node"]["ack"] = "false"
-        values["node"]["permissions"] = "none"
-        n.Data["json"] = values
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         data,err := models.LoadDataflowValues()
         n.Data["json"] = data
         if err != nil {
-            values["node"]["ack"] = "false"
-            values["node"]["error"] = err.Error()
-            n.Data["json"] = values
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
     n.ServeJSON()
@@ -80,8 +72,8 @@ func (n *DataflowController) SaveSocketToNetwork() {
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
@@ -107,8 +99,8 @@ func (n *DataflowController) SaveNewLocal() {
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
@@ -134,8 +126,8 @@ func (n *DataflowController) SaveVxLAN() {
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
@@ -161,8 +153,8 @@ func (n *DataflowController) SaveSocketToNetworkSelected() {
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
@@ -188,8 +180,8 @@ func (n *DataflowController) DeleteDataFlowValueSelected() {
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    

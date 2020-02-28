@@ -19,10 +19,11 @@ type WazuhController struct {
 func (n *WazuhController) Get() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())        
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         logs.Info ("Wazuh controller -> GET")
         mstatus, err := models.GetWazuh()
@@ -43,10 +44,11 @@ func (n *WazuhController) Get() {
 func (n *WazuhController) RunWazuh() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         logs.Info("RunWazuh -> In")
         var anode map[string]string
@@ -77,10 +79,11 @@ func (n *WazuhController) RunWazuh() {
 func (n *WazuhController) StopWazuh() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         logs.Info("StopWazuh -> In")
         var anode map[string]string
@@ -110,10 +113,11 @@ func (n *WazuhController) StopWazuh() {
 func (n *WazuhController) PingWazuhFiles() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         files, err := models.PingWazuhFiles()
         n.Data["json"] = files
@@ -132,10 +136,11 @@ func (n *WazuhController) PingWazuhFiles() {
 func (n *WazuhController) DeleteWazuhFile() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]interface{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -158,10 +163,11 @@ func (n *WazuhController) DeleteWazuhFile() {
 func (n *WazuhController) AddWazuhFile() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]interface{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -184,10 +190,11 @@ func (n *WazuhController) AddWazuhFile() {
 func (n *WazuhController) LoadFileLastLines() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -210,10 +217,11 @@ func (n *WazuhController) LoadFileLastLines() {
 func (n *WazuhController) SaveFileContentWazuh() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

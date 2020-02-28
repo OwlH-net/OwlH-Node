@@ -83,8 +83,8 @@ func SaveNodeInformation(anode map[string]map[string]string)(err error) {
     return err
 }
 
-func DeleteNode()(err error) {
-    err = ping.DeleteNode()
+func DeleteNode(masterID string)(err error) {
+    err = ping.DeleteNode(masterID)
     //changecontrol.ChangeControlInsertData(err, "DeleteNode")    
     return err
 }

@@ -9,6 +9,7 @@ import (
     "time"
     "owlhnode/database"
     "owlhnode/utils"
+    "errors"
     // "github.com/pbnjay/memory"
     "github.com/shirou/gopsutil/cpu"
     "github.com/shirou/gopsutil/disk"
@@ -150,11 +151,18 @@ func bToMb(b uint64) uint64 {
 }
 
 func AddMonitorFile(anode map[string]string)(err error) {
+    files,err := ndb.LoadMonitorFiles()
+    if err != nil {logs.Error("AddMonitorFile error getting files from database: %s", err.Error());return err}
+    for x := range files{
+        if files[x]["path"] == anode["path"]{
+            return errors.New("Cannot add duplicated files")
+        }
+    }
     uuid := utils.Generate()
     err = ndb.InsertMonitorValue(uuid, "path", anode["path"]); if err != nil {logs.Error("AddMonitorFile error inserting path into database: %s", err.Error());return err}
     err = ndb.InsertMonitorValue(uuid, "maxSize", anode["maxSize"]); if err != nil {logs.Error("AddMonitorFile error inserting maxSize into database: %s", err.Error());return err}
     err = ndb.InsertMonitorValue(uuid, "maxDays", anode["maxDays"]); if err != nil {logs.Error("AddMonitorFile error inserting maxDays into database: %s", err.Error());return err}
-    err = ndb.InsertMonitorValue(uuid, "rotate", "Enabled"); if err != nil {logs.Error("AddMonitorFile error inserting rotate into database: %s", err.Error());return err}
+    err = ndb.InsertMonitorValue(uuid, "rotate", anode["rotate"]); if err != nil {logs.Error("AddMonitorFile error inserting rotate into database: %s", err.Error());return err}
     err = ndb.InsertMonitorValue(uuid, "maxLines", anode["maxLines"]); if err != nil {logs.Error("AddMonitorFile error inserting maxLines into database: %s", err.Error());return err}
     
     return nil

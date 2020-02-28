@@ -13,6 +13,7 @@ import (
 // Check user privileges
 func UserPrivilegeValidation(uuid string, permission string) (val bool, err error) {
 	allPermissions, err := ndb.GetUserGroupRoles(); if err != nil {logs.Error("UserPrivilegeValidation error getting permissions: %s",err); return false, err}
+
 	for x := range allPermissions{
 		if allPermissions[x]["user"] == uuid{
 			//Compare with role permissions

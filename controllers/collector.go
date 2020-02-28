@@ -19,10 +19,11 @@ type CollectorController struct {
 func (n *CollectorController) PlayCollector() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("PlayCollector Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{    
         err := models.PlayCollector()
         n.Data["json"] = map[string]string{"ack": "true"}
@@ -42,10 +43,11 @@ func (n *CollectorController) PlayCollector() {
 func (n *CollectorController) StopCollector() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("StopCollector Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{    
         err := models.StopCollector()
         n.Data["json"] = map[string]string{"ack": "true"}
@@ -65,10 +67,11 @@ func (n *CollectorController) StopCollector() {
 func (n *CollectorController) ShowCollector() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error validating token from master")
+        logs.Error("ShowCollector Error validating token from master")
+logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{    
         data, err := models.ShowCollector()
         n.Data["json"] =  map[string]string{"data": data}

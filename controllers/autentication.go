@@ -21,6 +21,7 @@ func (n *AutenticationController) CreateMasterToken() {
 	token,err := models.CreateMasterToken(anode)
 	n.Data["json"] = map[string]string{"ack": "true", "token": token}
 	if err != nil {
+		logs.Error(err.Error())
 		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
     n.ServeJSON()
@@ -30,12 +31,14 @@ func (n *AutenticationController) CreateMasterToken() {
 // @Description Add users from Master
 // @router /addUser [put]
 func (n *AutenticationController) AddUserFromMaster() {
-	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
+	logs.Notice(permissions)
     if err != nil {
         logs.Error("AddUserFromMaster Error validating token from master")
+        logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -52,12 +55,15 @@ func (n *AutenticationController) AddUserFromMaster() {
 // @Description Add roles from Master
 // @router /addRole [put]
 func (n *AutenticationController) AddRolesFromMaster() {
-	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
+	logs.Notice(permissions)
     if err != nil {
         logs.Error("AddRolesFromMaster Error validating token from master")
+        logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+        logs.Error("Not enough permissions")
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -74,12 +80,14 @@ func (n *AutenticationController) AddRolesFromMaster() {
 // @Description Add groups from Master
 // @router /addGroup [put]
 func (n *AutenticationController) AddGroupFromMaster() {
-	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
+	logs.Notice(permissions)
     if err != nil {
         logs.Error("AddGroupFromMaster Error validating token from master")
+        logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -96,12 +104,14 @@ func (n *AutenticationController) AddGroupFromMaster() {
 // @Description Add userGroupRoles from Master
 // @router /addUgr [put]
 func (n *AutenticationController) AddUserGroupRolesFromMaster() {
-	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
+	logs.Notice(permissions)
     if err != nil {
         logs.Error("AddUserGroupRolesFromMaster Error validating token from master")
+        logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

@@ -20,8 +20,8 @@ func (n *NetController) GetNetworkData() {
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         values,err := models.GetNetworkData()
         
@@ -37,26 +37,18 @@ func (n *NetController) GetNetworkData() {
 // @Description get network values selected by user
 // @router /values [get]
 func (n *NetController) LoadNetworkValuesSelected() {
-    values := make(map[string]map[string]string)
-    values["node"] = map[string]string{}
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        values["node"]["ack"] = "false"
-        values["node"]["error"] = err.Error()
-        values["node"]["token"] = "none"
-        n.Data["json"] = values
-    }else if !permissions{
-        values["node"]["ack"] = "false"
-        values["node"]["permissions"] = "none"
-        n.Data["json"] = values
+        logs.Error("Error validating token from master")
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         values,err := models.LoadNetworkValuesSelected()
         
         n.Data["json"] = values
         if err != nil {
-            values["node"]["ack"] = "false"
-            values["node"]["error"] = err.Error()
-            n.Data["json"] = values
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
     n.ServeJSON()
@@ -72,8 +64,8 @@ func (n *NetController) UpdateNetworkInterface() {
     if err != nil {
         logs.Error("Error validating token from master")
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else if !permissions{    
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
