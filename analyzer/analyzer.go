@@ -116,27 +116,19 @@ func readconf()(err error) {
     }
 
     confFile, err := os.Open(analyzerCFG)
-    if err != nil {
-        logs.Error("Error openning analyzer CFG: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("Error openning analyzer CFG: "+err.Error()); return err}
     defer confFile.Close()
     byteValue, _ := ioutil.ReadAll(confFile)
     err = json.Unmarshal(byteValue, &config)
-    if err != nil {
-        logs.Error(err.Error())
-        return err
-    }
+    if err != nil {logs.Error(err.Error()); return err}
     return nil
 }
 
 func readtags() {
 
     tagFile, err := os.Open(config.Tagfile)
-    if err != nil {
-        logs.Error("Error openning analyzer tag file: "+err.Error())
-        return
-    }
+    if err != nil {logs.Error("Error openning analyzer tag file: "+err.Error()); return}
+    
     defer tagFile.Close()
 
     byteValue, _ := ioutil.ReadAll(tagFile)

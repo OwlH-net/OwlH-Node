@@ -15,6 +15,7 @@ import (
     "owlhnode/knownports"
     "owlhnode/geolocation"
     "owlhnode/monitor"
+    "owlhnode/utils"
     "owlhnode/configuration"
     // "owlhnode/validation"
     "os"
@@ -27,7 +28,9 @@ import (
 
 func main() {
     //Application version
-    logs.Info("Version OwlH Node: 0.12.0.20200228")
+    logs.Info("Version OwlH Node: 0.12.0.20200302")
+
+    utils.Load()
 
     cancontinue := configuration.MainCheck()
     if !cancontinue {

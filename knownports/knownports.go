@@ -44,7 +44,7 @@ func Init(){
 }
 
 func GetStatus()(){
-    logs.Info("KNOWN PORTS GETSTATUS --- ")
+    logs.Info("KNOWNPORTS GETSTATUS --- ")
     return
     for {
         _, err := CheckParamKnownports("status")

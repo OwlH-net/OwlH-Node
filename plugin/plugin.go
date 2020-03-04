@@ -634,27 +634,39 @@ func DeployStapService(anode map[string]string)(err error) {
 }
 
 func StopStapService(anode map[string]string)(err error) {
+    logs.Debug(anode)
     allPlugins,err := ndb.GetPlugins()
     if err != nil {logs.Error("Error! can't read database for stop the service: "+err.Error())}
     pidToInt,_ := strconv.Atoi(allPlugins[anode["service"]]["pid"])
-    // if err != nil {logs.Error("DeployStapService socat pid to int error: "+err.Error())}
     process, _ := os.FindProcess(pidToInt)
-    // if err != nil {logs.Error("DeployStapService socat process not found: "+err.Error())}
+
+    logs.Warn(pidToInt)
+    logs.Warn(pidToInt)
+    logs.Warn(pidToInt)
+    logs.Warn(pidToInt)
+    logs.Warn(pidToInt)
+    logs.Warn(pidToInt)
+    logs.Warn(pidToInt)
+
     _ = process.Kill()
-    // if err != nil {logs.Error("DeployStapService Kill socat process Error: "+err.Error())}
     err = ndb.UpdatePluginValue(anode["service"],"pid","none") ; if err != nil {logs.Error("DeployStapService update DB pid to none Error: "+err.Error()); return err}
 
     if allPlugins[anode["service"]]["type"] == "network-socket" {
         //kill tcpdump
         tcpdumpToInt,_ := strconv.Atoi(allPlugins[anode["service"]]["tcpdump"])
-        // if err != nil {logs.Error("DeployStapService tcpdump pid to int error: "+err.Error())}
+
+        logs.Emergency(tcpdumpToInt)
+        logs.Emergency(tcpdumpToInt)
+        logs.Emergency(tcpdumpToInt)
+        logs.Emergency(tcpdumpToInt)
+        logs.Emergency(tcpdumpToInt)
+        logs.Emergency(tcpdumpToInt)
+        logs.Emergency(tcpdumpToInt)
+
         processTcpdump, _ := os.FindProcess(tcpdumpToInt)
-        // if err != nil {logs.Error("DeployStapService tcpdump process not found: "+err.Error())}
         _ = processTcpdump.Kill()
-        // if err != nil {logs.Error("DeployStapService Kill tcpdump process Error: "+err.Error())}
         err = ndb.UpdatePluginValue(anode["service"],"tcpdump","none") ; if err != nil {logs.Error("DeployStapService update DB tcpdump to none Error: "+err.Error()); return err}
     }
-
     logs.Notice(allPlugins[anode["service"]]["type"]+" service stopped successfuly!")
 
     return nil

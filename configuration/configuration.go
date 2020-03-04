@@ -426,6 +426,7 @@ func checkFields()(ok bool){
 }
 
 func CheckDB(conn string)(ok bool) {
+    logs.Notice(conn)
     loadDataSQL := map[string]map[string]string{}
     loadDataSQL[conn] = map[string]string{}
     loadDataSQL[conn]["path"] = ""

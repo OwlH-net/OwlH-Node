@@ -2,8 +2,8 @@ package utils
 
 import (
     "encoding/json"
-    "strconv"
     "github.com/astaxie/beego/logs"
+    "strconv"
     "io/ioutil"
     "io"
     "errors"
@@ -16,28 +16,39 @@ import (
     "crypto/rand"
 )
 
-
 //read data from main.conf
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
     confFilePath := "conf/main.conf"
     jsonPath, err := ioutil.ReadFile(confFilePath)
-    if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
-        return nil, err
-    }
+    if err != nil {logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath); return nil, err}
 
     var anode map[string]map[string]string
-    json.Unmarshal(jsonPath, &anode)
+    err = json.Unmarshal(jsonPath, &anode)
+
+    if err != nil {
+        logs.Error(err.Error())
+        panic("Error readding main.conf. Please contact the administrator or check the file.")
+    }
 
     for k,y := range loadData { 
         for y,_ := range y {
-            if v, ok := anode[k][y]; ok {
-                loadData[k][y] = v
-            }else{
-                loadData[k][y] = "None"
+            val,err := GetKeyValueString(k,y)
+            if err != nil {logs.Error("utils/GetConf -> can't get data: " + err.Error()); return nil, err}
+            if _, ok := anode[k][y]; ok {
+                loadData[k][y] = val
             }
         }
     }
+
+    // for k,y := range loadData { 
+    //     for y,_ := range y {
+    //         if v, ok := anode[k][y]; ok {
+    //             loadData[k][y] = v
+    //         }else{
+    //             loadData[k][y] = "None"
+    //         }
+    //     }
+    // }
     return loadData, nil
 }
 
