@@ -15,16 +15,11 @@ var (
 
 func GConn() {
     var err error
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL["groupConn"] = map[string]string{}
-    loadDataSQL["groupConn"]["path"] = ""
-    loadDataSQL["groupConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)
-    path := loadDataSQL["groupConn"]["path"]
-    cmd := loadDataSQL["groupConn"]["cmd"]
-    if err != nil {
-        logs.Error("Gconn Error getting data from main.conf")
-    }
+    path, err := utils.GetKeyValueString("groupConn", "path")
+    if err != nil {logs.Error("Gconn Error getting data from main.conf")}
+    cmd, err := utils.GetKeyValueString("groupConn", "cmd")
+    if err != nil {logs.Error("Gconn Error getting data from main.conf")}
+
     _, err = os.Stat(path) 
     if err != nil {
         panic("Fail opening group.db from path: "+path+"  --  "+err.Error())

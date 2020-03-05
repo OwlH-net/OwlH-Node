@@ -18,16 +18,9 @@ import (
 )
 
 func WazuhPath() (exists bool) {
-    var err error
-    //Retrieve path for wazuh.
-    loadDataWazuhPath := map[string]map[string]string{}
-    loadDataWazuhPath["loadDataWazuhPath"] = map[string]string{}
-    loadDataWazuhPath["loadDataWazuhPath"]["path"] = ""
-    loadDataWazuhPath,err = utils.GetConf(loadDataWazuhPath)    
-    path := loadDataWazuhPath["loadDataWazuhPath"]["path"]
-    if err != nil {
-        logs.Error("WazuhPath Error getting data from main.conf")
-    }
+    var err error 
+    path, err := utils.GetKeyValueString("loadDataWazuhPath", "path")
+    if err != nil {logs.Error("WazuhPath Error getting data from main.conf")}
     
     if _, err := os.Stat(path); os.IsNotExist(err) {
         logs.Error("Wazuh is not installed, at least, /var/ossec folder does not exist")
@@ -37,13 +30,8 @@ func WazuhPath() (exists bool) {
 }
 
 func WazuhBin() (exists bool) {
-    var err error
-    //Retrieve bin for wazuh.
-    loadDataWazuhBin := map[string]map[string]string{}
-    loadDataWazuhBin["loadDataWazuhBin"] = map[string]string{}
-    loadDataWazuhBin["loadDataWazuhBin"]["bin"] = ""
-    loadDataWazuhBin,err = utils.GetConf(loadDataWazuhBin)    
-    bin := loadDataWazuhBin["loadDataWazuhBin"]["bin"]
+    var err error 
+    bin, err := utils.GetKeyValueString("loadDataWazuhBin", "bin")
     if err != nil {
         logs.Error("WazuhBin Error getting data from main.conf")
     }
@@ -56,19 +44,13 @@ func WazuhBin() (exists bool) {
 
 func WazuhRunning() (running bool) {
     var err error
-    //Retrieve running for wazuh.
-    loadDataWazuhRunning := map[string]map[string]string{}
-    loadDataWazuhRunning["loadDataWazuhRunning"] = map[string]string{}
-    loadDataWazuhRunning["loadDataWazuhRunning"]["cmd"] = ""
-    loadDataWazuhRunning["loadDataWazuhRunning"]["param"] = ""
-    loadDataWazuhRunning["loadDataWazuhRunning"]["command"] = ""
-    loadDataWazuhRunning,err = utils.GetConf(loadDataWazuhRunning)    
-    cmd := loadDataWazuhRunning["loadDataWazuhRunning"]["cmd"]
-    param := loadDataWazuhRunning["loadDataWazuhRunning"]["param"]
-    command := loadDataWazuhRunning["loadDataWazuhRunning"]["command"]
-    if err != nil {
-        logs.Error("WazuhRunning Error getting data from main.conf")
-    }
+    cmd, err := utils.GetKeyValueString("loadDataWazuhRunning", "cmd")
+    if err != nil {logs.Error("WazuhRunning Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("loadDataWazuhRunning", "param")
+    if err != nil {logs.Error("WazuhRunning Error getting data from main.conf")}
+    command, err := utils.GetKeyValueString("loadDataWazuhRunning", "command")
+    if err != nil {logs.Error("WazuhRunning Error getting data from main.conf")}
+
     out, err := exec.Command(command, param, cmd).Output()
     if err == nil {
         if strings.Contains(string(out), "is running") {
@@ -92,23 +74,13 @@ func Installed() (isIt map[string]bool, err error){
 }
 
 //Run wazuh
-func RunWazuh()(data string, err error){
-
-    // //Retrieve path for wazuh.
-    StartWazuh := map[string]map[string]string{}
-    StartWazuh["wazuhStart"] = map[string]string{}
-    StartWazuh["wazuhStart"]["start"] = ""
-    StartWazuh["wazuhStart"]["param"] = ""
-    StartWazuh["wazuhStart"]["command"] = ""
-    StartWazuh,err = utils.GetConf(StartWazuh)    
-    if err != nil {
-        logs.Error("RunWazuh Error getting data from main.conf")
-        return "", err
-    }
-
-    cmd := StartWazuh["wazuhStart"]["start"]
-    param := StartWazuh["wazuhStart"]["param"]
-    command := StartWazuh["wazuhStart"]["command"]
+func RunWazuh()(data string, err error){  
+    cmd, err := utils.GetKeyValueString("wazuhStart", "start")
+    if err != nil {logs.Error("RunWazuh Error getting data from main.conf"); return "", err}
+    param, err := utils.GetKeyValueString("wazuhStart", "param")
+    if err != nil {logs.Error("RunWazuh Error getting data from main.conf"); return "", err}
+    command, err := utils.GetKeyValueString("wazuhStart", "command")
+    if err != nil {logs.Error("RunWazuh Error getting data from main.conf"); return "", err}
 
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
@@ -120,22 +92,12 @@ func RunWazuh()(data string, err error){
 
 //Stop wazuh
 func StopWazuh()(data string, err error){
-
-    // //Retrieve path for wazuh.
-    StopWazuh := map[string]map[string]string{}
-    StopWazuh["wazuhStop"] = map[string]string{}
-    StopWazuh["wazuhStop"]["stop"] = ""
-    StopWazuh["wazuhStop"]["param"] = ""
-    StopWazuh["wazuhStop"]["command"] = ""
-    StopWazuh,err = utils.GetConf(StopWazuh)    
-    if err != nil {
-        logs.Error("RunWazuh Error getting data from main.conf")
-        return "", err
-    }
-
-    cmd := StopWazuh["wazuhStop"]["stop"]
-    param := StopWazuh["wazuhStop"]["param"]
-    command := StopWazuh["wazuhStop"]["command"]
+    cmd, err := utils.GetKeyValueString("wazuhStop", "stop")
+    if err != nil {logs.Error("StopWazuh Error getting data from main.conf"); return "", err}
+    param, err := utils.GetKeyValueString("wazuhStop", "param")
+    if err != nil {logs.Error("StopWazuh Error getting data from main.conf"); return "", err}
+    command, err := utils.GetKeyValueString("wazuhStop", "command")
+    if err != nil {logs.Error("StopWazuh Error getting data from main.conf"); return "", err}
     
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {logs.Error("Error stopping Wazuh: "+err.Error()); return "",err}
@@ -211,19 +173,15 @@ type AllFiles struct {
     Paths []string `json:"paths"`
 }
 
-
 func ModifyWazuhFile(anode map[string]interface{})(err error) {
-    ModifyWazuhFile := map[string]map[string]string{}
-    ModifyWazuhFile["loadDataWazuhPath"] = map[string]string{}
-    ModifyWazuhFile["loadDataWazuhPath"]["ossec"] = ""
-    ModifyWazuhFile,err = utils.GetConf(ModifyWazuhFile)    
+    ossec, err := utils.GetKeyValueString("loadDataWazuhPath", "ossec")  
     if err != nil {logs.Error("ModifyWazuhFile Error getting data from main.conf"); return err}
 
     receivedWazuhFiles := AllFiles{}
     byteData, _ := json.Marshal(anode)
     json.Unmarshal(byteData, &receivedWazuhFiles)
 
-    file, err := os.Open(ModifyWazuhFile["loadDataWazuhPath"]["ossec"])
+    file, err := os.Open(ossec)
     if err != nil {logs.Error("Error ModifyWazuhFile readding file: "+err.Error()); return err}
     defer file.Close()
 
@@ -291,10 +249,9 @@ func ModifyWazuhFile(anode map[string]interface{})(err error) {
         fileContent[h] = "<!-- OWLH END -->"; h++
     }
 
-
     if err := scanner.Err(); err != nil {logs.Error("ModifyWazuhFile. Scanner file error: "+err.Error()); return err}
 
-    saveIntoFile, err := os.OpenFile(ModifyWazuhFile["loadDataWazuhPath"]["ossec"], os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+    saveIntoFile, err := os.OpenFile(ossec, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
     if err != nil {logs.Error("Error ModifyWazuhFile readding file: "+err.Error()); return err}
     defer saveIntoFile.Close()
     saveIntoFile.Truncate(0)

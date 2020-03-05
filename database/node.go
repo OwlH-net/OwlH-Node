@@ -15,16 +15,10 @@ var (
 
 func NConn() {
     var err error
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL["nodeConn"] = map[string]string{}
-    loadDataSQL["nodeConn"]["path"] = ""
-    loadDataSQL["nodeConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)    
-    path := loadDataSQL["nodeConn"]["path"]
-    cmd := loadDataSQL["nodeConn"]["cmd"]
-    if err != nil {
-        logs.Error("NConn Error getting data from main.conf")
-    }
+    path, err := utils.GetKeyValueString("nodeConn", "path")
+    if err != nil {logs.Error("NConn Error getting data from main.conf")}
+    cmd, err := utils.GetKeyValueString("nodeConn", "cmd")
+    if err != nil {logs.Error("NConn Error getting data from main.conf")}
     _, err = os.Stat(path) 
     if err != nil {
         panic("Fail opening servers.db from path: "+path+"  --  "+err.Error())

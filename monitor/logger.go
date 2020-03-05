@@ -15,27 +15,21 @@ import (
 
 
 func Logger() {
-	// data,err := ndb.LoadMonitorFiles()
-	// if err != nil {logs.Error("Error getting monitor files for logger: "+err.Error())}
 	var err error
 	//get logger parameters
-	loadDataLogger := map[string]map[string]string{}
-	loadDataLogger["logs"] = map[string]string{}
-	loadDataLogger["logs"]["filename"] = ""
-	loadDataLogger["logs"]["maxlines"] = ""
-	loadDataLogger["logs"]["maxsize"] = ""
-	loadDataLogger["logs"]["daily"] = ""
-	loadDataLogger["logs"]["maxdays"] = ""
-	loadDataLogger["logs"]["rotate"] = ""
-	loadDataLogger["logs"]["level"] = ""
-	loadDataLogger, err = utils.GetConf(loadDataLogger)    
-	filename := loadDataLogger["logs"]["filename"]
-	maxlines := loadDataLogger["logs"]["maxlines"]
-	maxsize := loadDataLogger["logs"]["maxsize"]
-	daily := loadDataLogger["logs"]["daily"]
-	maxdays := loadDataLogger["logs"]["maxdays"]
-	rotate := loadDataLogger["logs"]["rotate"]
-	level := loadDataLogger["logs"]["level"]
+	filename, err := utils.GetKeyValueString("logs", "filename")
+	if err != nil {logs.Error("Error getting data from main.conf for load Logger data: "+err.Error())}
+	maxlines, err := utils.GetKeyValueString("logs", "maxlines")
+	if err != nil {logs.Error("Error getting data from main.conf for load Logger data: "+err.Error())}
+	maxsize, err := utils.GetKeyValueString("logs", "maxsize")
+	if err != nil {logs.Error("Error getting data from main.conf for load Logger data: "+err.Error())}
+	daily, err := utils.GetKeyValueString("logs", "daily")
+	if err != nil {logs.Error("Error getting data from main.conf for load Logger data: "+err.Error())}
+	maxdays, err := utils.GetKeyValueString("logs", "maxdays")
+	if err != nil {logs.Error("Error getting data from main.conf for load Logger data: "+err.Error())}
+	rotate, err := utils.GetKeyValueString("logs", "rotate")
+	if err != nil {logs.Error("Error getting data from main.conf for load Logger data: "+err.Error())}
+	level, err := utils.GetKeyValueString("logs", "level")
 	if err != nil {logs.Error("Error getting data from main.conf for load Logger data: "+err.Error())}
 
 	// //get monitor files

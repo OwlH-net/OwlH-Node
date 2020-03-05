@@ -38,16 +38,10 @@ func RunCMD(uuid string, cmd string)(status bool, data string){
 //connect to remote server throught ssh
 func owlh_connect(uuid string)(alive bool, sshValue *ssh.Session){
     var err error
-    loadData := map[string]map[string]string{}
-    loadData["stapPubKey"] = map[string]string{}
-    loadData["stapPubKey"]["user"] = ""
-    loadData["stapPubKey"]["cert"] = ""
-    loadData,err = utils.GetConf(loadData)
-    userSSH := loadData["stapPubKey"]["user"]
-    cert := loadData["stapPubKey"]["cert"]
-    if err != nil {
-        logs.Error("owlh_connect Error getting data from main.conf")
-    }
+    userSSH, err := utils.GetKeyValueString("stapPubKey", "user")
+    if err != nil {logs.Error("owlh_connect Error getting data from main.conf")}
+    cert, err := utils.GetKeyValueString("stapPubKey", "cert")
+    if err != nil {logs.Error("owlh_connect Error getting data from main.conf")}
 
     owlh,err := ndb.GetStapServerInformation(uuid)
     if err != nil {
@@ -259,16 +253,10 @@ func SftpCMD(uuid string, srcFile string, dstFile string)(status bool){
 //get certs from main.conf and create a ssh connection for make sftp
 func owlh_connect_client(uuid string)(alive bool, sshClient *ssh.Client){
     var err error
-    loadData := map[string]map[string]string{}
-    loadData["stapPubKey"] = map[string]string{}
-    loadData["stapPubKey"]["user"] = ""
-    loadData["stapPubKey"]["cert"] = ""
-    loadData,err = utils.GetConf(loadData)
-    userSSH := loadData["stapPubKey"]["user"]
-    cert := loadData["stapPubKey"]["cert"]
-    if err != nil {
-        logs.Error("owlh_connect_client Error getting data from main.conf")
-    }
+    userSSH, err := utils.GetKeyValueString("stapPubKey", "user")
+    if err != nil {logs.Error("owlh_connect_client Error getting data from main.conf")}
+    cert, err := utils.GetKeyValueString("stapPubKey", "cert")
+    if err != nil {logs.Error("owlh_connect_client Error getting data from main.conf")}
 
     owlh,err := ndb.GetStapServerInformation(uuid)
     if err != nil {

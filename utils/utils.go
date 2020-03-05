@@ -16,42 +16,6 @@ import (
     "crypto/rand"
 )
 
-//read data from main.conf
-func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
-    confFilePath := "conf/main.conf"
-    jsonPath, err := ioutil.ReadFile(confFilePath)
-    if err != nil {logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath); return nil, err}
-
-    var anode map[string]map[string]string
-    err = json.Unmarshal(jsonPath, &anode)
-
-    if err != nil {
-        logs.Error(err.Error())
-        panic("Error readding main.conf. Please contact the administrator or check the file.")
-    }
-
-    for k,y := range loadData { 
-        for y,_ := range y {
-            val,err := GetKeyValueString(k,y)
-            if err != nil {logs.Error("utils/GetConf -> can't get data: " + err.Error()); return nil, err}
-            if _, ok := anode[k][y]; ok {
-                loadData[k][y] = val
-            }
-        }
-    }
-
-    // for k,y := range loadData { 
-    //     for y,_ := range y {
-    //         if v, ok := anode[k][y]; ok {
-    //             loadData[k][y] = v
-    //         }else{
-    //             loadData[k][y] = "None"
-    //         }
-    //     }
-    // }
-    return loadData, nil
-}
-
 func UpdateBPFFile(path string, file string, bpf string) (err error) {
     //delete file content
     err = os.Truncate(path+file, 0)
@@ -82,11 +46,7 @@ func BackupFullPath(path string) (err error) {
 }
 
 func BackupFile(path string, fileName string) (err error) {  
-    loadData := map[string]map[string]string{}
-    loadData["node"] = map[string]string{}
-    loadData["node"]["backupFolder"] = "" 
-    loadData,err = GetConf(loadData)  
-    backupFolder := loadData["node"]["backupFolder"]    
+    backupFolder, err := GetKeyValueString("node", "backupFolder") 
     if err != nil {logs.Error("utils.BackupFile Error getting backup path: "+err.Error()); return err}
 
     // check if folder exists
@@ -146,7 +106,7 @@ func GetConfFiles()(loadDataReturn map[string]string, err error) {
     confFilePath := "./conf/main.conf"
     JSONconf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
+        logs.Error("utils/GetConfFiles -> can't open Conf file: " + confFilePath)
         return nil, err
     }
     var anode map[string]map[string]string
@@ -167,16 +127,13 @@ func Generate()(uuid string)  {
 
 func LoadDefaultServerData(fileName string)(json map[string]string, err error){
     //Get full path
-    loadData := map[string]map[string]string{}
-    loadData["files"] = map[string]string{}
-    loadData["files"][fileName] = ""
-    loadData,err = GetConf(loadData)
+    file, err := GetKeyValueString("files", fileName)
     if err != nil {
         logs.Error("LoadDefaultServerData Error getting data from main.conf: "+err.Error())
         return nil, err
     }
     fileContent := make(map[string]string)
-    rawData, err := ioutil.ReadFile(loadData["files"][fileName])
+    rawData, err := ioutil.ReadFile(file)
     if err != nil {
         logs.Error("LoadDefaultServerData Error reading file: "+err.Error())
         return nil,err
@@ -240,30 +197,6 @@ func RemoveFile(path string, file string)(err error){
         return err
     }
     return nil
-}
-
-//read data from main.conf
-func GetConfArray(loadData map[string]map[string][]string)(loadDataReturn map[string]map[string][]string, err error) { 
-    confFilePath := "conf/main.conf"
-    jsonPathBpf, err := ioutil.ReadFile(confFilePath)
-    if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
-        return nil, err
-    }
-
-    var anode map[string]map[string][]string
-    json.Unmarshal(jsonPathBpf, &anode)
-
-    for k,y := range loadData { 
-        for y,_ := range y {
-            if v, ok := anode[k][y]; ok {
-                loadData[k][y] = v
-            }else{
-                loadData[k][y] = nil
-            }
-        }
-    }
-    return loadData, nil
 }
 
 func RunCommand(cmdtxt string, params string)(err error){

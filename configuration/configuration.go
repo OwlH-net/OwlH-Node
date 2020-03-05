@@ -1,20 +1,11 @@
 package configuration
 
 import (
-    // "encoding/json"
-    // "strconv"
     "github.com/astaxie/beego/logs"
     "database/sql"
-    // "io/ioutil"
-    // "io"
-    // "errors"
     "owlhnode/utils"
     "owlhnode/validation"
     "os"
-    // "time"
-    // "os/exec"
-    // "fmt"
-    // "crypto/rand"
     _ "github.com/mattn/go-sqlite3"
 )
 
@@ -74,14 +65,6 @@ func checkDatabases()(ok bool){
 
 func checkTables()(ok bool){
     var table Table
-
-    // table.Tname = "fileRotation"
-    // table.Tconn = "monitorConn"
-    // table.Tcreate = "CREATE TABLE fileRotation (rotate_id integer PRIMARY KEY AUTOINCREMENT,rotate_uniqueid text NOT NULL,rotate_param text NOT NULL,rotate_value text NOT NULL)"
-    // ok = CheckTable(table)
-    // if !ok {
-    //     return false
-    // }
 
     table.Tname = "plugins"
     table.Tconn = "pluginConn"
@@ -271,15 +254,6 @@ func checkFields()(ok bool){
         return false
     }
 
-    // //alert.json file rotation
-    // field.Fconn      = "monitorConn"
-    // field.Ftable     = "fileRotation"
-    // field.Fquery     = "select rotate_param from fileRotation where rotate_param='path'"
-    // field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('alert ','path','')"
-    // field.Fname      = "suricata - BPFfile"
-    // ok = CheckField(field)
-    // if !ok {return false}
-
     field.Fconn      = "groupConn"
     field.Ftable     = "suricata"
     field.Fquery     = "select suri_param from suricata where suri_param='BPFfile'"
@@ -426,16 +400,11 @@ func checkFields()(ok bool){
 }
 
 func CheckDB(conn string)(ok bool) {
-    logs.Notice(conn)
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[conn] = map[string]string{}
-    loadDataSQL[conn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
+    dbpath, err := utils.GetKeyValueString(conn, "path")
     if err != nil {
         logs.Error("Configuration -> Can't get "+conn+" path from main.conf")
         return false
     }
-    dbpath := loadDataSQL[conn]["path"]
     exists := DbExists(dbpath)
 
     if exists {
@@ -452,15 +421,11 @@ func CheckDB(conn string)(ok bool) {
 }
 
 func CheckField(field Field)(ok bool){
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[field.Fconn] = map[string]string{}
-    loadDataSQL[field.Fconn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
+    dbpath, err := utils.GetKeyValueString(field.Fconn, "path")
     if err != nil {
         logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf")
         return false
     }
-    dbpath := loadDataSQL[field.Fconn]["path"]
 
     exists := FieldExists(dbpath, field.Fquery)
     if !exists {
@@ -515,15 +480,11 @@ func FieldCreate(dbpath string, insert string, name string)(ok bool){
 }
 
 func CheckTable(table Table)(ok bool){
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[table.Tconn] = map[string]string{}
-    loadDataSQL[table.Tconn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
+    dbpath, err := utils.GetKeyValueString(table.Tconn, "path")
     if err != nil {
         logs.Error("Configuration -> Can't get "+table.Tconn+" path from main.conf")
         return false
     }
-    dbpath := loadDataSQL[table.Tconn]["path"]
 
     exists := TableExists(dbpath, table.Tname)
     if !exists {
@@ -585,15 +546,11 @@ func TableExists(db string, table string)(exists bool){
 
 func TableCreate(conn string, tablename string, create string)(ok bool){
     logs.Info("Configuration -> Creating table "+tablename+" in "+conn)
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[conn] = map[string]string{}
-    loadDataSQL[conn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
+    dbpath, err := utils.GetKeyValueString(conn, "path")
     if err != nil {
         logs.Error("Configuration -> Can't get "+conn+" path from main.conf -> "+err.Error())
         return false
     }
-    dbpath := loadDataSQL[conn]["path"]
     db, err := sql.Open("sqlite3",dbpath)
     if err != nil {
         logs.Error("Configuration -> "+dbpath+" Open Failed -> err: "+err.Error())

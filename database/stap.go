@@ -15,16 +15,10 @@ var (
 
 func SConn() {
     var err error
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL["stapConn"] = map[string]string{}
-    loadDataSQL["stapConn"]["path"] = ""
-    loadDataSQL["stapConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)
-    path := loadDataSQL["stapConn"]["path"]
-    cmd := loadDataSQL["stapConn"]["cmd"]
-    if err != nil {
-        logs.Error("Sconn Error getting data from main.conf")
-    }
+    path, err := utils.GetKeyValueString("stapConn", "path")
+    if err != nil {logs.Error("Sconn Error getting data from main.conf")}
+    cmd, err := utils.GetKeyValueString("stapConn", "cmd")
+    if err != nil {logs.Error("Sconn Error getting data from main.conf")}
     _, err = os.Stat(path) 
     if err != nil {
         panic("Fail opening servers.db from path: "+path+"  --  "+err.Error())

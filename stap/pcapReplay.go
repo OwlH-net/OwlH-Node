@@ -11,20 +11,15 @@ import (
 func Pcap_replay()() {
     var err error
     //load in_, out_queue and interface from main.conf
-    loadStap := map[string]map[string]string{}
-    loadStap["stap"] = map[string]string{}
-    loadStap["stap"]["in_queue"] = ""
-    loadStap["stap"]["out_queue"] = ""
-    loadStap["stap"]["interface"] = ""
-    loadStap["stap"]["keepPCAP"] = ""
-    loadStap,err = utils.GetConf(loadStap)
-    inQueue := loadStap["stap"]["in_queue"]
-    outQueue := loadStap["stap"]["out_queue"]
-    stapInterface := loadStap["stap"]["interface"]
-    keepPCAP := loadStap["stap"]["keepPCAP"]
-    if err != nil {
-        logs.Error("Pcap_replay Error getting data from main.conf")
-    }
+    if err != nil {logs.Error("Pcap_replay Error getting data from main.conf")}
+    inQueue, err := utils.GetKeyValueString("stap", "in_queue")
+    if err != nil {logs.Error("Pcap_replay Error getting data from main.conf")}
+    outQueue, err := utils.GetKeyValueString("stap", "out_queue")
+    if err != nil {logs.Error("Pcap_replay Error getting data from main.conf")}
+    stapInterface, err := utils.GetKeyValueString("stap", "interface")
+    if err != nil {logs.Error("Pcap_replay Error getting data from main.conf")}
+    keepPCAP, err := utils.GetKeyValueString("stap", "keepPCAP")
+    if err != nil {logs.Error("Pcap_replay Error getting data from main.conf")}
     
     //check Stap status
     stapStatus := make(map[string]bool)

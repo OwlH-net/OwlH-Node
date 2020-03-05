@@ -12,23 +12,15 @@ import (
 //read file and send back to webpage
 func SendFile(file string)(data map[string]string, err error){
     sendBackArray := make(map[string]string)
-    loadData := map[string]map[string]string{}
     var key string
     var fileName string
     if file == "node.cfg" || file == "networks.cfg" {
         if file == "node.cfg"{key = "nodeconfig"}else{key = "networkconfig"}
-        //create map and obtain file
-        loadData["zeek"] = map[string]string{}
-        loadData["zeek"][key] = ""
-        loadData,err = utils.GetConf(loadData)
-        fileName = loadData["zeek"][key]
+        fileName, err = utils.GetKeyValueString("zeek", key)
         if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
     }else{
         //create map and obtain file
-        loadData["files"] = map[string]string{}
-        loadData["files"][file] = ""
-        loadData,err = utils.GetConf(loadData)
-        fileName = loadData["files"][file]
+        fileName, err = utils.GetKeyValueString("files", file)
         if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
     }
                 
@@ -48,16 +40,11 @@ func SendFile(file string)(data map[string]string, err error){
 //read changed file, make a backup and save into file
 func SaveFile(file map[string]string)(err error){
     //Get full path
-    loadData := map[string]map[string]string{}
-    loadData["files"] = map[string]string{}
-    loadData["files"][file["file"]] = ""
-    loadData,err = utils.GetConf(loadData)
-    if err != nil {
-        logs.Error("SaveFile Error getting data from main.conf")
-    }
+    fileName, err := utils.GetKeyValueString("files", file["file"])
+    if err != nil {logs.Error("SaveFile Error getting data from main.conf")}
 
     //make file backup before overwrite
-    err = utils.BackupFullPath(loadData["files"][file["file"]])
+    err = utils.BackupFullPath(fileName)
     if err != nil {
         logs.Error("SaveFile. Error doing backup with function BackupFullPath: "+err.Error())
         return err
@@ -65,11 +52,8 @@ func SaveFile(file map[string]string)(err error){
 
     //make byte array for save the file modified
     bytearray := []byte(file["content"])
-    err = utils.WriteNewDataOnFile(loadData["files"][file["file"]], bytearray)
-    if err != nil {
-        logs.Error("SaveFile. Error doing backup with function WriteNewDataOnFile: "+err.Error())
-        return err
-    }
+    err = utils.WriteNewDataOnFile(fileName, bytearray)
+    if err != nil {logs.Error("SaveFile. Error doing backup with function WriteNewDataOnFile: "+err.Error()); return err}
     return nil
 }
 
@@ -90,11 +74,7 @@ func ReloadFilesData() (data map[string]map[string]string, err error) {
     sendBackArray["analyzer"] = map[string]string{}
     
     //ANALYZER
-    loadData := map[string]map[string]string{}
-    loadData["node"] = map[string]string{}
-    loadData["node"]["alertLog"] = ""
-    loadData,err = utils.GetConf(loadData)
-    alertLog := loadData["node"]["alertLog"]
+    alertLog, err := utils.GetKeyValueString("node", "alertLog")
     if err != nil { logs.Error("ReloadFilesData Error getting data from main.conf"); return nil,err}
     
     // size = fi.Size()

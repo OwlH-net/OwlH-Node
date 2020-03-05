@@ -45,15 +45,11 @@ type ZeekNodeStatus struct {
     Nodes       int                 `json:"nodes"`
 }
 
-func PingService()(err error) {
-    stapCollector := map[string]map[string]string{}
-    stapCollector["service"] = map[string]string{}
-    stapCollector["service"]["dstPath"] = ""
-    stapCollector["service"]["file"] = ""
-    stapCollector,err = utils.GetConf(stapCollector)
-    if err != nil {logs.Error("ping/PingService -- Error GetConf service data: "+err.Error()); return err}
-    dstPath := stapCollector["service"]["dstPath"]
-    file := stapCollector["service"]["file"]
+func PingService()(err error) {  
+    dstPath, err := utils.GetKeyValueString("service", "dstPath")
+    if err != nil {logs.Error("ping/PingService -- Error getting service data: "+err.Error()); return err}
+    file, err := utils.GetKeyValueString("service", "file")
+    if err != nil {logs.Error("ping/PingService -- Error getting service data: "+err.Error()); return err}
 
     if _, err := os.Stat(dstPath+file); os.IsNotExist(err) {
         return errors.New("Service don't exists")
@@ -64,20 +60,17 @@ func PingService()(err error) {
 }
 
 func DeployService()(err error) {
-    stapCollector := map[string]map[string]string{}
-    stapCollector["service"] = map[string]string{}
-    stapCollector["service"]["dstPath"] = ""
-    stapCollector["service"]["file"] = ""
-    stapCollector["service"]["origPath"] = ""
-    stapCollector["service"]["reload"] = ""
-    stapCollector["service"]["enable"] = ""
-    stapCollector,err = utils.GetConf(stapCollector)
-    if err != nil {logs.Error("ping/PingService -- Error GetConf service data: "+err.Error()); return err}
-    dstPath := stapCollector["service"]["dstPath"]
-    file := stapCollector["service"]["file"]
-    origPath := stapCollector["service"]["origPath"]
-    reload := stapCollector["service"]["reload"]
-    enable := stapCollector["service"]["enable"]
+    dstPath, err := utils.GetKeyValueString("service", "dstPath")
+    if err != nil {logs.Error("ping/DeployService -- Error getting deploy service data: "+err.Error()); return err}
+    file, err := utils.GetKeyValueString("service", "file")
+    if err != nil {logs.Error("ping/DeployService -- Error getting deploy service data: "+err.Error()); return err}
+    origPath, err := utils.GetKeyValueString("service", "origPath")
+    if err != nil {logs.Error("ping/DeployService -- Error getting deploy service data: "+err.Error()); return err}
+    reload, err := utils.GetKeyValueString("service", "reload")
+    if err != nil {logs.Error("ping/DeployService -- Error getting deploy service data: "+err.Error()); return err}
+    enable, err := utils.GetKeyValueString("service", "enable")
+    if err != nil {logs.Error("ping/DeployService -- Error getting deploy service data: "+err.Error()); return err}
+    
 
     if _, err := os.Stat(dstPath+file); os.IsNotExist(err) {
         // //copy file
@@ -115,12 +108,9 @@ func GetMainconfData()(data map[string]map[string]string, err error) {
     return main,err
 }
 
-func PingPluginsNode() (data map[string]map[string]string ,err error) {    
-    pingPlugins := map[string]map[string]string{}
-    pingPlugins["suricata"] = map[string]string{}
-    pingPlugins["suricata"]["backup"] = ""
-    pingPlugins,err = utils.GetConf(pingPlugins)
-    if err != nil {logs.Error("ping/PingService -- Error GetConf service data: "+err.Error()); return nil, err}
+func PingPluginsNode() (data map[string]map[string]string ,err error) {      
+    bck, err := utils.GetKeyValueString("suricata", "backup")
+    if err != nil {logs.Error("ping/PingService -- Error getting suricata service data: "+err.Error()); return nil, err}
 
     allPlugins,err := ndb.GetPlugins()
     if err != nil {logs.Error("ping/GetMainconfData error getting GetPlugins values: "+err.Error()); return nil, err}
@@ -128,7 +118,7 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
     for x := range allPlugins {
         if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata"{
             // change pid file name 
-            if _, err := os.Stat(pingPlugins["suricata"]["backup"]+x+"-pidfile.pid"); os.IsNotExist(err) {        
+            if _, err := os.Stat(bck+x+"-pidfile.pid"); os.IsNotExist(err) {        
                 err = plugin.StopSuricataService(x, allPlugins[x]["status"])
                 if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error stopping suricata for launch again: "+err.Error()); return nil,err}
                 err = plugin.LaunchSuricataService(x, allPlugins[x]["interface"])

@@ -15,16 +15,10 @@ var (
 
 func PConn() {
     var err error
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL["pluginConn"] = map[string]string{}
-    loadDataSQL["pluginConn"]["path"] = ""
-    loadDataSQL["pluginConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)    
-    path := loadDataSQL["pluginConn"]["path"]
-    cmd := loadDataSQL["pluginConn"]["cmd"]
-    if err != nil {
-        logs.Error("PConn Error getting data from main.conf")
-    }
+    path, err := utils.GetKeyValueString("pluginConn", "path")
+    if err != nil {logs.Error("PConn Error getting data from main.conf")}
+    cmd, err := utils.GetKeyValueString("pluginConn", "cmd")
+    if err != nil {logs.Error("PConn Error getting data from main.conf")}
     _, err = os.Stat(path) 
     if err != nil {
         panic("Fail opening plugins.db from path: "+path+"  --  "+err.Error())

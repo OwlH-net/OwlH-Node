@@ -62,17 +62,11 @@ func GetStatus()(){
 func NewPorts()(){
     return
     var err error
-    loadPorts := map[string]map[string]string{}
-    loadPorts["knownports"] = map[string]string{}
-    loadPorts["knownports"]["file"] = ""
-    loadPorts["knownports"]["timeToAlert"] = ""
-    loadPorts,err = utils.GetConf(loadPorts)
-    file := loadPorts["knownports"]["file"]
-    timeout := loadPorts["knownports"]["timeToAlert"]
-    if err != nil {
-        logs.Error("loadPorts Error getting data from main.conf: "+err.Error())
-        return
-    }
+
+    file, err := utils.GetKeyValueString("knownports", "file")
+    if err != nil {logs.Error("loadPorts Error getting data from main.conf: "+err.Error()); return}
+    timeout, err := utils.GetKeyValueString("knownports", "timeToAlert")
+    if err != nil {logs.Error("loadPorts Error getting data from main.conf: "+err.Error()); return}
 
     Status, err = CheckParamKnownports("status")
     Mode, err = CheckParamKnownports("mode")
@@ -100,17 +94,12 @@ func NewPorts()(){
         
         newuuid := utils.Generate()
         logs.Info(newuuid + ": starting analyzer for Knwon ports")
-        // analyzer.Registerchannel(newuuid)
         portsData, err := LoadPortsData()
         if err!=nil {logs.Error("Error LoadPortsData: "+err.Error())}
 
         alertList := map[string]LastAlert{}
 
-        loadHomenet := map[string]map[string][]string{}
-        loadHomenet["Node"] = map[string][]string{}
-        loadHomenet["Node"]["homenet"] = nil
-        loadHomenet,err = utils.GetConfArray(loadHomenet)
-        IpNet := loadHomenet["Node"]["homenet"]
+        IpNet,err := utils.GetKeyValueSlice("node", "homenet")
 
         if err != nil {
             logs.Error("LoadPortsData NewPorts Error: %s", err.Error())
@@ -167,7 +156,6 @@ func NewPorts()(){
                         }
                         break
                     }
-                    // if notPortprotLearn == true {break}
                 }
                 if !notPortprotLearn{
                     uuid := utils.Generate()
@@ -175,7 +163,6 @@ func NewPorts()(){
                     value := strconv.FormatInt(timeNow.Unix(), 10)
                     
                     //insert into MAP portsData
-                    // logs.Error(portsData)
                     portsData[uuid] = map[string]string{}
                     portsData[uuid]["port"] = dstport
                     portsData[uuid]["protocol"] = proto
@@ -222,7 +209,6 @@ func NewPorts()(){
                         counter = 1
 
                         alertList[protoport] = alerted
-                        // logs.Error("first time port alert - " +protoport)
                         createAlert = true
                         
                     } else {
@@ -258,12 +244,8 @@ func NewPorts()(){
                             logs.Error("Marshal Error creating JSON alert output at Production Knownports: %s", err.Error())
                             Status = "Disabled"
                         }
-
-                        AlertLog := map[string]map[string]string{}
-                        AlertLog["Node"] = map[string]string{}
-                        AlertLog["Node"]["AlertLog"] = ""
-                        AlertLog,err = utils.GetConf(AlertLog)
-                        AlertLogJson := AlertLog["Node"]["AlertLog"]
+                    
+                        AlertLogJson, err := utils.GetKeyValueString("node", "AlertLog")
                         if err != nil {
                             logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
                             return
@@ -279,8 +261,6 @@ func NewPorts()(){
         }
         Status, err = CheckParamKnownports("status")
         Mode, err = CheckParamKnownports("mode")
-        //t.Cleanup()
-        //t.Stop()
     }
     logs.Info("Knownports main loop: Exit")
 }

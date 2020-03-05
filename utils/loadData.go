@@ -5,21 +5,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"reflect"
-	// "fmt"
-    // "strconv"
-    // "io"
     "errors"
-    // "os"
-    // "time"
-    // "os/exec"
-    // "fmt"
-    // "path/filepath"
-    // "strings"
-    // "crypto/rand"
 )
 
 var mainconfData map[string]interface{}
-// var sub Sub
 func Load()(){
 	confFilePath := "conf/main.conf"
 	jsonPath, err := ioutil.ReadFile(confFilePath)	

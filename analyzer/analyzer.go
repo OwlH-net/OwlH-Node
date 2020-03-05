@@ -104,12 +104,7 @@ var IoCs = map[string][]string{}
 var counters chcounter
 
 func readconf()(err error) {
-
-    cfg := map[string]map[string]string{}
-    cfg["analyzer"] = map[string]string{}
-    cfg["analyzer"]["analyzerconf"] = ""
-    cfg,err = utils.GetConf(cfg)
-    analyzerCFG := cfg["analyzer"]["analyzerconf"]
+    analyzerCFG, err := utils.GetKeyValueString("analyzer", "analyzerconf")
     if err != nil {
         logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
         return
@@ -420,13 +415,8 @@ func DoPostFilter(wkr int){
 
 
 func DoWriter(wkrid int) {
-
     // TODO - verify if analyzer.json has outfile. if not try to find on main.conf
-    AlertLog := map[string]map[string]string{}
-    AlertLog["node"] = map[string]string{}
-    AlertLog["node"]["alertLog"] = ""
-    AlertLog,err := utils.GetConf(AlertLog)
-    outputfile := AlertLog["node"]["alertLog"]
+    outputfile, err := utils.GetKeyValueString("node", "alertLog")
     if err != nil {
         logs.Error("AlertLog Error getting data from main.conf: " + err.Error())
         return
@@ -694,11 +684,7 @@ func Init(){
 }
 
 func PingAnalyzer()(data map[string]string ,err error) {
-    alertFile := map[string]map[string]string{}
-    alertFile["node"] = map[string]string{}
-    alertFile["node"]["alertLog"] = ""
-    alertFile,err = utils.GetConf(alertFile)    
-    filePath := alertFile["node"]["alertLog"]
+    filePath, err := utils.GetKeyValueString("node", "alertLog")
     if err != nil {logs.Error("PingAnalyzer Error getting data from main.conf")}
 
     analyzerData := make(map[string]string)
@@ -729,14 +715,11 @@ func ChangeAnalyzerStatus(anode map[string]string) (err error) {
     return nil
 }
 
-func SyncAnalyzer(file map[string][]byte) (err error) {
-    alertFile := map[string]map[string]string{}
-    alertFile["analyzer"] = map[string]string{}
-    alertFile["analyzer"]["analyzerconf"] = ""
-    alertFile,err = utils.GetConf(alertFile)    
+func SyncAnalyzer(file map[string][]byte) (err error) { 
+    alertFile, err := utils.GetKeyValueString("analyzer", "analyzerconf")
     if err != nil {logs.Error("SyncAnalyzer Error getting data from main.conf")}
 
-    err = utils.WriteNewDataOnFile(alertFile["analyzer"]["analyzerconf"], file["data"])
+    err = utils.WriteNewDataOnFile(alertFile, file["data"])
     if err != nil { logs.Error("Analyzer/SyncAnalyzer Error updating Analyzer file: "+err.Error()); return err}
     return err
 }

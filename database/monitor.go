@@ -15,16 +15,10 @@ var (
 
 func MConn() {
     var err error
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL["monitorConn"] = map[string]string{}
-    loadDataSQL["monitorConn"]["path"] = ""
-    loadDataSQL["monitorConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)    
-    path := loadDataSQL["monitorConn"]["path"]
-    cmd := loadDataSQL["monitorConn"]["cmd"]
-    if err != nil {
-        logs.Error("MConn Error getting data from main.conf")
-    }
+    path, err := utils.GetKeyValueString("monitorConn", "path")
+    if err != nil {logs.Error("MConn Error getting data from main.conf")}
+    cmd, err := utils.GetKeyValueString("monitorConn", "cmd")
+    if err != nil {logs.Error("MConn Error getting data from main.conf")}
     _, err = os.Stat(path) 
     if err != nil {
         panic("Fail opening monitor.db from path: "+path+"  --  "+err.Error())

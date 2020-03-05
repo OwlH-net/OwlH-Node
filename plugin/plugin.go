@@ -110,11 +110,9 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
 }
 
 func DeleteService(anode map[string]string)(err error) {
-    DeleteService := map[string]map[string]string{}
-    DeleteService["suricataBPF"] = map[string]string{}
-    DeleteService["suricataBPF"]["pathBPF"] = ""
-    DeleteService["suricataBPF"]["fileBPF"] = ""
-    DeleteService,err = utils.GetConf(DeleteService)    
+    path, err := utils.GetKeyValueString("suricataBPF", "pathBPF")
+    if err != nil {logs.Error("DeleteService Error getting data from main.conf: "+err.Error())}
+    filter, err := utils.GetKeyValueString("suricataBPF", "fileBPF")
     if err != nil {logs.Error("DeleteService Error getting data from main.conf: "+err.Error())}
     
     allPlugins,err := ndb.GetPlugins()
@@ -124,8 +122,8 @@ func DeleteService(anode map[string]string)(err error) {
             if err != nil {logs.Error("plugin/DeleteService error stopping suricata: "+err.Error()); return err}
             logs.Error("suricata 3")
         }
-        if _, err := os.Stat(DeleteService["suricataBPF"]["pathBPF"]+anode["service"]+"-"+DeleteService["suricataBPF"]["fileBPF"]); !os.IsNotExist(err) {
-            err = os.Remove(DeleteService["suricataBPF"]["pathBPF"]+anode["service"]+"-"+DeleteService["suricataBPF"]["fileBPF"])
+        if _, err := os.Stat(path+anode["service"]+"-"+filter); !os.IsNotExist(err) {
+            err = os.Remove(path+anode["service"]+"-"+filter)
             if err != nil {logs.Error("plugin/SaveSuricataInterface error deleting a pid file: "+err.Error())}
         }
     }else if allPlugins[anode["service"]]["type"] == "zeek" {
@@ -200,15 +198,12 @@ func AddPluginService(anode map[string]string) (err error) {
         err = ndb.InsertPluginService(uuid, "previousStatus", "none"); if err != nil {logs.Error("InsertPluginService previousStatus Error: "+err.Error()); return err}
     }
     if anode["type"] == "suricata"{
-        AddPluginService := map[string]map[string]string{}
-        AddPluginService["suricataBPF"] = map[string]string{}
-        AddPluginService["suricataBPF"]["pathBPF"] = ""
-        AddPluginService,err := utils.GetConf(AddPluginService)    
+        path, err := utils.GetKeyValueString("suricataBPF", "pathBPF") 
         if err != nil {logs.Error("AddPluginService Error getting data from main.conf: "+err.Error())}
 
         // path := "/etc/suricata/bpf"
-        if _, err := os.Stat(AddPluginService["suricataBPF"]["pathBPF"]); os.IsNotExist(err) { 
-            err = os.MkdirAll(AddPluginService["suricataBPF"]["pathBPF"], 0755); if err != nil {logs.Error("InsertPluginService erro creating BPF directory: "+err.Error()); return err}
+        if _, err := os.Stat(path); os.IsNotExist(err) { 
+            err = os.MkdirAll(path, 0755); if err != nil {logs.Error("InsertPluginService erro creating BPF directory: "+err.Error()); return err}
         }
 
         err = ndb.InsertPluginService(uuid, "node", anode["uuid"]); if err != nil {logs.Error("InsertPluginService node Error: "+err.Error()); return err}
@@ -232,10 +227,7 @@ func SaveSuricataInterface(anode map[string]string)(err error) {
 }
 
 func CheckServicesStatus()(){
-    CheckServicesStatus := map[string]map[string]string{}
-    CheckServicesStatus["stap"] = map[string]string{}
-    CheckServicesStatus["stap"]["plugin"] = ""
-    CheckServicesStatus,err := utils.GetConf(CheckServicesStatus)    
+    plugin, err := utils.GetKeyValueString("stap", "plugin")
     if err != nil {logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
 
     allPlugins,_ := ndb.GetPlugins()
@@ -260,15 +252,11 @@ func CheckServicesStatus()(){
                     } 
                 }
             }else if allPlugins[w]["type"] == "zeek"{
-                StopZeek := map[string]map[string]string{}
-                StopZeek["zeek"] = map[string]string{}
-                StopZeek["zeek"]["zeekctl"] = ""
-                StopZeek,err := utils.GetConf(StopZeek)    
+                zeekctl, err := utils.GetKeyValueString("zeek", "zeekctl")  
                 if err != nil {logs.Error("StopZeek Error getting data from main.conf: "+err.Error())}
-                zeekBinary := StopZeek["zeek"]["zeekctl"]
 
                 // pid, err := exec.Command("bash","-c","zeekctl status | grep running | awk '{print $5}'").Output()
-                pid, err := exec.Command("bash","-c",zeekBinary+" status | grep running | awk '{print $5}'").Output()
+                pid, err := exec.Command("bash","-c",zeekctl+" status | grep running | awk '{print $5}'").Output()
                 if err != nil {logs.Error("plugin/CheckServicesStatus Checking Zeek PID: "+err.Error())}
                 
                 if allPlugins[w]["status"] == "enabled"{                    
@@ -298,7 +286,7 @@ func CheckServicesStatus()(){
                     pidValue := strings.Split(string(pid), "\n")
                     
                     if pidValue[0] == ""{
-                        cmd := exec.Command("bash","-c",CheckServicesStatus["stap"]["plugin"]+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
+                        cmd := exec.Command("bash","-c",plugin+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
                         // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
@@ -322,7 +310,7 @@ func CheckServicesStatus()(){
                     
                     if pidValue[0] == ""{
                         // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
-                        cmd := exec.Command("bash","-c",CheckServicesStatus["stap"]["plugin"]+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
+                        cmd := exec.Command("bash","-c",plugin+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
@@ -381,17 +369,15 @@ func CheckServicesStatus()(){
 }
 
 func LaunchSuricataService(uuid string, iface string)(err error){
-    LaunchSuricataService := map[string]map[string]string{}
-    LaunchSuricataService["suricata"] = map[string]string{}
-    LaunchSuricataService["suricata"]["backup"] = ""
-    LaunchSuricataService["suricata"]["pidfile"] = ""
-    LaunchSuricataService,err = utils.GetConf(LaunchSuricataService)    
+    suricataBackup, err := utils.GetKeyValueString("suricata", "backup")
+    if err != nil {logs.Error("LaunchSuricataService Error getting data from main.conf: "+err.Error())}
+    pidFile, err := utils.GetKeyValueString("suricata", "pidfile")
     if err != nil {logs.Error("LaunchSuricataService Error getting data from main.conf: "+err.Error())}
 
     mainConfData, err := ndb.GetMainconfData()
     if (mainConfData["suricata"]["status"] == "disabled"){ return nil }
 
-    _ = os.Remove(LaunchSuricataService["suricata"]["backup"]+uuid+"-"+LaunchSuricataService["suricata"]["pidfile"])
+    _ = os.Remove(suricataBackup+uuid+"-"+pidFile)
     cmd := exec.Command("suricata", "-D", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+"-filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
     // cmd := exec.Command("suricata", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+"-filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
     var stdBuffer bytes.Buffer
@@ -402,11 +388,11 @@ func LaunchSuricataService(uuid string, iface string)(err error){
         logs.Error(stdBuffer.String())
         logs.Error("plugin/LaunchSuricataService error launching Suricata: "+err.Error());
         //delete pid file
-        err = os.Remove(LaunchSuricataService["suricata"]["backup"]+uuid+"-"+LaunchSuricataService["suricata"]["pidfile"])
+        err = os.Remove(suricataBackup+uuid+"-"+pidFile)
         if err != nil {logs.Error("plugin/LaunchSuricataService error deleting a pid file: "+err.Error())}
     }else{
         //read file
-        currentpid, err := os.Open(LaunchSuricataService["suricata"]["backup"]+uuid+"-"+LaunchSuricataService["suricata"]["pidfile"])
+        currentpid, err := os.Open(suricataBackup+uuid+"-"+pidFile)
         if err != nil {logs.Error("plugin/LaunchSuricataService error openning Suricata: "+err.Error()); return err}
         defer currentpid.Close()
         pid, err := ioutil.ReadAll(currentpid)
@@ -427,12 +413,10 @@ func LaunchSuricataService(uuid string, iface string)(err error){
     return nil
 }
 
-func StopSuricataService(uuid string, status string)(err error){
-    StopSuricataService := map[string]map[string]string{}
-    StopSuricataService["suricata"] = map[string]string{}
-    StopSuricataService["suricata"]["backup"] = ""
-    StopSuricataService["suricata"]["pidfile"] = ""
-    StopSuricataService,err = utils.GetConf(StopSuricataService)    
+func StopSuricataService(uuid string, status string)(err error){ 
+    suricataBackup, err := utils.GetKeyValueString("suricata", "backup")  
+    if err != nil {logs.Error("StopSuricataService Error getting data from main.conf: "+err.Error())}
+    suricataPidfile, err := utils.GetKeyValueString("suricata", "pidfile")  
     if err != nil {logs.Error("StopSuricataService Error getting data from main.conf: "+err.Error())}
     //pid
     // currentpid, err := os.Open("/var/run/suricata/"+uuid+"-pidfile.pid")
@@ -448,7 +432,7 @@ func StopSuricataService(uuid string, status string)(err error){
     // if err != nil {logs.Error("plugin/StopSuricataService error killing Suricata process: "+err.Error()); return err}
 
     //delete pid file
-    _ = os.Remove(StopSuricataService["suricata"]["backup"]+uuid+"-"+StopSuricataService["suricata"]["pidfile"])
+    _ = os.Remove(suricataBackup+uuid+"-"+suricataPidfile)
     // if err != nil {logs.Error("plugin/SaveSuricataInterface error deleting a pid file: "+err.Error()); return err}
 
     //change DB pid
@@ -528,12 +512,10 @@ func ModifyStapValues(anode map[string]string)(err error) {
     return nil
 }
 
-func DeployStapService(anode map[string]string)(err error) { 
-    DeployStapService := map[string]map[string]string{}
-    DeployStapService["stap"] = map[string]string{}
-    DeployStapService["stap"]["plugin"] = ""
-    DeployStapService["stap"]["tcpdum"] = ""
-    DeployStapService,err = utils.GetConf(DeployStapService)    
+func DeployStapService(anode map[string]string)(err error) {     
+    stapPlugin, err := utils.GetKeyValueString("stap", "plugin")
+    if err != nil {logs.Error("DeployStapService Error getting data from main.conf: "+err.Error())}
+    stapTcpdump, err := utils.GetKeyValueString("stap", "tcpdum")
     if err != nil {logs.Error("DeployStapService Error getting data from main.conf: "+err.Error())}
 
     allPlugins,err := ndb.GetPlugins()
@@ -547,8 +529,8 @@ func DeployStapService(anode map[string]string)(err error) {
         }
 
         // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
-        logs.Notice(DeployStapService["stap"]["plugin"]+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
-        cmd := exec.Command("bash","-c",DeployStapService["stap"]["plugin"]+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
+        logs.Notice(stapPlugin+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
+        cmd := exec.Command("bash","-c",stapPlugin+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()
@@ -571,7 +553,7 @@ func DeployStapService(anode map[string]string)(err error) {
         }
 
         // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
-        cmd := exec.Command("bash","-c",DeployStapService["stap"]["plugin"]+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
+        cmd := exec.Command("bash","-c",stapPlugin+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()
@@ -592,7 +574,7 @@ func DeployStapService(anode map[string]string)(err error) {
             }
         }
         // cmd := exec.Command("bash","-c","/usr/sbin/tcpdump -n -i "+allPlugins[anode["service"]]["interface"]+" -s 0 -w - "+allPlugins[anode["service"]]["bpf"]+" | /usr/bin/socat - OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+",cert="+allPlugins[anode["service"]]["cert"]+",verify=0,forever,retry=10,interval=5 &")
-        cmd := exec.Command("bash","-c",DeployStapService["stap"]["tcpdum"]+" -n -i "+allPlugins[anode["service"]]["interface"]+" -s 0 -w - "+allPlugins[anode["service"]]["bpf"]+" | "+DeployStapService["stap"]["plugin"]+" - OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+",cert="+allPlugins[anode["service"]]["cert"]+",verify=0,forever,retry=10,interval=5 &")
+        cmd := exec.Command("bash","-c",stapTcpdump+" -n -i "+allPlugins[anode["service"]]["interface"]+" -s 0 -w - "+allPlugins[anode["service"]]["bpf"]+" | "+stapPlugin+" - OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+",cert="+allPlugins[anode["service"]]["cert"]+",verify=0,forever,retry=10,interval=5 &")
         err = cmd.Start()
         if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}
 
