@@ -125,7 +125,7 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
                 if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error launching suricata again: "+err.Error()); return nil, err}
             }
             //check if process is running even though database status is enabled
-            pid, err := exec.Command("bash","-c","ps -ef | grep suricata | grep "+x+" | grep -v grep | awk '{print $2}'").Output()
+            pid, err := exec.Command("sh","-c","ps -aux | grep suricata | grep "+x+" | grep -v grep | awk '{print $2}'").Output()
             if err != nil {logs.Error("ping/PingPluginsNode Checking suricata PID: "+err.Error())}
             if strings.Split(string(pid), "\n")[0] == "" {
                 allPlugins[x]["running"] = "false"
@@ -157,7 +157,7 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
         }
         //check if process is running even though database status is enabled        
         if allPlugins[x]["type"] == "network-socket" && allPlugins[x]["pid"] != "none"{
-            pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[x]["collector"]+":"+allPlugins[x]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+            pid, err := exec.Command("sh","-c","ps -aux | grep OPENSSL:"+allPlugins[x]["collector"]+":"+allPlugins[x]["port"]+" | grep -v grep | awk '{print $2}'").Output()
             if err != nil {logs.Error("ping/PingPluginsNode Checking STAP network-socket PID: "+err.Error())}
             pids := strings.Split(string(pid), "\n")
             exists := false
@@ -180,12 +180,12 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
         }
     }
 
-    com, err := exec.Command("bash","-c","ps -ef | grep \"suricata \" | "+avoidUUIDS+" grep -v grep | awk '{print $2}'").Output()
+    com, err := exec.Command("sh","-c","ps -aux | grep \"suricata \" | "+avoidUUIDS+" grep -v grep | awk '{print $2}'").Output()
     if err != nil {logs.Error("PingPluginsNode error getting suricata shell launched: "+err.Error())}
     pidValue := strings.Split(string(com), "\n")
     for pid := range pidValue{
         if pidValue[pid] != "" {
-            fullCommand, err := exec.Command("bash","-c","ps -ef | grep "+pidValue[pid]+" | grep -v grep").Output()
+            fullCommand, err := exec.Command("sh","-c","ps -aux | grep "+pidValue[pid]+" | grep -v grep").Output()
             if err != nil {logs.Error("PingPluginsNode error getting suricata shell full command: "+err.Error())}
 
             existsPid := false
