@@ -32,7 +32,6 @@ func (n *AutenticationController) CreateMasterToken() {
 // @router /addUser [put]
 func (n *AutenticationController) AddUserFromMaster() {
 	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
-	logs.Notice(permissions)
     if err != nil {
         logs.Error("AddUserFromMaster Error validating token from master")
         logs.Error(err.Error())
@@ -56,7 +55,6 @@ func (n *AutenticationController) AddUserFromMaster() {
 // @router /addRole [put]
 func (n *AutenticationController) AddRolesFromMaster() {
 	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
-	logs.Notice(permissions)
     if err != nil {
         logs.Error("AddRolesFromMaster Error validating token from master")
         logs.Error(err.Error())
@@ -81,7 +79,6 @@ func (n *AutenticationController) AddRolesFromMaster() {
 // @router /addGroup [put]
 func (n *AutenticationController) AddGroupFromMaster() {
 	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
-	logs.Notice(permissions)
     if err != nil {
         logs.Error("AddGroupFromMaster Error validating token from master")
         logs.Error(err.Error())
@@ -105,7 +102,6 @@ func (n *AutenticationController) AddGroupFromMaster() {
 // @router /addUgr [put]
 func (n *AutenticationController) AddUserGroupRolesFromMaster() {
 	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
-	logs.Notice(permissions)
     if err != nil {
         logs.Error("AddUserGroupRolesFromMaster Error validating token from master")
         logs.Error(err.Error())

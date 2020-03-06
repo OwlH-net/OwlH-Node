@@ -14,8 +14,15 @@ func SendFile(file string)(data map[string]string, err error){
     sendBackArray := make(map[string]string)
     var key string
     var fileName string
-    if file == "node.cfg" || file == "networks.cfg" {
-        if file == "node.cfg"{key = "nodeconfig"}else{key = "networkconfig"}
+    if file == "node.cfg" || file == "networks.cfg" || file == "zeekctl.cfg" {
+        if file == "node.cfg"{
+            key = "nodeconfig"
+        }else if file == "networks.cfg"{
+            key = "networkconfig"
+        }else{
+            key = "zeekctlconfig"
+        }
+
         fileName, err = utils.GetKeyValueString("zeek", key)
         if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
     }else{

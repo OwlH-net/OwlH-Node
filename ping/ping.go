@@ -147,7 +147,7 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
 
         //check if process is running even though database status is enabled
         if (allPlugins[x]["type"] == "socket-pcap" || allPlugins[x]["type"] == "socket-network") && allPlugins[x]["pid"] != "none"{
-            pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[x]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+            pid, err := exec.Command("sh","-c","ps -aux | grep socat | grep OPENSSL-LISTEN:"+allPlugins[x]["port"]+" | grep -v grep | awk '{print $2}'").Output()
             if err != nil {logs.Error("ping/PingPluginsNode Checking STAP PID: "+err.Error())}
             if strings.Split(string(pid), "\n")[0] == "" {
                 allPlugins[x]["running"] = "false"

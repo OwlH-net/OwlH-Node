@@ -4,7 +4,8 @@ import (
     "github.com/astaxie/beego/logs"
     "strings"
     "regexp"
-      "owlhnode/database"
+    "owlhnode/database"
+    "owlhnode/utils"
     "time"
     "strconv"
     "runtime"
@@ -26,7 +27,11 @@ func Controller()() {
     if err != nil {
         logs.Error("Error doing ping to STAP : "+err.Error())
         logs.Error("Waiting 60 seconds...")
-        time.Sleep(time.Second * 60)
+
+        t,err := utils.GetKeyValueString("loop", "stap")
+        if err != nil {logs.Error("Search Error: Cannot load node information.")}
+        tDuration, err := strconv.Atoi(t)
+        time.Sleep(time.Second * time.Duration(tDuration))
     }
 
     //load number of servers with status = true

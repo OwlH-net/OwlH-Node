@@ -105,10 +105,7 @@ var counters chcounter
 
 func readconf()(err error) {
     analyzerCFG, err := utils.GetKeyValueString("analyzer", "analyzerconf")
-    if err != nil {
-        logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
-        return
-    }
+    if err != nil {logs.Error("AlertLog Error getting data from main.conf: "+err.Error()); return}
 
     confFile, err := os.Open(analyzerCFG)
     if err != nil {logs.Error("Error openning analyzer CFG: "+err.Error()); return err}
@@ -538,8 +535,11 @@ func ControlSource(file, uuid string) {
     previousinode = stat.Ino
     logs.Info("file %s inode %d ", file, int(previousinode))
 
+    t,err := utils.GetKeyValueString("loop", "ControlSource")
+    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    tDuration, err := strconv.Atoi(t)
     for {
-        time.Sleep(time.Second * 10)
+        time.Sleep(time.Second * time.Duration(tDuration)) 
         if fileinfo, err := os.Stat(file); !os.IsNotExist(err) {
             stat, _ := fileinfo.Sys().(*syscall.Stat_t)
             logs.Info("current inode %d vs %d", stat.Ino, previousinode) 
@@ -560,10 +560,13 @@ func StartSource(file string) {
     seekv.Whence = os.SEEK_END
     uuid := utils.Generate()
     monitorfiles[uuid] = true
+    t,err := utils.GetKeyValueString("loop", "StartSource")
+    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    tDuration, err := strconv.Atoi(t)
     for {
         logs.Info("tailing - %s", file)
         if _, err := os.Stat(file); os.IsNotExist(err) {
-            time.Sleep(time.Second * 10)
+            time.Sleep(time.Second * time.Duration(tDuration)) 
             continue
         }
         t, err := tail.TailFile(file, tail.Config{Follow: true, Location: &seekv})
@@ -625,6 +628,9 @@ func CHcounter(){
 
 func MonitorFile(file string, size int, ofile *os.File) {
     logs.Info(" >>>>>>>>>>  start file %s monitor", file)
+    t,err := utils.GetKeyValueString("loop", "MonitorFile")
+    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    tDuration, err := strconv.Atoi(t)
     for {
         filedet, err := os.Stat(file) 
         if os.IsNotExist(err) {
@@ -636,13 +642,16 @@ func MonitorFile(file string, size int, ofile *os.File) {
             ofile.Truncate(0)
             ofile.Seek(0,0)
         } 
-        time.Sleep(time.Second * 3)
+        time.Sleep(time.Second * time.Duration(tDuration)) 
     }
 }
 
 func CHcontrol(){
+    t,err := utils.GetKeyValueString("loop", "CHcontrol")
+    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    tDuration, err := strconv.Atoi(t)
     for {
-        time.Sleep(time.Second * 10)
+        time.Sleep(time.Second * time.Duration(tDuration)) 
         CHstats()
         CHcounter()
         logs.Warn("monitorfiles size is %d", len(monitorfiles))
@@ -670,12 +679,16 @@ func InitAnalizer() {
 
     LoadSources()
     go CHcontrol()
+
+    t,err := utils.GetKeyValueString("loop", "InitAnalizer")
+    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    tDuration, err := strconv.Atoi(t)
     for {
         analyzer,_ = PingAnalyzer()
         if analyzer["status"] == "Disabled"{
             break
         }
-        time.Sleep(time.Second * 3)
+        time.Sleep(time.Second * time.Duration(tDuration)) 
     }
 }
 

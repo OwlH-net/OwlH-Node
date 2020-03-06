@@ -50,7 +50,11 @@ var GlobalMonitor Monitor
 
 func doMonitor() {
     for {
-        time.Sleep(time.Second * 20)
+        t,err := utils.GetKeyValueString("loop", "monitor")
+        if err != nil {logs.Error("Search Error: Cannot load node information.")}
+        tDuration, err := strconv.Atoi(t)
+        time.Sleep(time.Second * time.Duration(tDuration))
+
         PrintMemUsage()
         PrintDiskUsage()
         PrintCPUUsage()       
@@ -146,7 +150,6 @@ func PingMonitorFiles()(data map[string]map[string]string, err error) {
 }
 
 func ChangeRotationStatus(anode map[string]string)(err error) {
-    logs.Notice(anode)
     err = ndb.UpdateMonitorFileValue(anode["file"], "rotate", anode["status"])
     if err != nil {logs.Error("ChangeRotationStatus error updating monitor file value: %s", err.Error());return err}
 

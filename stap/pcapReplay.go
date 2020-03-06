@@ -4,6 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "os/exec"
     "owlhnode/utils"  
+    "strconv"
     "io/ioutil"
     "time"
 )
@@ -26,7 +27,11 @@ func Pcap_replay()() {
     stapStatus,err = PingStap("")
     if err != nil {
         logs.Error("Waiting 60 seconds: Error doing ping to STAP : "+err.Error())
-        time.Sleep(time.Second * 60)
+        t,err := utils.GetKeyValueString("loop", "Pcap_replay")
+        if err != nil {logs.Error("Search Error: Cannot load node information.")}
+        tDuration, err := strconv.Atoi(t)
+
+        time.Sleep(time.Second * time.Duration(tDuration))
     }
     
     //while stap == true, infinite loop will be active
@@ -35,7 +40,10 @@ func Pcap_replay()() {
         stapStatus, err = PingStap("")
         if err != nil {
             logs.Error("Waiting 60 seconds: Error doing ping to STAP : "+err.Error())
-            time.Sleep(time.Second * 60)
+            t,err := utils.GetKeyValueString("loop", "stapStatus")
+            if err != nil {logs.Error("Search Error: Cannot load node information.")}
+            tDuration, err := strconv.Atoi(t)
+            time.Sleep(time.Second * time.Duration(tDuration))
             continue
         }
 
@@ -43,14 +51,20 @@ func Pcap_replay()() {
         files, err := ioutil.ReadDir(inQueue)
         if err != nil {
             logs.Error("Error reading in_queue path: "+err.Error())
-            time.Sleep(time.Second * 60)
+            t,err := utils.GetKeyValueString("loop", "ReadDir")
+            if err != nil {logs.Error("Search Error: Cannot load node information.")}
+            tDuration, err := strconv.Atoi(t)
+            time.Sleep(time.Second * time.Duration(tDuration))
             continue
         }
         
         //check files in remote path
         if len(files) == 0 {
             logs.Error("Error Pcap_replay reading files: No files")
-            time.Sleep(time.Second * 10)
+            t,err := utils.GetKeyValueString("loop", "remote")
+            if err != nil {logs.Error("Search Error: Cannot load node information.")}
+            tDuration, err := strconv.Atoi(t)
+            time.Sleep(time.Second * time.Duration(tDuration))
             continue
         }
         

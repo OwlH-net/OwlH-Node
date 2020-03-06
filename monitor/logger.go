@@ -144,7 +144,10 @@ func FileRotation()(){
 			}
 		}
 		logs.Info("Monitor files rotated!")
-        time.Sleep(time.Minute*1)
+		t,err := utils.GetKeyValueString("loop", "FileRotation")
+        if err != nil {logs.Error("Search Error: Cannot load node information.")}
+        tDuration, err := strconv.Atoi(t)
+		time.Sleep(time.Minute * time.Duration(tDuration))
 	}
 }
 

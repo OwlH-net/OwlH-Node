@@ -55,7 +55,10 @@ func GetStatus()(){
         if err != nil {
             logs.Error("CheckParamKnownports Mode Error: "+err.Error())
         }
-        time.Sleep(time.Second * 20)
+        t,err := utils.GetKeyValueString("loop", "knownports")
+        if err != nil {logs.Error("Search Error: Cannot load node information.")}
+        tDuration, err := strconv.Atoi(t)
+        time.Sleep(time.Second * time.Duration(tDuration)) 
     }
 }
 
@@ -78,7 +81,10 @@ func NewPorts()(){
             logs.Info("KNOWNPORTS -- Waiting file...")
 
             logs.Info("WAITING FILE KNOWNPORTS")
-            time.Sleep(time.Second * 60) 
+            t,err := utils.GetKeyValueString("loop", "NewPorts")
+            if err != nil {logs.Error("Search Error: Cannot load node information.")}
+            tDuration, err := strconv.Atoi(t)
+            time.Sleep(time.Second * time.Duration(tDuration)) 
         }else{
             break
         }

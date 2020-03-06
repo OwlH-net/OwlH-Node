@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-    logs.Info("Version OwlH Node: 0.12.0.20200305")
+    logs.Info("Version OwlH Node: 0.12.0.20200306")
     utils.Load()
 
     cancontinue := configuration.MainCheck()
