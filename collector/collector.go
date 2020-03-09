@@ -7,7 +7,14 @@ import (
 )
 
 func PlayCollector()(err error) {   
-    _, err = exec.Command("bash","-c","ls -la").Output()
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil{logs.Error("Error loading stap collector data: "+err.Error()); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil{logs.Error("Error loading stap collector data: "+err.Error()); return err}
+    list, err := utils.GetKeyValueString("execute", "list")
+    if err != nil{logs.Error("Error loading stap collector data: "+err.Error()); return err}
+
+    _, err = exec.Command(command,param,list).Output()
     if err != nil{
         logs.Error("Error executing command in PlayCollector function: "+err.Error())
         return err    
@@ -16,7 +23,14 @@ func PlayCollector()(err error) {
 }
 
 func StopCollector()(err error) {   
-    _, err = exec.Command("bash","-c","ls -la").Output()
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil{logs.Error("Error loading stap collector data: "+err.Error()); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil{logs.Error("Error loading stap collector data: "+err.Error()); return err}
+    list, err := utils.GetKeyValueString("execute", "list")
+    if err != nil{logs.Error("Error loading stap collector data: "+err.Error()); return err}
+
+    _, err = exec.Command(command,param,list).Output()
     if err != nil{
         logs.Error("Error executing command in StopCollector function: "+err.Error())
         return err    

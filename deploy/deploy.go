@@ -8,10 +8,14 @@ import (
 )
 
 func DeployNode(anode map[string]string)(err error) { 
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil { logs.Error("DeployNode Error getting data from main.conf"); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil { logs.Error("DeployNode Error getting data from main.conf"); return err}
     deployElement, err := utils.GetKeyValueString("deploy", anode["value"])
     if err != nil { logs.Error("DeployNode Error getting data from main.conf"); return err}
 
-    _,err = exec.Command("bash", "-c", deployElement).Output()
+    _,err = exec.Command(command, param, deployElement).Output()
     if err != nil{logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error()); return err}
     
     return nil
