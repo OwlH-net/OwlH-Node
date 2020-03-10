@@ -265,10 +265,15 @@ func ModifyWazuhFile(anode map[string]interface{})(err error) {
 }   
 
 func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
+    command, err := utils.GetKeyValueString("execute", "command")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    param, err := utils.GetKeyValueString("execute", "param")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+
     linesResult := make(map[string]string)
 
     if file["number"] != "none"{
-        lines,err := exec.Command("bash", "-c", "tail -"+file["number"]+" "+file["path"]).Output()
+        lines,err := exec.Command(command, param, "tail -"+file["number"]+" "+file["path"]).Output()
         if err != nil{logs.Error("LoadFileLastLines Error retrieving last lines of the path "+file["path"]+": "+err.Error()); return nil,err}
     
         linesResult["result"] = string(lines)

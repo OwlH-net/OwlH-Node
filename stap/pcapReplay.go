@@ -6,6 +6,7 @@ import (
     "owlhnode/utils"  
     "strconv"
     "io/ioutil"
+    "strings"
     "time"
 )
 
@@ -21,7 +22,12 @@ func Pcap_replay()() {
     if err != nil {logs.Error("Pcap_replay Error getting data from main.conf")}
     keepPCAP, err := utils.GetKeyValueString("stap", "keepPCAP")
     if err != nil {logs.Error("Pcap_replay Error getting data from main.conf")}
-    
+    command, err := utils.GetKeyValueString("execute", "command")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    param, err := utils.GetKeyValueString("execute", "param")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    tcpreplay, err := utils.GetKeyValueString("stap", "tcpreplay")  
+
     //check Stap status
     stapStatus := make(map[string]bool)
     stapStatus,err = PingStap("")
@@ -70,8 +76,11 @@ func Pcap_replay()() {
         
         //if there are files in remote path, use tcpreplay
         for _, f := range files{
-            cmd := "tcpreplay -i "+stapInterface+" -t -l 1 "+inQueue+f.Name()
-            _, err := exec.Command("bash", "-c", cmd).Output()
+            // cmd := "tcpreplay -i "+stapInterface+" -t -l 1 "+inQueue+f.Name()
+            iface := strings.Replace(tcpreplay, "<IFACE>", stapInterface, -1)
+            allValues := strings.Replace(iface, "<NAME>", inQueue+f.Name(), -1)
+
+            _, err := exec.Command(command, param, allValues).Output()
             if err != nil{
                 logs.Error("Error exec cmd command "+err.Error())
             }

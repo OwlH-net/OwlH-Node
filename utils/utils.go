@@ -33,9 +33,12 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
 
 //create a BPF backup
 func BackupFullPath(path string) (err error) { 
+    copy, err := GetKeyValueString("execute", "copy")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+
     t := time.Now()
     destFolder := path+"-"+strconv.FormatInt(t.Unix(), 10)
-    cpCmd := exec.Command("cp", path, destFolder)
+    cpCmd := exec.Command(copy, path, destFolder)
     err = cpCmd.Run()
     if err != nil{
         logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error())
@@ -48,6 +51,8 @@ func BackupFullPath(path string) (err error) {
 func BackupFile(path string, fileName string) (err error) {  
     backupFolder, err := GetKeyValueString("node", "backupFolder") 
     if err != nil {logs.Error("utils.BackupFile Error getting backup path: "+err.Error()); return err}
+    copy, err := GetKeyValueString("execute", "copy")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
 
     // check if folder exists
     if _, err := os.Stat(backupFolder); os.IsNotExist(err) {
@@ -86,7 +91,7 @@ func BackupFile(path string, fileName string) (err error) {
     if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
         return errors.New("utils.BackupFile error: Source file doesn't exists")
     }else{
-        cpCmd := exec.Command("cp", srcFolder, destFolder)
+        cpCmd := exec.Command(copy, srcFolder, destFolder)
         err = cpCmd.Run()
         if err != nil{logs.Error("utils.BackupFile Error exec cmd command: "+err.Error()); return err}
     }

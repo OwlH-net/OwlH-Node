@@ -29,16 +29,10 @@ func SuricataGroupService(data map[string]string) (err error) {
 
 				suricata, err := utils.GetKeyValueString("suricata", "suricata")
 				if err != nil { logs.Error("DeployNode Error getting data from main.conf"); return err}
-				detail, err := utils.GetKeyValueString("execute", "detail")
-				if err != nil { logs.Error("DeployNode Error getting data from main.conf"); return err}
 				param, err := utils.GetKeyValueString("execute", "param")
 				if err != nil { logs.Error("DeployNode Error getting data from main.conf"); return err}
-				info, err := utils.GetKeyValueString("execute", "i")
-				if err != nil { logs.Error("DeployNode Error getting data from main.conf"); return err}
-				flag, err := utils.GetKeyValueString("execute", "flag")
-				if err != nil { logs.Error("DeployNode Error getting data from main.conf"); return err}
 
-				cmd := exec.Command(suricata, detail, param, group[x]["configFile"], info, group[x]["interface"], flag,  group[x]["BPFfile"])
+				cmd := exec.Command(suricata, "-D", param, group[x]["configFile"], "-i", group[x]["interface"], "-F",  group[x]["BPFfile"])
 				err = cmd.Run()
 				if err != nil {
 					logs.Error("group/SuricataGroupService error launching Suricata: "+err.Error());

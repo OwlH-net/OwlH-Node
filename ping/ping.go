@@ -116,17 +116,15 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
     if err != nil {logs.Error("ping/PingService -- Error getting suricata service data: "+err.Error()); return nil, err}
     param, err := utils.GetKeyValueString("execute", "param")
     if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
-    sh, err := utils.GetKeyValueString("execute", "sh")
-    if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
     suriPID, err := utils.GetKeyValueString("execute", "suriPID")
     if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
     socatPID, err := utils.GetKeyValueString("execute", "socatPID")
     if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
     openSSL, err := utils.GetKeyValueString("execute", "openSSL")
     if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
-    grepSuri, err := utils.GetKeyValueString("execute", "grepSuri")
-    if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
     pidID, err := utils.GetKeyValueString("execute", "pidID")
+    if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
+    command, err := utils.GetKeyValueString("execute", "command")
     if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
 
     allPlugins,err := ndb.GetPlugins()
@@ -143,7 +141,7 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
             }
 
             //check if process is running even though database status is enabled            
-            pid, err := exec.Command(sh, param, strings.Replace(suriPID, "<ID>", x, -1)).Output()
+            pid, err := exec.Command(command, param, strings.Replace(suriPID, "<ID>", x, -1)).Output()
             if err != nil {logs.Error("ping/PingPluginsNode Checking suricata PID: "+err.Error())}
             if strings.Split(string(pid), "\n")[0] == "" {
                 allPlugins[x]["running"] = "false"
@@ -165,7 +163,7 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
 
         //check if process is running even though database status is enabled
         if (allPlugins[x]["type"] == "socket-pcap" || allPlugins[x]["type"] == "socket-network") && allPlugins[x]["pid"] != "none"{
-            pid, err := exec.Command(sh, param, strings.Replace(socatPID, "<PORT>", allPlugins[x]["port"], -1)).Output()
+            pid, err := exec.Command(command, param, strings.Replace(socatPID, "<PORT>", allPlugins[x]["port"], -1)).Output()
             if err != nil {logs.Error("ping/PingPluginsNode Checking STAP PID: "+err.Error())}
             if strings.Split(string(pid), "\n")[0] == "" {
                 allPlugins[x]["running"] = "false"
@@ -178,7 +176,7 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
             val := strings.Replace(openSSL, "<COLLECTOR>", allPlugins[x]["collector"], -1)
             allValues := strings.Replace(val, "<PORT>", allPlugins[x]["port"], -1)
 
-            pid, err := exec.Command(sh, param, allValues).Output()
+            pid, err := exec.Command(command, param, allValues).Output()
             if err != nil {logs.Error("ping/PingPluginsNode Checking STAP network-socket PID: "+err.Error())}
             pids := strings.Split(string(pid), "\n")
             exists := false
@@ -201,12 +199,12 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
         }
     }
 
-    com, err := exec.Command(sh, param, strings.Replace(grepSuri, "<ID>", avoidUUIDS, -1)).Output()
+    com, err := exec.Command(command, param, strings.Replace(suriPID, "<ID>", avoidUUIDS, -1)).Output()
     if err != nil {logs.Error("PingPluginsNode error getting suricata shell launched: "+err.Error())}
     pidValue := strings.Split(string(com), "\n")
     for pid := range pidValue{
         if pidValue[pid] != "" {
-            fullCommand, err := exec.Command(sh, param, strings.Replace(pidID, "<PID>", pidValue[pid], -1)).Output()
+            fullCommand, err := exec.Command(command, param, strings.Replace(pidID, "<PID>", pidValue[pid], -1)).Output()
             if err != nil {logs.Error("PingPluginsNode error getting suricata shell full command: "+err.Error())}
 
             existsPid := false

@@ -228,13 +228,32 @@ func SaveSuricataInterface(anode map[string]string)(err error) {
 
 func CheckServicesStatus()(){
     plugin, err := utils.GetKeyValueString("stap", "plugin")
-    if err != nil {logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    suriPID, err := utils.GetKeyValueString("execute", "suriPID")
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil { logs.Error("Error getting data from main.conf")}
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil { logs.Error("Error getting data from main.conf")}
+    socNetExec, err := utils.GetKeyValueString("execute", "socNetExec")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    socNetPID, err := utils.GetKeyValueString("execute", "socNetPID")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    socatPID, err := utils.GetKeyValueString("execute", "socatPID")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    openSSLparam, err := utils.GetKeyValueString("execute", "openSSLparam")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    tcpdump, err := utils.GetKeyValueString("execute", "tcpdump")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    socNetFile, err := utils.GetKeyValueString("execute", "socNetFile")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
 
     allPlugins,_ := ndb.GetPlugins()
     for w := range allPlugins {
         if allPlugins[w]["pid"] != "none"{
             if allPlugins[w]["type"] == "suricata" {
-                pid, err := exec.Command("bash","-c","ps -ef | grep suricata | grep "+w+" | grep -v grep | awk '{print $2}'").Output()
+                // pid, err := exec.Command("bash","-c","ps -ef | grep suricata | grep "+w+" | grep -v grep | awk '{print $2}'").Output()
+                pid, err := exec.Command(command, param, strings.Replace(suriPID, "<ID>", w, -1)).Output()
                 if err != nil {logs.Error("plugin/CheckServicesStatus Checking previous PID: "+err.Error())}
                 pidValue := strings.Split(string(pid), "\n")
                 
@@ -254,9 +273,11 @@ func CheckServicesStatus()(){
             }else if allPlugins[w]["type"] == "zeek"{
                 zeekctl, err := utils.GetKeyValueString("zeek", "zeekctl")  
                 if err != nil {logs.Error("StopZeek Error getting data from main.conf: "+err.Error())}
+                status, err := utils.GetKeyValueString("execute", "status")  
+                if err != nil {logs.Error("StopZeek Error getting data from main.conf: "+err.Error())}
 
-                // pid, err := exec.Command("bash","-c","zeekctl status | grep running | awk '{print $5}'").Output()
-                pid, err := exec.Command("bash","-c",zeekctl+" status | grep running | awk '{print $5}'").Output()
+                // pid, err := exec.Command("bash","-c",zeekctl+" status | grep running | awk '{print $5}'").Output()
+                pid, err := exec.Command("bash","-c",zeekctl+" "+status).Output()
                 if err != nil {logs.Error("plugin/CheckServicesStatus Checking Zeek PID: "+err.Error())}
                 
                 if allPlugins[w]["status"] == "enabled"{                    
@@ -280,20 +301,26 @@ func CheckServicesStatus()(){
                     }
                 }
             }else if allPlugins[w]["type"] == "socket-network" {
-                if allPlugins[w]["pid"] != "none" {                  
-                    pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                if allPlugins[w]["pid"] != "none" {   
+                    // pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                    pid, err := exec.Command(command, param, strings.Replace(socatPID, "<PORT>", allPlugins[w]["port"], -1)).Output()
                     if err != nil {logs.Error("plugin/CheckServicesStatus Checking previous PID for socket-network: "+err.Error())}
                     pidValue := strings.Split(string(pid), "\n")
                     
                     if pidValue[0] == ""{
-                        cmd := exec.Command("bash","-c",plugin+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
-                        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
+                        port := strings.Replace(socNetExec, "<PORT>", allPlugins[w]["port"], -1)
+                        cert := strings.Replace(port, "<CERT>", allPlugins[w]["cert"], -1)
+                        allValues := strings.Replace(cert, "<IFACE>", allPlugins[w]["interface"], -1)
+
+                        // cmd := exec.Command("bash","-c",plugin+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
+                        cmd := exec.Command(command, param, plugin+" "+allValues)
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
                         if err != nil {logs.Error("CheckServicesStatus deploying Error socket-network: "+err.Error())}        
-    
-                        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                        
+                        // pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                        pid, err = exec.Command(command, param, strings.Replace(socNetPID, "<PORT>", allPlugins[w]["port"], -1)).Output()
                         if err != nil {logs.Error("CheckServicesStatus deploy socket-network Error: "+err.Error())}
                         pidValue = strings.Split(string(pid), "\n")
                         if pidValue[0] != "" {
@@ -303,20 +330,27 @@ func CheckServicesStatus()(){
                 }
             }else if  allPlugins[w]["type"] == "socket-pcap"{
                 if allPlugins[w]["pid"] != "none" {                  
-                    pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
-                    // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
+                    // pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                    pid, err := exec.Command(command, param, strings.Replace(socNetPID, "<PORT>", allPlugins[w]["port"], -1)).Output()
                     if err != nil {logs.Error("plugin/CheckServicesStatus Checking previous PID for socket-pcap: "+err.Error())}
                     pidValue := strings.Split(string(pid), "\n")
                     
                     if pidValue[0] == ""{
-                        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
-                        cmd := exec.Command("bash","-c",plugin+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
+                        port := strings.Replace(socNetFile, "<PORT>", allPlugins[w]["port"], -1)
+                        cert := strings.Replace(port, "<CERT>", allPlugins[w]["cert"], -1)
+                        path := strings.Replace(cert, "<PCAP_PATH>", allPlugins[w]["pcap-path"], -1)
+                        prefix := strings.Replace(path, "<PCAP_PREFIX>", allPlugins[w]["pcap-prefix"], -1)
+                        allValues := strings.Replace(prefix, "<BPF>", allPlugins[w]["bpf"], -1)
+
+                        // cmd := exec.Command("bash","-c",plugin+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
+                        cmd := exec.Command(command, param, plugin+" "+allValues)
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
                         if err != nil {logs.Error("CheckServicesStatus deploying Error socket-pcap: "+err.Error())}        
     
-                        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                        // pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                        pid, err = exec.Command(command, param, strings.Replace(socNetPID, "<PORT>", allPlugins[w]["port"], -1)).Output()
                         if err != nil {logs.Error("CheckServicesStatus deploy socket-pcap Error: "+err.Error())}
                         pidValue = strings.Split(string(pid), "\n")
                         if pidValue[0] != "" {
@@ -327,10 +361,14 @@ func CheckServicesStatus()(){
 
             }else if allPlugins[w]["type"] == "network-socket"{
                 if allPlugins[w]["pid"] != "none" && allPlugins[w]["tcpdump"] != "none" {             
-                    
-                    pidSocat, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[w]["collector"]+":"+allPlugins[w]["port"]+" | awk '{print $2}'").Output()
+                    collector := strings.Replace(openSSLparam, "<COLLECTOR>", allPlugins[w]["collector"], -1)
+                    allValues := strings.Replace(collector, "<PORT>", allPlugins[w]["port"], -1)
+
+                    // pidSocat, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[w]["collector"]+":"+allPlugins[w]["port"]+" | awk '{print $2}'").Output()
+                    pidSocat, err := exec.Command(command, param, allValues).Output()
                     if err != nil {logs.Error("CheckServicesStatus get socat pid at network-socket Error: "+err.Error())}
-                    pidTcpdump, err := exec.Command("bash","-c","ps -ef | grep tcpdump | grep -v grep | awk '{print $2}'").Output()
+                    // pidTcpdump, err := exec.Command("bash","-c","ps -ef | grep tcpdump | grep -v grep | awk '{print $2}'").Output()
+                    pidTcpdump, err := exec.Command(command, param, tcpdump).Output()
                     if err != nil {logs.Error("CheckServicesStatus get tcpdump at network-socket Error: "+err.Error())}
 
                     isRunningProcess := false
@@ -371,15 +409,25 @@ func CheckServicesStatus()(){
 func LaunchSuricataService(uuid string, iface string)(err error){
     suricataBackup, err := utils.GetKeyValueString("suricata", "backup")
     if err != nil {logs.Error("LaunchSuricataService Error getting data from main.conf: "+err.Error())}
+    filter, err := utils.GetKeyValueString("suricata", "filter")
+    if err != nil {logs.Error("LaunchSuricataService Error getting data from main.conf: "+err.Error())}
     pidFile, err := utils.GetKeyValueString("suricata", "pidfile")
+    if err != nil {logs.Error("LaunchSuricataService Error getting data from main.conf: "+err.Error())}
+    fullpidfile, err := utils.GetKeyValueString("suricata", "fullpidfile")
+    if err != nil {logs.Error("LaunchSuricataService Error getting data from main.conf: "+err.Error())}
+    suricata, err := utils.GetKeyValueString("suricata", "suricata")
+    if err != nil {logs.Error("LaunchSuricataService Error getting data from main.conf: "+err.Error())}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil {logs.Error("LaunchSuricataService Error getting data from main.conf: "+err.Error())}
+    suricata_config, err := utils.GetKeyValueString("files", "suricata_config")
     if err != nil {logs.Error("LaunchSuricataService Error getting data from main.conf: "+err.Error())}
 
     mainConfData, err := ndb.GetMainconfData()
     if (mainConfData["suricata"]["status"] == "disabled"){ return nil }
 
     _ = os.Remove(suricataBackup+uuid+"-"+pidFile)
-    cmd := exec.Command("suricata", "-D", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+"-filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
-    // cmd := exec.Command("suricata", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+"-filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
+    // cmd := exec.Command("suricata", "-D", "-c", "/etc/suricata/suricata.yaml", "-i", iface, "-F", "/etc/suricata/bpf/"+uuid+"-filter.bpf" ,"--pidfile", "/var/run/suricata/"+uuid+"-pidfile.pid")
+    cmd := exec.Command(suricata, "-D", param, suricata_config, "-i", iface, "-F", strings.Replace(filter, "<ID>", uuid, -1) ,"--pidfile", strings.Replace(fullpidfile, "<ID>", uuid, -1))
     var stdBuffer bytes.Buffer
     cmd.Stderr = &stdBuffer
 
@@ -517,10 +565,27 @@ func DeployStapService(anode map[string]string)(err error) {
     if err != nil {logs.Error("DeployStapService Error getting data from main.conf: "+err.Error())}
     stapTcpdump, err := utils.GetKeyValueString("stap", "tcpdum")
     if err != nil {logs.Error("DeployStapService Error getting data from main.conf: "+err.Error())}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil { logs.Error(" Error getting data from main.conf")}
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil { logs.Error("Error getting data from main.conf")}
+    socNetPID, err := utils.GetKeyValueString("execute", "socNetPID")
+    if err != nil { logs.Error("Error getting data from main.conf")}
+    socNetExec, err := utils.GetKeyValueString("execute", "socNetExec")
+    if err != nil { logs.Error("Error getting data from main.conf")}
+    socNetFile, err := utils.GetKeyValueString("execute", "socNetFile")
+    if err != nil { logs.Error("Error getting data from main.conf")}
+    NetSocFile, err := utils.GetKeyValueString("execute", "NetSocFile")
+    if err != nil { logs.Error("Error getting data from main.conf")}
+    openSSLparam, err := utils.GetKeyValueString("execute", "openSSLparam")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    tcpdumpPID, err := utils.GetKeyValueString("execute", "tcpdumpPID")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
 
     allPlugins,err := ndb.GetPlugins()
     if anode["type"] == "socket-network" {
-        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        // pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        pid, err := exec.Command(command, param, strings.Replace(socNetPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)).Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
@@ -528,15 +593,18 @@ func DeployStapService(anode map[string]string)(err error) {
             return errors.New("Can't deploy more than one socket at the same port")            
         }
 
+        port := strings.Replace(socNetExec, "<PORT>", allPlugins[anode["service"]]["port"], -1)
+        cert := strings.Replace(port, "<CERT>", allPlugins[anode["service"]]["cert"], -1)
+        allValues := strings.Replace(cert, "<IFACE>", allPlugins[anode["service"]]["interface"], -1)
         // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
-        logs.Notice(stapPlugin+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
-        cmd := exec.Command("bash","-c",stapPlugin+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["service"]]["interface"]+" -\" &")
+        cmd := exec.Command(command, param, stapPlugin+" "+allValues)
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()
         if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}        
 
-        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        // pid, err = exec.Command(command, param, "ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        pid, err = exec.Command(command, param, strings.Replace(socNetPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)).Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue = strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
@@ -544,7 +612,8 @@ func DeployStapService(anode map[string]string)(err error) {
         }
         logs.Notice("Deploy successful --> Type: "+allPlugins[anode["service"]]["type"]+" Description: "+allPlugins[anode["service"]]["name"]+"  --  SOCAT: "+pidValue[0])
     }else if anode["type"] == "socket-pcap" {
-        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        // pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        pid, err := exec.Command(command, param, strings.Replace(socNetPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)).Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
@@ -552,14 +621,22 @@ func DeployStapService(anode map[string]string)(err error) {
             return errors.New("Can't deploy more than one socket at the same port")            
         }
 
-        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
-        cmd := exec.Command("bash","-c",stapPlugin+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
+        // cmd := exec.Command("bash","-c",stapPlugin+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
+        port := strings.Replace(socNetFile, "<PORT>",allPlugins[anode["service"]]["port"], -1)
+        cert := strings.Replace(port, "<CERT>", allPlugins[anode["service"]]["cert"], -1)
+        path := strings.Replace(cert, "<PCAP_PATH>",allPlugins[anode["service"]]["pcap-path"], -1)
+        prefix := strings.Replace(path, "<PCAP_PREFIX>", allPlugins[anode["service"]]["pcap-prefix"], -1)
+        allValues := strings.Replace(prefix, "<BPF>", allPlugins[anode["service"]]["bpf"], -1)
+
+        // cmd := exec.Command("bash","-c",stapPlugin+" -d OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["service"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["service"]]["pcap-path"]+allPlugins[anode["service"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["service"]]["bpf"]+"\" &")
+        cmd := exec.Command(command, param, stapPlugin+" "+allValues )
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()
         if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}        
 
-        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        // pid, err = exec.Command(command, param, "ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["service"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        pid, err = exec.Command(command, param, strings.Replace(socNetPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)).Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue = strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
@@ -573,8 +650,16 @@ func DeployStapService(anode map[string]string)(err error) {
                 return errors.New("This network-socket has been deployed yet")
             }
         }
-        // cmd := exec.Command("bash","-c","/usr/sbin/tcpdump -n -i "+allPlugins[anode["service"]]["interface"]+" -s 0 -w - "+allPlugins[anode["service"]]["bpf"]+" | /usr/bin/socat - OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+",cert="+allPlugins[anode["service"]]["cert"]+",verify=0,forever,retry=10,interval=5 &")
-        cmd := exec.Command("bash","-c",stapTcpdump+" -n -i "+allPlugins[anode["service"]]["interface"]+" -s 0 -w - "+allPlugins[anode["service"]]["bpf"]+" | "+stapPlugin+" - OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+",cert="+allPlugins[anode["service"]]["cert"]+",verify=0,forever,retry=10,interval=5 &")
+
+        iface := strings.Replace(NetSocFile, "<IFACE>", allPlugins[anode["service"]]["interface"], -1)
+        bpf := strings.Replace(iface, "<BPF>", allPlugins[anode["service"]]["bpf"], -1)
+        stap := strings.Replace(bpf, "<STAP>", stapPlugin, -1)
+        collector := strings.Replace(stap, "<COLLECTOR>", allPlugins[anode["service"]]["collector"], -1)
+        port := strings.Replace(collector, "<PORT>", allPlugins[anode["service"]]["port"], -1)
+        allNetSock := strings.Replace(port, "<CERT>", allPlugins[anode["service"]]["cert"], -1)
+
+        // cmd := exec.Command("bash","-c",stapTcpdump+" -n -i "+allPlugins[anode["service"]]["interface"]+" -s 0 -w - "+allPlugins[anode["service"]]["bpf"]+" | "+stapPlugin+" - OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+",cert="+allPlugins[anode["service"]]["cert"]+",verify=0,forever,retry=10,interval=5 &")
+        cmd := exec.Command(command, param, stapTcpdump+" "+allNetSock)
         err = cmd.Start()
         if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}
 
@@ -585,7 +670,11 @@ func DeployStapService(anode map[string]string)(err error) {
                 grepPIDS = grepPIDS + "| grep -v "+allPlugins[x]["pid"]+" "
             }
         }
-        pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" "+grepPIDS+" | grep -v grep | awk '{print $2}'").Output()
+
+        collector = strings.Replace(openSSLparam, "<COLLECTOR>", allPlugins[anode["service"]]["collector"], -1)
+        allValues := strings.Replace(collector, "<PORT>", allPlugins[anode["service"]]["port"], -1)
+        // pid, err := exec.Command("bash","-c","ps -ef | grep OPENSSL:"+allPlugins[anode["service"]]["collector"]+":"+allPlugins[anode["service"]]["port"]+" "+grepPIDS+" | grep -v grep | awk '{print $2}'").Output()
+        pid, err := exec.Command(command, param, allValues).Output()
         if err != nil {logs.Error("DeployStapService deploy network-socket getting socat error: "+err.Error()); return err}
         pidValueSocat := strings.Split(string(pid), "\n")
 
@@ -600,8 +689,9 @@ func DeployStapService(anode map[string]string)(err error) {
                 grepTCPDUMP = grepTCPDUMP + "| grep -v "+allPlugins[x]["tcpdump"]+" "
             }
         }
-        pid, err = exec.Command("bash","-c","ps -ef | grep -v grep | grep tcpdump "+grepTCPDUMP+" | awk '{print $2}'").Output()
-        // pid, err = exec.Command("bash","-c","ps -ef | grep tcpdump | grep -v grep | awk '{print $2}'").Output()
+        tcpdump := strings.Replace(tcpdumpPID, "<TCPDUMP>", grepTCPDUMP, -1)
+        // pid, err = exec.Command("bash","-c","ps -ef | grep -v grep | grep tcpdump "+grepTCPDUMP+" | awk '{print $2}'").Output()
+        pid, err = exec.Command(command, param, tcpdump).Output()
         if err != nil {logs.Error("DeployStapService deploy network-socket getting tcpdump pid error: "+err.Error()); return err}
         pidValueTcpdump := strings.Split(string(pid), "\n")
 
@@ -621,30 +711,12 @@ func StopStapService(anode map[string]string)(err error) {
     if err != nil {logs.Error("Error! can't read database for stop the service: "+err.Error())}
     pidToInt,_ := strconv.Atoi(allPlugins[anode["service"]]["pid"])
     process, _ := os.FindProcess(pidToInt)
-
-    logs.Warn(pidToInt)
-    logs.Warn(pidToInt)
-    logs.Warn(pidToInt)
-    logs.Warn(pidToInt)
-    logs.Warn(pidToInt)
-    logs.Warn(pidToInt)
-    logs.Warn(pidToInt)
-
     _ = process.Kill()
     err = ndb.UpdatePluginValue(anode["service"],"pid","none") ; if err != nil {logs.Error("DeployStapService update DB pid to none Error: "+err.Error()); return err}
 
     if allPlugins[anode["service"]]["type"] == "network-socket" {
         //kill tcpdump
         tcpdumpToInt,_ := strconv.Atoi(allPlugins[anode["service"]]["tcpdump"])
-
-        logs.Emergency(tcpdumpToInt)
-        logs.Emergency(tcpdumpToInt)
-        logs.Emergency(tcpdumpToInt)
-        logs.Emergency(tcpdumpToInt)
-        logs.Emergency(tcpdumpToInt)
-        logs.Emergency(tcpdumpToInt)
-        logs.Emergency(tcpdumpToInt)
-
         processTcpdump, _ := os.FindProcess(tcpdumpToInt)
         _ = processTcpdump.Kill()
         err = ndb.UpdatePluginValue(anode["service"],"tcpdump","none") ; if err != nil {logs.Error("DeployStapService update DB tcpdump to none Error: "+err.Error()); return err}
