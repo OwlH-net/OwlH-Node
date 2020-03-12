@@ -310,12 +310,12 @@ func StopingZeek()(err error){
 
 //Deploy zeek
 func DeployZeek()(err error){
-    cmd, err := utils.GetKeyValueString("zeek", "zeekctl")
+    zeekctl, err := utils.GetKeyValueString("zeek", "zeekctl")
     if err != nil {logs.Error("DeployZeek Error getting data from main.conf: "+err.Error())}
     deploy, err := utils.GetKeyValueString("zeek", "deploy")
     if err != nil {logs.Error("DeployZeek Error getting data from main.conf: "+err.Error())}
 
-    err = utils.RunCommand(cmd, deploy)
+    err = utils.RunCommand(zeekctl, deploy)
     if err != nil {logs.Error("Error deploying zeek: "+err.Error()); return err}
 
     return nil
