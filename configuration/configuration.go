@@ -74,6 +74,14 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "commands"
+    table.Tconn = "pluginConn"
+    table.Tcreate = "CREATE TABLE commands (cmd_id integer PRIMARY KEY AUTOINCREMENT,cmd_uniqueid text NOT NULL,cmd_param text NOT NULL,cmd_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "knownports"
     table.Tconn = "pluginConn"
     table.Tcreate = "CREATE TABLE knownports (kp_id integer PRIMARY KEY AUTOINCREMENT,kp_uniqueid text NOT NULL,kp_param text NOT NULL,kp_value text NOT NULL)"

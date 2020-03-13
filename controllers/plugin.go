@@ -248,3 +248,29 @@ logs.Error(err.Error())
     }
     n.ServeJSON()
 }
+
+// @Title GetServiceCommands
+// @Description get commands for specific service
+// @router /getCommands [put]
+func (n *PluginController) GetServiceCommands() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        logs.Error("Plugin Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "PLUGIN"
+        anode["router"] = "@router /GetServiceCommands [put]"
+        data, err := models.GetServiceCommands(anode)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

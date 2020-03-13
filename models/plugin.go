@@ -262,3 +262,37 @@ func ChangeSuricataTable(anode map[string]string)(err error) {
     //changecontrol.ChangeControlInsertData(err, "ChangeSuricataTable")    
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/node/plugin/getCommands \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "suricata",
+//     "service": "service"
+// }
+func GetServiceCommands(anode map[string]string)(data map[string]map[string]string, err error) {
+    cc := anode
+    logs.Info("============")
+    logs.Info("PLUGIN - GetServiceCommands")
+    for key :=range cc {
+        logs.Info(key +" -> "+ cc[key])
+    }
+    delete(anode,"action")
+    delete(anode,"controller")
+    delete(anode,"router")
+
+    data,err = plugin.GetServiceCommands(anode)
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Change Suricata Table"
+
+    changecontrol.InsertChangeControl(cc)
+    //changecontrol.ChangeControlInsertData(err, "GetServiceCommands")    
+    return data,err
+}
