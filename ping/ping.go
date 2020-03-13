@@ -126,9 +126,29 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
     if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
     command, err := utils.GetKeyValueString("execute", "command")
     if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
+    check, err := utils.GetKeyValueString("execute", "check")
+    if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
+    checkTCPDUMP, err := utils.GetKeyValueString("stap", "checkTCPDUMP")
+    if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
+    checkTCPREPLAY, err := utils.GetKeyValueString("stap", "checkTCPREPLAY")
+    if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
+    checkSOCAT, err := utils.GetKeyValueString("stap", "checkSOCAT")
+    if err != nil { logs.Error("ping/DeployService Error getting data from main.conf"); return nil, err}
 
     allPlugins,err := ndb.GetPlugins()
     if err != nil {logs.Error("ping/GetMainconfData error getting GetPlugins values: "+err.Error()); return nil, err}
+    
+    //check if tcpdump, pcapreplay and socat are installed
+    allPlugins["installed"] = map[string]string{}
+    checkTcpdump, err := exec.Command(check, checkTCPDUMP).Output()
+    if len(checkTcpdump) > 0 { allPlugins["installed"]["checkTcpdump"] = "true" }else{ allPlugins["installed"]["checkTcpdump"] = "false" }
+
+    checkTcpreplay, err := exec.Command(check, checkTCPREPLAY).Output() 
+    if len(checkTcpreplay) > 0 { allPlugins["installed"]["checkTcpreplay"] = "true" }else{ allPlugins["installed"]["checkTcpreplay"] = "false" }
+
+    checkSocat, err := exec.Command(check, checkSOCAT).Output()
+    if len(checkSocat) > 0 { allPlugins["installed"]["checkSocat"] = "true" }else{ allPlugins["installed"]["checkSocat"] = "false" }
+
 
     for x := range allPlugins {
         if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata"{

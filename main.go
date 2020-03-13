@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-    logs.Info("Version OwlH Node: 0.12.0.20200310")
+    logs.Info("Version OwlH Node: 0.12.0.20200313")
     utils.Load()
 
     cancontinue := configuration.MainCheck()
@@ -73,9 +73,7 @@ func main() {
         //     //check tcpdump
         //         //install tcpdump
         // }
-        
     }
-    
 
     logs.Info ("Main Starting -> reading STAP DB")
     ndb.SConn() //stap database
