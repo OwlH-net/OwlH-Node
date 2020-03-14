@@ -12,19 +12,29 @@ import (
 //read file and send back to webpage
 func SendFile(file string)(data map[string]string, err error){
     sendBackArray := make(map[string]string)
-    
-    //create map and obtain file
-    loadData := map[string]map[string]string{}
-    loadData["files"] = map[string]string{}
-    loadData["files"][file] = ""
-    loadData,err = utils.GetConf(loadData)
-    if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
-        
+    var key string
+    var fileName string
+    if file == "node.cfg" || file == "networks.cfg" || file == "zeekctl.cfg" {
+        if file == "node.cfg"{
+            key = "nodeconfig"
+        }else if file == "networks.cfg"{
+            key = "networkconfig"
+        }else{
+            key = "zeekctlconfig"
+        }
+
+        fileName, err = utils.GetKeyValueString("zeek", key)
+        if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
+    }else{
+        //create map and obtain file
+        fileName, err = utils.GetKeyValueString("files", file)
+        if err != nil { logs.Error("SendFile Error getting data from main.conf"); return nil,err}
+    }
+                
     //save url from file selected and open file
-    fileConfPath := loadData["files"][file]
-    fileReaded, err := ioutil.ReadFile(fileConfPath) // just pass the file name
+    fileReaded, err := ioutil.ReadFile(fileName) // just pass the file name
     if err != nil {
-        logs.Error("Error reading file for path: "+fileConfPath)
+        logs.Error("Error reading file for path: "+fileName)
         return nil,err
     }
     
@@ -37,16 +47,11 @@ func SendFile(file string)(data map[string]string, err error){
 //read changed file, make a backup and save into file
 func SaveFile(file map[string]string)(err error){
     //Get full path
-    loadData := map[string]map[string]string{}
-    loadData["files"] = map[string]string{}
-    loadData["files"][file["file"]] = ""
-    loadData,err = utils.GetConf(loadData)
-    if err != nil {
-        logs.Error("SaveFile Error getting data from main.conf")
-    }
+    fileName, err := utils.GetKeyValueString("files", file["file"])
+    if err != nil {logs.Error("SaveFile Error getting data from main.conf")}
 
     //make file backup before overwrite
-    err = utils.BackupFullPath(loadData["files"][file["file"]])
+    err = utils.BackupFullPath(fileName)
     if err != nil {
         logs.Error("SaveFile. Error doing backup with function BackupFullPath: "+err.Error())
         return err
@@ -54,11 +59,8 @@ func SaveFile(file map[string]string)(err error){
 
     //make byte array for save the file modified
     bytearray := []byte(file["content"])
-    err = utils.WriteNewDataOnFile(loadData["files"][file["file"]], bytearray)
-    if err != nil {
-        logs.Error("SaveFile. Error doing backup with function WriteNewDataOnFile: "+err.Error())
-        return err
-    }
+    err = utils.WriteNewDataOnFile(fileName, bytearray)
+    if err != nil {logs.Error("SaveFile. Error doing backup with function WriteNewDataOnFile: "+err.Error()); return err}
     return nil
 }
 
@@ -79,11 +81,7 @@ func ReloadFilesData() (data map[string]map[string]string, err error) {
     sendBackArray["analyzer"] = map[string]string{}
     
     //ANALYZER
-    loadData := map[string]map[string]string{}
-    loadData["node"] = map[string]string{}
-    loadData["node"]["alertLog"] = ""
-    loadData,err = utils.GetConf(loadData)
-    alertLog := loadData["node"]["alertLog"]
+    alertLog, err := utils.GetKeyValueString("node", "alertLog")
     if err != nil { logs.Error("ReloadFilesData Error getting data from main.conf"); return nil,err}
     
     // size = fi.Size()
@@ -98,6 +96,28 @@ func ReloadFilesData() (data map[string]map[string]string, err error) {
         sendBackArray["wazuh"][wazuhFiles[x]["path"]] = wazuhFiles[x]["size"]
     }
 
-    logs.Notice(sendBackArray)
     return sendBackArray,nil
+}
+
+func RotateFile(path string){
+    // numberOfFiles := 5
+    // compress := true
+    
+    // oldpath := path+".4.tar.gz"
+    // if existsFile(oldpath) {
+    //     renameFile(oldpath, path+".5.tar.gz")
+    // }
+    // oldpath = path+".3.tar.gz"
+    // if existsFile(oldpath) {
+    //     renameFile(oldpath, path+".4.tar.gz")
+    // }
+    // oldpath = path+".2.tar.gz"
+    // if existsFile(oldpath) {
+    //     renameFile(oldpath, path+".3.tar.gz")
+    // }
+    // oldpath = path+".1"
+    // if existsFile(oldpath) {
+    //     renameFile(oldpath, path+".5.tar.gz")
+    // }
+    // os.Rename(src, dst)
 }

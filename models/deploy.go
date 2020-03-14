@@ -3,7 +3,6 @@ package models
 import (
     "owlhnode/deploy"
     "owlhnode/changeControl"
-    "errors"
     "github.com/astaxie/beego/logs")
 
 func DeployNode(anode map[string]string)(err error) {
@@ -18,14 +17,25 @@ func DeployNode(anode map[string]string)(err error) {
     delete(anode,"router")
     
     err = deploy.DeployNode(anode)
-    changecontrol.ChangeControlInsertData(err, "DeployNode")    
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Deploy node"
+
+    changecontrol.InsertChangeControl(cc)
+
+    //changecontrol.ChangeControlInsertData(err, "DeployNode")    
     return err
 }
 
 func CheckDeployFiles()(anode map[string]string) {
     anode = deploy.CheckDeployFiles()
-    var err error
-    if anode == nil { err = errors.New("No files") } else { err = nil }
-    changecontrol.ChangeControlInsertData(err, "CheckDeployFiles")    
+    // if anode == nil { err = errors.New("No files") } else { err = nil }
+    //changecontrol.ChangeControlInsertData(err, "CheckDeployFiles")    
     return anode
 }

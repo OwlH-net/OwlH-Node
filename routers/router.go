@@ -24,6 +24,11 @@ func init() {
                 &controllers.ZeekController{},
             ),
         ),
+        beego.NSNamespace("/group",
+            beego.NSInclude(
+                &controllers.GroupController{},
+            ),
+        ),
         beego.NSNamespace("/wazuh",
             beego.NSInclude(
                 &controllers.WazuhController{},
@@ -92,6 +97,11 @@ func init() {
         beego.NSNamespace("/incidents",
             beego.NSInclude(
                 &controllers.IncidentslController{},
+            ),
+        ),
+        beego.NSNamespace("/autentication",
+            beego.NSInclude(
+                &controllers.AutenticationController{},
             ),
         ),
     )

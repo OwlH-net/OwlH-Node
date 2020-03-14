@@ -5,6 +5,7 @@ import (
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
     "encoding/json"
+    "owlhnode/validation"
 )
 
 type WazuhController struct {
@@ -15,15 +16,24 @@ type WazuhController struct {
 // @Description get Wazuh status
 // @Success 200 {object} models.wazuh
 // @router / [get]
-func (m *WazuhController) Get() {
-    logs.Info ("Wazuh controller -> GET")
-    mstatus, err := models.GetWazuh()
-    m.Data["json"] = mstatus
+func (n *WazuhController) Get() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Info("GetWazuh OUT -- ERROR : %s", err.Error())
-        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())        
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        logs.Info ("Wazuh controller -> GET")
+        mstatus, err := models.GetWazuh()
+        n.Data["json"] = mstatus
+        if err != nil {
+            logs.Info("GetWazuh OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title RunWazuh
@@ -32,23 +42,32 @@ func (m *WazuhController) Get() {
 // @Failure 403 body is empty
 // @router /RunWazuh [put]
 func (n *WazuhController) RunWazuh() {
-    logs.Info("RunWazuh -> In")
-    var anode map[string]string
-    anode["action"] = "PUT"
-    anode["controller"] = "WAZUH"
-    anode["router"] = "@router /RunWazuh [put]"
-    logs.Info("============")
-    logs.Info("WAZUH - RunWazuh")
-    for key :=range anode {
-        logs.Info(key +" -> "+anode[key])
-    }
-    data,err := models.RunWazuh()
-    n.Data["json"] = data
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Info("RunWazuh OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        logs.Info("RunWazuh -> In")
+        var anode map[string]string
+        anode["action"] = "PUT"
+        anode["controller"] = "WAZUH"
+        anode["router"] = "@router /RunWazuh [put]"
+        logs.Info("============")
+        logs.Info("WAZUH - RunWazuh")
+        for key :=range anode {
+            logs.Info(key +" -> "+anode[key])
+        }
+        data,err := models.RunWazuh()
+        n.Data["json"] = data
+        if err != nil {
+            logs.Info("RunWazuh OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+        logs.Info("RunWazuh -> OUT -> %s", n.Data["json"])
     }
-    logs.Info("RunWazuh -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -58,23 +77,32 @@ func (n *WazuhController) RunWazuh() {
 // @Failure 403 body is empty
 // @router /StopWazuh [put]
 func (n *WazuhController) StopWazuh() {
-    logs.Info("StopWazuh -> In")
-    var anode map[string]string
-    anode["action"] = "PUT"
-    anode["controller"] = "WAZUH"
-    anode["router"] = "@router /StopWazuh [put]"
-    logs.Info("============")
-    logs.Info("WAZUH - StopWazuh")
-    for key :=range anode {
-        logs.Info(key +" -> "+anode[key])
-    }
-    data,err := models.StopWazuh()
-    n.Data["json"] = data
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Info("StopWazuh OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        logs.Info("StopWazuh -> In")
+        var anode map[string]string
+        anode["action"] = "PUT"
+        anode["controller"] = "WAZUH"
+        anode["router"] = "@router /StopWazuh [put]"
+        logs.Info("============")
+        logs.Info("WAZUH - StopWazuh")
+        for key :=range anode {
+            logs.Info(key +" -> "+anode[key])
+        }
+        data,err := models.StopWazuh()
+        n.Data["json"] = data
+        if err != nil {
+            logs.Info("StopWazuh OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+        logs.Info("StopWazuh -> OUT -> %s", n.Data["json"])
     }
-    logs.Info("StopWazuh -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -82,13 +110,22 @@ func (n *WazuhController) StopWazuh() {
 // @Description get Wazuh status
 // @Success 200 {object} models.wazuh
 // @router /pingWazuhFiles [get]
-func (m *WazuhController) PingWazuhFiles() {
-    files, err := models.PingWazuhFiles()
-    m.Data["json"] = files
+func (n *WazuhController) PingWazuhFiles() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        m.Data["json"] = map[int]map[string]string{0:{"ack": "false", "error": err.Error()}}
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        files, err := models.PingWazuhFiles()
+        n.Data["json"] = files
+        if err != nil {
+            n.Data["json"] = map[int]map[string]string{0:{"ack": "false", "error": err.Error()}}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title DeleteWazuhFile
@@ -97,15 +134,24 @@ func (m *WazuhController) PingWazuhFiles() {
 // @Failure 403 body is empty
 // @router /deleteWazuhFile [delete]
 func (n *WazuhController) DeleteWazuhFile() {
-    var anode map[string]interface{}
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    anode["action"] = "PUT"
-    anode["controller"] = "SURICATA"
-    anode["router"] = "@router /StopSuricata [put]"
-    err := models.DeleteWazuhFile(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
-    
-    if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        var anode map[string]interface{}
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "SURICATA"
+        anode["router"] = "@router /StopSuricata [put]"
+        err := models.DeleteWazuhFile(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        
+        if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+    }
     n.ServeJSON()
 }
 
@@ -115,15 +161,24 @@ func (n *WazuhController) DeleteWazuhFile() {
 // @Failure 403 body is empty
 // @router /addWazuhFile [put]
 func (n *WazuhController) AddWazuhFile() {
-    var anode map[string]interface{}
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    anode["action"] = "PUT"
-    anode["controller"] = "SURICATA"
-    anode["router"] = "@router /StopSuricata [put]"
-    err := models.AddWazuhFile(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
-    
-    if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        var anode map[string]interface{}
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "SURICATA"
+        anode["router"] = "@router /StopSuricata [put]"
+        err := models.AddWazuhFile(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        
+        if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+    }
     n.ServeJSON()
 }
 
@@ -133,15 +188,24 @@ func (n *WazuhController) AddWazuhFile() {
 // @Failure 403 body is empty
 // @router /loadFileLastLines [put]
 func (n *WazuhController) LoadFileLastLines() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    anode["action"] = "PUT"
-    anode["controller"] = "SURICATA"
-    anode["router"] = "@router /StopSuricata [put]"
-    data,err := models.LoadFileLastLines(anode)
-    n.Data["json"] = data
-    
-    if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "SURICATA"
+        anode["router"] = "@router /StopSuricata [put]"
+        data,err := models.LoadFileLastLines(anode)
+        n.Data["json"] = data
+        
+        if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+    }
     n.ServeJSON()
 }
 
@@ -151,15 +215,24 @@ func (n *WazuhController) LoadFileLastLines() {
 // @Failure 403 body is empty
 // @router /saveFileContentWazuh [put]
 func (n *WazuhController) SaveFileContentWazuh() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    anode["action"] = "PUT"
-    anode["controller"] = "SURICATA"
-    anode["router"] = "@router /StopSuricata [put]"
-
-    err := models.SaveFileContentWazuh(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        logs.Error("Wazuh Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "SURICATA"
+        anode["router"] = "@router /StopSuricata [put]"
     
-    if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+        err := models.SaveFileContentWazuh(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        
+        if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+    }
     n.ServeJSON()
 }

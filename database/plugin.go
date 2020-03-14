@@ -4,6 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "database/sql"
     "os"
+    "errors"
     "owlhnode/utils"
     _ "github.com/mattn/go-sqlite3"
 )
@@ -14,16 +15,10 @@ var (
 
 func PConn() {
     var err error
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL["pluginConn"] = map[string]string{}
-    loadDataSQL["pluginConn"]["path"] = ""
-    loadDataSQL["pluginConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)    
-    path := loadDataSQL["pluginConn"]["path"]
-    cmd := loadDataSQL["pluginConn"]["cmd"]
-    if err != nil {
-        logs.Error("PConn Error getting data from main.conf")
-    }
+    path, err := utils.GetKeyValueString("pluginConn", "path")
+    if err != nil {logs.Error("PConn Error getting data from main.conf")}
+    cmd, err := utils.GetKeyValueString("pluginConn", "cmd")
+    if err != nil {logs.Error("PConn Error getting data from main.conf")}
     _, err = os.Stat(path) 
     if err != nil {
         panic("Fail opening plugins.db from path: "+path+"  --  "+err.Error())
@@ -145,7 +140,7 @@ func GetPluginsByParam(uniqueid string, param string)(value string, err error){
     return value,nil
 }
 
-func GetMainconfParam(uniqid, param string) (value string, err error) {
+func GetMainconfParam(uniqid string, param string) (value string, err error) {
     sql := "select main_value from mainconf where main_uniqueid='"+uniqid+ "' and main_param='"+param+"'" 
     rows, err := Pdb.Query(sql)
     if err != nil {
@@ -322,5 +317,102 @@ func DeleteAllClusters()(err error){
 
     defer DeleteServiceNode.Close()
     
+    return nil
+}
+
+func LoadPortsData()(data map[string]map[string]string, err error){
+    var uniqueid string
+    var param string
+    var value string
+    var allKnownPorts = map[string]map[string]string{}
+
+    //database connection
+    if Pdb == nil {
+        logs.Error("LoadPorts knownports -- Can't access to database")
+        return nil, errors.New("LoadPorts knownports -- Can't access to database")
+    } 
+    //query and make map[]map[]
+    sql := "select kp_uniqueid, kp_param, kp_value from knownports;"
+    rows, err := Pdb.Query(sql)
+    defer rows.Close()
+    if err != nil {
+        logs.Error("LoadPorts knownports Error executing query: %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqueid, &param, &value); err != nil {
+            logs.Error("LoadPorts knownports -- Can't read query result: %s", err.Error())
+            return nil, err
+        }
+        if allKnownPorts[uniqueid] == nil { allKnownPorts[uniqueid] = map[string]string{}}
+        allKnownPorts[uniqueid][param]=value
+    } 
+    return allKnownPorts, nil
+}
+
+func CheckParamKnownports(param string)(data string, err error){
+    var res string
+    res = "Disabled"
+    sql := "select plugin_value from plugins where plugin_uniqueid = 'knownports' and plugin_param='"+param+"'"
+    rows, err := Pdb.Query(sql)
+    defer rows.Close()
+    if err != nil {
+        logs.Error("knownports CheckParamKnownports Error executing query: %s", err.Error())
+        return "",err
+    }
+    if rows.Next() {
+        if err = rows.Scan(&res); err != nil {
+            logs.Error("knownports CheckParamKnownports -- Can't read query result: %s", err.Error())
+            return "",err
+        }
+    } 
+    return res, nil
+}
+
+func InsertKnownports(uuid string, param string, value string)(err error){
+    insertKP, err := Pdb.Prepare("insert into knownports (kp_uniqueid, kp_param, kp_value) values (?,?,?);")
+    _, err = insertKP.Exec(&uuid, &param, &value)  
+    defer insertKP.Close()
+    if err != nil{
+        logs.Error("Error InsertKnownports: "+err.Error())
+        return err
+    }
+    return nil
+}
+
+func UpdateKnownports(uuid string, param string, value string)(err error){
+    UpdateKnownportsNode, err := Pdb.Prepare("update knownports set kp_value = ? where kp_param = ? and kp_uniqueid = ?;")
+    if (err != nil){ logs.Error("UpdateKnownports UPDATE prepare error: "+err.Error()); return err}
+
+    _, err = UpdateKnownportsNode.Exec(&value, &uuid, &param)
+    if (err != nil){ logs.Error("UpdateKnownports UPDATE exec error: "+err.Error()); return err}
+
+    defer UpdateKnownportsNode.Close()
+    
+    return nil
+}
+
+func DeletePort(ports map[string]string) (err error) {
+    for id := range ports {
+        protoportDelete, err := Pdb.Prepare("delete from knownports where kp_uniqueid = ?")
+        defer protoportDelete.Close()
+        _, err = protoportDelete.Exec(&id)
+        if err != nil {
+            logs.Error("DeletePort --> delete error-> %s", err.Error())
+            return err
+        }
+    }
+    return nil
+}
+
+func DeleteAllPorts() (err error) {
+    protoportDelete, err := Pdb.Prepare("delete from knownports;")
+    defer protoportDelete.Close()
+    _, err = protoportDelete.Exec()
+    if err != nil {
+        logs.Error("DeleteAllPorts --> delete error-> %s", err.Error())
+        return err
+    }
+
     return nil
 }

@@ -2,7 +2,7 @@ package models
 
 import (
     "owlhnode/dataflow"
-   "owlhnode/changeControl"
+    "owlhnode/changeControl"
     "github.com/astaxie/beego/logs")
 
 func ChangeDataflowValues(anode map[string]string) (err error) {
@@ -17,7 +17,19 @@ func ChangeDataflowValues(anode map[string]string) (err error) {
     delete(anode,"router")
     
     err = dataflow.ChangeDataflowValues(anode)
-    changecontrol.ChangeControlInsertData(err, "ChangeDataflowValues")    
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Change Traffic transport values"
+
+
+    changecontrol.InsertChangeControl(cc)
+    //changecontrol.ChangeControlInsertData(err, "ChangeDataflowValues")    
     return err
 }
 
@@ -33,13 +45,25 @@ func SaveSocketToNetwork(anode map[string]string) (err error) {
     delete(anode,"router")
 
     err = dataflow.SaveSocketToNetwork(anode)
-    changecontrol.ChangeControlInsertData(err, "SaveSocketToNetwork")    
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Set Socket to Network details"
+
+    changecontrol.InsertChangeControl(cc)
+
+    //changecontrol.ChangeControlInsertData(err, "SaveSocketToNetwork")    
     return err
 }
 
 func LoadDataflowValues()(data map[string]map[string]string, err error) {
     data, err = dataflow.LoadDataflowValues()
-    changecontrol.ChangeControlInsertData(err, "LoadDataflowValues")    
+    //changecontrol.ChangeControlInsertData(err, "LoadDataflowValues")    
     return data, err
 }
 
@@ -55,7 +79,18 @@ func SaveNewLocal(anode map[string]string)(err error) {
     delete(anode,"router")
     
     err = dataflow.ChangeDataflowValues(anode)
-    changecontrol.ChangeControlInsertData(err, "SaveNewLocal")    
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Set traffic transport values"
+
+    changecontrol.InsertChangeControl(cc)
+    //changecontrol.ChangeControlInsertData(err, "SaveNewLocal")    
     return err
 }
 
@@ -71,7 +106,17 @@ func SaveVxLAN(anode map[string]string)(err error) {
     delete(anode,"router")
     
     err = dataflow.SaveVxLAN(anode)
-    changecontrol.ChangeControlInsertData(err, "SaveVxLAN")    
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Set VxLAN interface config"
+
+    changecontrol.InsertChangeControl(cc)
+    //changecontrol.ChangeControlInsertData(err, "SaveVxLAN")    
     return err
 }
 
@@ -87,7 +132,19 @@ func SaveSocketToNetworkSelected(anode map[string]string)(err error) {
     delete(anode,"router")
     
     err = dataflow.SaveSocketToNetworkSelected(anode)
-    changecontrol.ChangeControlInsertData(err, "SaveSocketToNetworkSelected")    
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Set Socket to Network"
+
+    changecontrol.InsertChangeControl(cc)
+
+
+    //changecontrol.ChangeControlInsertData(err, "SaveSocketToNetworkSelected")    
     return err
 }
 
@@ -103,6 +160,17 @@ func DeleteDataFlowValueSelected(anode map[string]string)(err error) {
     delete(anode,"router")
     
     err = dataflow.DeleteDataFlowValueSelected(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteDataFlowValueSelected")    
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Delete Traffic Transport configuration"
+
+    changecontrol.InsertChangeControl(cc)
+
+    //changecontrol.ChangeControlInsertData(err, "DeleteDataFlowValueSelected")    
     return err
 }

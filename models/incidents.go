@@ -2,7 +2,7 @@ package models
 
 import (
     "owlhnode/incidents"
-   "owlhnode/changeControl"
+    "owlhnode/changeControl"
     "github.com/astaxie/beego/logs")
 
 // curl -X GET \
@@ -10,7 +10,7 @@ import (
 // }
 func GetIncidentsNode()(data map[string]map[string]string ,err error) {
     data, err = incidents.GetIncidentsNode()    
-    changecontrol.ChangeControlInsertData(err, "GetIncidentsNode")    
+    //changecontrol.ChangeControlInsertData(err, "GetIncidentsNode")    
     return data, err
 }
 
@@ -35,6 +35,17 @@ func PutIncidentNode(anode map[string]string)(err error){
     delete(anode,"router")
 
     err = incidents.PutIncidentNode(anode)
-    changecontrol.ChangeControlInsertData(err, "PutIncidentNode")    
+        if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Record Incident"
+
+    changecontrol.InsertChangeControl(cc)
+
+    //changecontrol.ChangeControlInsertData(err, "PutIncidentNode")    
     return err
 }

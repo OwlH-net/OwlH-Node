@@ -15,16 +15,10 @@ var (
 
 func MConn() {
     var err error
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL["monitorConn"] = map[string]string{}
-    loadDataSQL["monitorConn"]["path"] = ""
-    loadDataSQL["monitorConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)    
-    path := loadDataSQL["monitorConn"]["path"]
-    cmd := loadDataSQL["monitorConn"]["cmd"]
-    if err != nil {
-        logs.Error("MConn Error getting data from main.conf")
-    }
+    path, err := utils.GetKeyValueString("monitorConn", "path")
+    if err != nil {logs.Error("MConn Error getting data from main.conf")}
+    cmd, err := utils.GetKeyValueString("monitorConn", "cmd")
+    if err != nil {logs.Error("MConn Error getting data from main.conf")}
     _, err = os.Stat(path) 
     if err != nil {
         panic("Fail opening monitor.db from path: "+path+"  --  "+err.Error())
@@ -58,16 +52,12 @@ func LoadMonitorFiles()(data map[string]map[string]string, err error){
     sql := "select file_uniqueid, file_param, file_value from files;";
     
     rows, err := Monitordb.Query(sql)
-    if err != nil {
-        logs.Error("LoadDataflowValues Monitordb.Query Error : %s", err.Error())
-        return nil, err
-    }
+    if err != nil { logs.Error("LoadDataflowValues Monitordb.Query Error : %s", err.Error()); return nil, err}
+
     defer rows.Close()
     for rows.Next() {
-        if err = rows.Scan(&uniqid, &param, &value); err != nil {
-            logs.Error("LoadDataflowValues -- Query return error: %s", err.Error())
-            return nil, err
-        }
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("LoadDataflowValues -- Query return error: %s", err.Error()); return nil, err}
+
         if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
         pingData[uniqid][param]=value
     } 
@@ -79,5 +69,18 @@ func DeleteMonitorFile(uuid string)(err error){
     _, err = deleteFile.Exec(&uuid)
     defer deleteFile.Close()
     if err != nil {logs.Error("DeleteMonitorFile ERROR deleting: "+err.Error());return err}
+    return nil
+}
+
+func UpdateMonitorFileValue(uuid string, param string, value string)(err error){
+    if Monitordb == nil {logs.Error("no access to database monitor");return errors.New("no access to database monitor")}
+    
+    filesDB, err := Monitordb.Prepare("update files set file_value=? where file_uniqueid = ? and file_param = ?;")
+    if err != nil {logs.Error("UpdateMonitorFileValue Prepare error: %s", err.Error());return err}
+    
+    _, err = filesDB.Exec(&value, &uuid, &param)
+    defer filesDB.Close()
+    if err != nil {logs.Error("UpdateMonitorFileValue Execute error: %s", err.Error());return err}
+    
     return nil
 }

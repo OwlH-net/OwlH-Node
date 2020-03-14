@@ -15,14 +15,8 @@ import (
 //Retrieve suricata path from main.conf
 func suriPath() (exists bool) {
     var err error
-    loadDatasuriPath := map[string]map[string]string{}
-    loadDatasuriPath["suriPath"] = map[string]string{}
-    loadDatasuriPath["suriPath"]["path"] = ""
-    loadDatasuriPath,err = utils.GetConf(loadDatasuriPath)    
-    path := loadDatasuriPath["suriPath"]["path"]
-    if err != nil {
-        logs.Error("suriPath Error getting data from main.conf")
-    }
+    path, err := utils.GetKeyValueString("suriPath", "path")
+    if err != nil {logs.Error("suriPath Error getting data from main.conf")}
 
     if _, err := os.Stat(path); os.IsNotExist(err) {
         logs.Error("Suricata not installed, at least folder /etc/suricata dosn't exist")
@@ -33,17 +27,11 @@ func suriPath() (exists bool) {
 
 //Retrieve suricata binary files path from main.conf
 func suriBin() (exists bool) {
-    var err error
-    loadDatasuriBin := map[string]map[string]string{}
-    loadDatasuriBin["suriBin"] = map[string]string{}
-    loadDatasuriBin["suriBin"]["cmd"] = ""
-    loadDatasuriBin["suriBin"]["param"] = ""
-    loadDatasuriBin,err = utils.GetConf(loadDatasuriBin)    
-    cmd := loadDatasuriBin["suriBin"]["cmd"]
-    param := loadDatasuriBin["suriBin"]["param"]
-    if err != nil {
-        logs.Error("suriBin Error getting data from main.conf")
-    }
+    var err error 
+    cmd, err := utils.GetKeyValueString("suriBin", "cmd")
+    if err != nil {logs.Error("suriBin Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("suriBin", "param")
+    if err != nil {logs.Error("suriBin Error getting data from main.conf")}
 
     out, err := exec.Command(cmd,param).Output()
     if err == nil {
@@ -58,19 +46,13 @@ func suriBin() (exists bool) {
 
 //Check whether Suricata is running
 func suriRunning() (running bool) {
-    var err error
-    loadDatasuriRunning := map[string]map[string]string{}
-    loadDatasuriRunning["suriRunning"] = map[string]string{}
-    loadDatasuriRunning["suriRunning"]["cmd"] = ""
-    loadDatasuriRunning["suriRunning"]["param"] = ""
-    loadDatasuriRunning["suriRunning"]["command"] = ""
-    loadDatasuriRunning,err = utils.GetConf(loadDatasuriRunning)    
-    cmd := loadDatasuriRunning["suriRunning"]["cmd"]
-    param := loadDatasuriRunning["suriRunning"]["param"]
-    command := loadDatasuriRunning["suriRunning"]["command"]
-    if err != nil {
-        logs.Error("suriRunning Error getting data from main.conf")
-    }
+    var err error  
+    cmd, err := utils.GetKeyValueString("suriRunning", "cmd")
+    if err != nil {logs.Error("suriRunning Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("suriRunning", "param")
+    if err != nil {logs.Error("suriRunning Error getting data from main.conf")}
+    command, err := utils.GetKeyValueString("suriRunning", "command")
+    if err != nil {logs.Error("suriRunning Error getting data from main.conf")}
 
     out, err := exec.Command(command, param, cmd).Output()
     if err == nil {
@@ -126,13 +108,9 @@ func Installed() (isIt map[string]bool, err error){
 
 //set BPF for suricata
 func SetBPF(n map[string]string)(err error) {
-    loadData := map[string]map[string]string{}
-    loadData["suricataBPF"] = map[string]string{}
-    loadData["suricataBPF"]["pathBPF"] = ""
-    loadData["suricataBPF"]["fileBPF"] = "" 
-    loadData,err = utils.GetConf(loadData)    
-    path := loadData["suricataBPF"]["pathBPF"]
-    file := loadData["suricataBPF"]["fileBPF"]
+    path, err := utils.GetKeyValueString("suricataBPF", "pathBPF")
+    if err != nil {logs.Error("SetBPF Error getting data from main.conf: "+err.Error()); return err}
+    file, err := utils.GetKeyValueString("suricataBPF", "fileBPF")
     if err != nil {logs.Error("SetBPF Error getting data from main.conf: "+err.Error()); return err}
     
     //save bpf into specific suricata service database
@@ -159,14 +137,11 @@ func SetBPF(n map[string]string)(err error) {
 //Retrieve data, make a backup file and write the new data on the original file
 func SyncRulesetFromMaster(file map[string][]byte)(err error){
     fileRetrieved := file["data"]
-    
-    StartSuricata := map[string]map[string]string{}
-    StartSuricata["suricataRuleset"] = map[string]string{}
-    StartSuricata["suricataRuleset"]["path"] = ""
-    StartSuricata["suricataRuleset"]["file"] = ""
-    StartSuricata,err = utils.GetConf(StartSuricata)
-    path := StartSuricata["suricataRuleset"]["path"]
-    fileToEdit := StartSuricata["suricataRuleset"]["file"]
+
+    path, err := utils.GetKeyValueString("suricataRuleset", "path")
+    if err != nil {logs.Error("SyncRulesetFromMaster Error getting data from main.conf: "+err.Error()); return err}
+    fileToEdit, err := utils.GetKeyValueString("suricataRuleset", "file")
+    if err != nil {logs.Error("SyncRulesetFromMaster Error getting data from main.conf: "+err.Error()); return err}
 
     //create owlh.rules backup
     err = utils.BackupFile(path, fileToEdit)
@@ -184,17 +159,14 @@ func SyncRulesetFromMaster(file map[string][]byte)(err error){
     // /usr/local/bin/suricatasc -c reload-rules /var/run/suricata/suricata-command.socket
     //SuricataRulesetReload
     if suriRunning(){
-        SuricataRulesetReload := map[string]map[string]string{}
-        SuricataRulesetReload["SuricataRulesetReload"] = map[string]string{}
-        SuricataRulesetReload["SuricataRulesetReload"]["suricatasc"] = ""
-        SuricataRulesetReload["SuricataRulesetReload"]["param"] = ""
-        SuricataRulesetReload["SuricataRulesetReload"]["reload"] = ""
-        SuricataRulesetReload["SuricataRulesetReload"]["socket"] = ""
-        SuricataRulesetReload,err = utils.GetConf(SuricataRulesetReload)
-        suricatasc := SuricataRulesetReload["SuricataRulesetReload"]["suricatasc"]
-        param := SuricataRulesetReload["SuricataRulesetReload"]["param"]
-        reloads := SuricataRulesetReload["SuricataRulesetReload"]["reload"]
-        socket := SuricataRulesetReload["SuricataRulesetReload"]["socket"]
+        suricatasc, err := utils.GetKeyValueString("SuricataRulesetReload", "suricatasc")
+        if err != nil {logs.Error("suriRunning Error getting data from main.conf: "+err.Error()); return err}
+        param, err := utils.GetKeyValueString("SuricataRulesetReload", "param")
+        if err != nil {logs.Error("suriRunning Error getting data from main.conf: "+err.Error()); return err}
+        reloads, err := utils.GetKeyValueString("SuricataRulesetReload", "reload")
+        if err != nil {logs.Error("suriRunning Error getting data from main.conf: "+err.Error()); return err}
+        socket, err := utils.GetKeyValueString("SuricataRulesetReload", "socket")
+        if err != nil {logs.Error("suriRunning Error getting data from main.conf: "+err.Error()); return err}
     
         _,err = exec.Command(suricatasc, param, reloads, socket).Output()
         if err != nil{
@@ -207,20 +179,13 @@ func SyncRulesetFromMaster(file map[string][]byte)(err error){
 }
 
 //Run suricata
-func RunSuricata()(data string, err error){
-    StartSuricata := map[string]map[string]string{}
-    StartSuricata["suriStart"] = map[string]string{}
-    StartSuricata["suriStart"]["start"] = ""
-    StartSuricata["suriStart"]["param"] = ""
-    StartSuricata["suriStart"]["command"] = ""
-    StartSuricata,err = utils.GetConf(StartSuricata)    
-    cmd := StartSuricata["suriStart"]["start"]
-    param := StartSuricata["suriStart"]["param"]
-    command := StartSuricata["suriStart"]["command"]
-    if err != nil {
-        logs.Error("RunSuricata Error getting data from main.conf: "+err.Error())
-        return "",err
-    }
+func RunSuricata()(data string, err error){  
+    cmd, err := utils.GetKeyValueString("suriStart", "start")
+    if err != nil {logs.Error("RunSuricata Error getting data from main.conf: "+err.Error());return "",err}
+    param, err := utils.GetKeyValueString("suriStart", "param")
+    if err != nil {logs.Error("RunSuricata Error getting data from main.conf: "+err.Error());return "",err}
+    command, err := utils.GetKeyValueString("suriStart", "command")
+    if err != nil {logs.Error("RunSuricata Error getting data from main.conf: "+err.Error());return "",err}
 
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {
@@ -233,18 +198,12 @@ func RunSuricata()(data string, err error){
 //Stop suricata
 func StopSuricata()(data string, err error){
     // //Retrieve path for suricata.
-    StopSuricata := map[string]map[string]string{}
-    StopSuricata["suriStop"] = map[string]string{}
-    StopSuricata["suriStop"]["stop"] = ""
-    StopSuricata["suriStop"]["param"] = ""
-    StopSuricata["suriStop"]["command"] = ""
-    StopSuricata,err = utils.GetConf(StopSuricata)    
-    cmd := StopSuricata["suriStop"]["stop"]
-    param := StopSuricata["suriStop"]["param"]
-    command := StopSuricata["suriStop"]["command"]
-    if err != nil {
-        logs.Error("StopSuricata Error getting data from main.conf")
-    }
+    cmd, err := utils.GetKeyValueString("suriStop", "stop")
+    if err != nil {logs.Error("StopSuricata Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("suriStop", "param")
+    if err != nil {logs.Error("StopSuricata Error getting data from main.conf")}
+    command, err := utils.GetKeyValueString("suriStop", "command")
+    if err != nil {logs.Error("StopSuricata Error getting data from main.conf")}
     
     _,err = exec.Command(command, param, cmd).Output()
     if err != nil {logs.Error("Error stopping suricata: "+err.Error());return "",err}
@@ -269,5 +228,56 @@ func SaveConfigFile(files map[string]map[string][]byte)(err error){
             if err != nil{logs.Error("SaveConfigFile Error writting data into "+nodePath+"/"+file+" file: "+err.Error()); return err}
         }
     }
+    return nil
+}
+
+func StartSuricataMainConf(anode map[string]string) (err error) {
+    cmd, err := utils.GetKeyValueString("suricata", "start")
+    if err != nil {logs.Error("StartSuricataMainConf Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("suricata", "param")
+    if err != nil {logs.Error("StartSuricataMainConf Error getting data from main.conf")}
+    command, err := utils.GetKeyValueString("suricata", "command")
+    if err != nil {logs.Error("StartSuricataMainConf Error getting data from main.conf")}
+    
+    // err = utils.RunCommand(cmd, param)
+    _,err = exec.Command(command, param, cmd).Output()
+    if err != nil {logs.Error("StartSuricataMainConf/Error starting suricata: "+err.Error());return err}
+    return nil
+}
+func StopSuricataMainConf(anode map[string]string) (err error) {
+    cmd, err := utils.GetKeyValueString("suricata", "stop")
+    if err != nil {logs.Error("StopSuricataMainConf Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("suricata", "param")
+    if err != nil {logs.Error("StopSuricataMainConf Error getting data from main.conf")}
+    command, err := utils.GetKeyValueString("suricata", "command")
+    if err != nil {logs.Error("StopSuricataMainConf Error getting data from main.conf")}
+    
+    _,err = exec.Command(command, param, cmd).Output()
+    // err = utils.RunCommand(cmd, param)
+    if err != nil {logs.Error("StopSuricataMainConf/Error stopping suricata: "+err.Error());return err}
+    return nil
+}
+func KillSuricataMainConf(anode map[string]string) (err error) {
+    cmd, err := utils.GetKeyValueString("suricata", "kill")
+    if err != nil {logs.Error("KillSuricataMainConf Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("suricata", "param")
+    if err != nil {logs.Error("KillSuricataMainConf Error getting data from main.conf")}
+    command, err := utils.GetKeyValueString("suricata", "command")
+    if err != nil {logs.Error("KillSuricataMainConf Error getting data from main.conf")}
+    
+    _,err = exec.Command(command, param, cmd+" "+anode["pid"]).Output()
+    if err != nil {logs.Error("KillSuricataMainConf/Error starting suricata from main conf: "+err.Error());return err}
+    return nil
+}
+func ReloadSuricataMainConf(anode map[string]string) (err error) {
+    cmd, err := utils.GetKeyValueString("suricata", "reload")
+    if err != nil {logs.Error("ReloadSuricataMainConf Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("suricata", "param")
+    if err != nil {logs.Error("ReloadSuricataMainConf Error getting data from main.conf")}
+    command, err := utils.GetKeyValueString("suricata", "command")
+    if err != nil {logs.Error("ReloadSuricataMainConf Error getting data from main.conf")}
+
+    _,err = exec.Command(command, param, cmd+" "+anode["pid"]).Output()
+    if err != nil {logs.Error("ReloadSuricataMainConf/Error starting suricata from main conf: "+err.Error());return err}
     return nil
 }

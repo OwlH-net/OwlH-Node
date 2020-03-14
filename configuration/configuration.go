@@ -1,19 +1,11 @@
 package configuration
 
 import (
-    // "encoding/json"
-    // "strconv"
     "github.com/astaxie/beego/logs"
     "database/sql"
-    // "io/ioutil"
-    // "io"
-    // "errors"
     "owlhnode/utils"
+    "owlhnode/validation"
     "os"
-    // "time"
-    // "os/exec"
-    // "fmt"
-    // "crypto/rand"
     _ "github.com/mattn/go-sqlite3"
 )
 
@@ -60,7 +52,7 @@ func MainCheck()(cancontinue bool){
 }
 
 func checkDatabases()(ok bool){
-    dbs := []string{"monitorConn","stapConn","pluginConn","nodeConn"}
+    dbs := []string{"monitorConn","stapConn","pluginConn","nodeConn","groupConn"}
     for db := range dbs {
         ok := CheckDB(dbs[db])
         if !ok {
@@ -77,7 +69,6 @@ func checkTables()(ok bool){
     table.Tname = "plugins"
     table.Tconn = "pluginConn"
     table.Tcreate = "CREATE TABLE plugins (plugin_id integer PRIMARY KEY AUTOINCREMENT,plugin_uniqueid text NOT NULL,plugin_param text NOT NULL,plugin_value text NOT NULL)"
-
     ok = CheckTable(table)
     if !ok {
         return false
@@ -102,6 +93,14 @@ func checkTables()(ok bool){
     table.Tname = "mainconf"
     table.Tconn = "pluginConn"
     table.Tcreate = "CREATE TABLE mainconf (main_id integer PRIMARY KEY AUTOINCREMENT,main_uniqueid text NOT NULL,main_param text NOT NULL,main_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "masters"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE masters (master_id integer PRIMARY KEY AUTOINCREMENT,master_uniqueid text NOT NULL,master_param text NOT NULL,master_value text NOT NULL)"
     ok = CheckTable(table)
     if !ok {
         return false
@@ -163,6 +162,38 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "users"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE users (user_id integer PRIMARY KEY AUTOINCREMENT,user_uniqueid text NOT NULL,user_param text NOT NULL,user_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "userGroups"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE userGroups (group_id integer PRIMARY KEY AUTOINCREMENT,group_uniqueid text NOT NULL,group_param text NOT NULL,group_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "userRoles"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE userRoles (role_id integer PRIMARY KEY AUTOINCREMENT,role_uniqueid text NOT NULL,role_param text NOT NULL,role_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "usergrouproles"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE usergrouproles (ugr_id integer PRIMARY KEY AUTOINCREMENT,ugr_uniqueid text NOT NULL,ugr_param text NOT NULL,ugr_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "servers"
     table.Tconn = "stapConn"
     table.Tcreate = "CREATE TABLE servers (server_id integer PRIMARY KEY AUTOINCREMENT,server_uniqueid text NOT NULL,server_param text NOT NULL,server_value text NOT NULL);"
@@ -178,14 +209,105 @@ func checkTables()(ok bool){
     if !ok {
         return false
     }
+
+    table.Tname = "suricata"
+    table.Tconn = "groupConn"
+    table.Tcreate = "CREATE TABLE suricata (suri_id integer PRIMARY KEY AUTOINCREMENT,suri_uniqueid text NOT NULL,suri_param text NOT NULL,suri_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     return true
 }
 
 func checkFields()(ok bool){
-// plugins -             UUID - "suricata", param - "previousStatus", data["suricata"]["status"]
-
     var field Field
 
+    userAdmin := utils.Generate()
+    hashedPass,err := validation.HashPassword("admin"); if err != nil { logs.Error("Configuration Error HashPassword: "+err.Error())}
+    field.Fconn      = "nodeConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='pass'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','pass','"+hashedPass+"')"
+    field.Fname      = "pass - admin"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "nodeConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='user'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','user','admin')"
+    field.Fname      = "user - admin"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "nodeConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='type'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','type','local')"
+    field.Fname      = "type - local"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='BPFfile'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','BPFfile','')"
+    field.Fname      = "suricata - BPFfile"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='configFile'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','configFile','')"
+    field.Fname      = "suricata - configFile"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='interface'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','interface','')"
+    field.Fname      = "suricata - interface"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='name'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','name','')"
+    field.Fname      = "suricata - name"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='BPFrule'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','BPFrule','')"
+    field.Fname      = "suricata - BPFrule"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "groupConn"
+    field.Ftable     = "suricata"
+    field.Fquery     = "select suri_param from suricata where suri_param='commandLine'"
+    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','commandLine','')"
+    field.Fname      = "suricata - commandLine"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
 
     field.Fconn      = "pluginConn"
     field.Ftable     = "plugins"
@@ -226,21 +348,63 @@ func checkFields()(ok bool){
     if !ok {
         return false
     }
+    
+    //Zeek default values
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='interface'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','interface','')"
+    field.Fname      = "plugin - interface"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='name'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','name','Zeek #1')"
+    field.Fname      = "plugin - name"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='type'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','type','zeek')"
+    field.Fname      = "plugin - type"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='status'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','status','disabled')"
+    field.Fname      = "plugin - status"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='previousStatus'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','previousStatus','none')"
+    field.Fname      = "plugin - previousStatus"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
 
     return true
 }
 
 func CheckDB(conn string)(ok bool) {
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[conn] = map[string]string{}
-    loadDataSQL[conn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
+    dbpath, err := utils.GetKeyValueString(conn, "path")
     if err != nil {
         logs.Error("Configuration -> Can't get "+conn+" path from main.conf")
         return false
     }
-    dbpath := loadDataSQL[conn]["path"]
-
     exists := DbExists(dbpath)
 
     if exists {
@@ -257,15 +421,11 @@ func CheckDB(conn string)(ok bool) {
 }
 
 func CheckField(field Field)(ok bool){
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[field.Fconn] = map[string]string{}
-    loadDataSQL[field.Fconn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
+    dbpath, err := utils.GetKeyValueString(field.Fconn, "path")
     if err != nil {
         logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf")
         return false
     }
-    dbpath := loadDataSQL[field.Fconn]["path"]
 
     exists := FieldExists(dbpath, field.Fquery)
     if !exists {
@@ -281,7 +441,7 @@ func CheckField(field Field)(ok bool){
     return true
 }
 
-func FieldExists (dbpath, qry string)(ok bool){
+func FieldExists(dbpath, qry string)(ok bool){
     dblink, err := sql.Open("sqlite3", dbpath)
     if err != nil {
         logs.Error("Configuration -> Check Field -> db " + dbpath + " can't be opened -> err: "+err.Error())
@@ -302,7 +462,7 @@ func FieldExists (dbpath, qry string)(ok bool){
     return true
 }
 
-func FieldCreate (dbpath string, insert string, name string)(ok bool){
+func FieldCreate(dbpath string, insert string, name string)(ok bool){
     logs.Info("Configuration -> Creating field "+name+" in "+dbpath)
 
     dblink, err := sql.Open("sqlite3", dbpath)
@@ -320,15 +480,11 @@ func FieldCreate (dbpath string, insert string, name string)(ok bool){
 }
 
 func CheckTable(table Table)(ok bool){
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[table.Tconn] = map[string]string{}
-    loadDataSQL[table.Tconn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
+    dbpath, err := utils.GetKeyValueString(table.Tconn, "path")
     if err != nil {
         logs.Error("Configuration -> Can't get "+table.Tconn+" path from main.conf")
         return false
     }
-    dbpath := loadDataSQL[table.Tconn]["path"]
 
     exists := TableExists(dbpath, table.Tname)
     if !exists {
@@ -390,15 +546,11 @@ func TableExists(db string, table string)(exists bool){
 
 func TableCreate(conn string, tablename string, create string)(ok bool){
     logs.Info("Configuration -> Creating table "+tablename+" in "+conn)
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[conn] = map[string]string{}
-    loadDataSQL[conn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
+    dbpath, err := utils.GetKeyValueString(conn, "path")
     if err != nil {
         logs.Error("Configuration -> Can't get "+conn+" path from main.conf -> "+err.Error())
         return false
     }
-    dbpath := loadDataSQL[conn]["path"]
     db, err := sql.Open("sqlite3",dbpath)
     if err != nil {
         logs.Error("Configuration -> "+dbpath+" Open Failed -> err: "+err.Error())

@@ -84,14 +84,16 @@ type Event struct {
     Line            string
 }
 
-var CHstartpipeline         = make (chan string, 1000)
-var CHprefilter             = make (chan string, 1000)
-var CHmapper                = make (chan string, 1000)
-var CHtag                   = make (chan string, 1000)
-var CHfeed                  = make (chan string, 1000)
-var CHpostfilter            = make (chan string, 1000)
-var CHwriter                = make (chan string, 1000)
-var CHdispatcher            = make (chan Event, 1000)
+var monitorfiles            = map[string]bool{}
+
+var CHstartpipeline         = make (chan string, 10000)
+var CHprefilter             = make (chan string, 10000)
+var CHmapper                = make (chan string, 10000)
+var CHtag                   = make (chan string, 10000)
+var CHfeed                  = make (chan string, 10000)
+var CHpostfilter            = make (chan string, 10000)
+var CHwriter                = make (chan string, 10000)
+var CHdispatcher            = make (chan Event, 10000)
 
 
 var config Analyzer
@@ -102,39 +104,23 @@ var IoCs = map[string][]string{}
 var counters chcounter
 
 func readconf()(err error) {
-
-    cfg := map[string]map[string]string{}
-    cfg["analyzer"] = map[string]string{}
-    cfg["analyzer"]["analyzerconf"] = ""
-    cfg,err = utils.GetConf(cfg)
-    analyzerCFG := cfg["analyzer"]["analyzerconf"]
-    if err != nil {
-        logs.Error("AlertLog Error getting data from main.conf: "+err.Error())
-        return
-    }
+    analyzerCFG, err := utils.GetKeyValueString("analyzer", "analyzerconf")
+    if err != nil {logs.Error("AlertLog Error getting data from main.conf: "+err.Error()); return}
 
     confFile, err := os.Open(analyzerCFG)
-    if err != nil {
-        logs.Error("Error openning analyzer CFG: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("Error openning analyzer CFG: "+err.Error()); return err}
     defer confFile.Close()
     byteValue, _ := ioutil.ReadAll(confFile)
     err = json.Unmarshal(byteValue, &config)
-    if err != nil {
-        logs.Error(err.Error())
-        return err
-    }
+    if err != nil {logs.Error(err.Error()); return err}
     return nil
 }
 
 func readtags() {
 
     tagFile, err := os.Open(config.Tagfile)
-    if err != nil {
-        logs.Error("Error openning analyzer tag file: "+err.Error())
-        return
-    }
+    if err != nil {logs.Error("Error openning analyzer tag file: "+err.Error()); return}
+    
     defer tagFile.Close()
 
     byteValue, _ := ioutil.ReadAll(tagFile)
@@ -160,7 +146,6 @@ func readpreexcludes() {
         logs.Error("pre filters to json -> Unmarshal error: %s", err.Error())
     }
     logs.Info("prefilters loaded")
-    logs.Warn(prefilters)
 }
 
 func readpostexcludes() {
@@ -177,7 +162,6 @@ func readpostexcludes() {
         logs.Error("post filters to json -> Unmarshal error: %s", err.Error())
     }
     logs.Info("postfilters loaded")
-    logs.Warn(postfilters)
 }
 
 
@@ -428,13 +412,8 @@ func DoPostFilter(wkr int){
 
 
 func DoWriter(wkrid int) {
-
     // TODO - verify if analyzer.json has outfile. if not try to find on main.conf
-    AlertLog := map[string]map[string]string{}
-    AlertLog["node"] = map[string]string{}
-    AlertLog["node"]["alertLog"] = ""
-    AlertLog,err := utils.GetConf(AlertLog)
-    outputfile := AlertLog["node"]["alertLog"]
+    outputfile, err := utils.GetKeyValueString("node", "alertLog")
     if err != nil {
         logs.Error("AlertLog Error getting data from main.conf: " + err.Error())
         return
@@ -545,7 +524,7 @@ func StartWriter(wkr int) {
     }
 }
 
-func ControlSource(file string) {
+func ControlSource(file, uuid string) {
     logs.Info("start file %s control", file)
     filedet, err := os.Stat(file) 
     if os.IsNotExist(err) {
@@ -554,22 +533,22 @@ func ControlSource(file string) {
     stat, _ := filedet.Sys().(*syscall.Stat_t)
     var previousinode uint64
     previousinode = stat.Ino
-    logs.Info("file inode %d ", int(previousinode))
+    logs.Info("file %s inode %d ", file, int(previousinode))
 
-    endthis := false
+    t,err := utils.GetKeyValueString("loop", "ControlSource")
+    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    tDuration, err := strconv.Atoi(t)
     for {
-        time.Sleep(time.Second * 10)
+        time.Sleep(time.Second * time.Duration(tDuration)) 
         if fileinfo, err := os.Stat(file); !os.IsNotExist(err) {
             stat, _ := fileinfo.Sys().(*syscall.Stat_t)
             logs.Info("current inode %d vs %d", stat.Ino, previousinode) 
             if previousinode != stat.Ino {
                 logs.Warn("file %s inode changed, restarting tail with new inode", file)
+                monitorfiles[uuid] = false
                 go StartSource(file)
-                endthis = true
+                return
             }
-        }
-        if endthis {
-            break
         }
     }
 }
@@ -579,20 +558,27 @@ func StartSource(file string) {
     var seekv tail.SeekInfo
     seekv.Offset = 0
     seekv.Whence = os.SEEK_END
+    uuid := utils.Generate()
+    monitorfiles[uuid] = true
+    t,err := utils.GetKeyValueString("loop", "StartSource")
+    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    tDuration, err := strconv.Atoi(t)
     for {
         logs.Info("tailing - %s", file)
         if _, err := os.Stat(file); os.IsNotExist(err) {
-            time.Sleep(time.Second * 10)
+            time.Sleep(time.Second * time.Duration(tDuration)) 
             continue
         }
         t, err := tail.TailFile(file, tail.Config{Follow: true, Location: &seekv})
         if err != nil {
             logs.Error(">>>>>> Tail over file %s error: %s", file, err.Error())
         }
-        go ControlSource(file)
+        go ControlSource(file, uuid)
         for line := range t.Lines {
+            if !monitorfiles[uuid] {
+                return
+            }
             counters.lines += 1
-            logs.Info("new line from %s", file)
             ToDispatcher("start",line.Text)
         }
         logs.Info("End tailing - %s", file)
@@ -642,6 +628,9 @@ func CHcounter(){
 
 func MonitorFile(file string, size int, ofile *os.File) {
     logs.Info(" >>>>>>>>>>  start file %s monitor", file)
+    t,err := utils.GetKeyValueString("loop", "MonitorFile")
+    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    tDuration, err := strconv.Atoi(t)
     for {
         filedet, err := os.Stat(file) 
         if os.IsNotExist(err) {
@@ -653,7 +642,19 @@ func MonitorFile(file string, size int, ofile *os.File) {
             ofile.Truncate(0)
             ofile.Seek(0,0)
         } 
-        time.Sleep(time.Second * 3)
+        time.Sleep(time.Second * time.Duration(tDuration)) 
+    }
+}
+
+func CHcontrol(){
+    t,err := utils.GetKeyValueString("loop", "CHcontrol")
+    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    tDuration, err := strconv.Atoi(t)
+    for {
+        time.Sleep(time.Second * time.Duration(tDuration)) 
+        CHstats()
+        CHcounter()
+        logs.Warn("monitorfiles size is %d", len(monitorfiles))
     }
 }
 
@@ -677,14 +678,17 @@ func InitAnalizer() {
     StartPostFilter(4)
 
     LoadSources()
+    go CHcontrol()
+
+    t,err := utils.GetKeyValueString("loop", "InitAnalizer")
+    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    tDuration, err := strconv.Atoi(t)
     for {
         analyzer,_ = PingAnalyzer()
         if analyzer["status"] == "Disabled"{
             break
         }
-        time.Sleep(time.Second * 3)
-        CHstats()
-        CHcounter()
+        time.Sleep(time.Second * time.Duration(tDuration)) 
     }
 }
 
@@ -693,11 +697,7 @@ func Init(){
 }
 
 func PingAnalyzer()(data map[string]string ,err error) {
-    alertFile := map[string]map[string]string{}
-    alertFile["node"] = map[string]string{}
-    alertFile["node"]["alertLog"] = ""
-    alertFile,err = utils.GetConf(alertFile)    
-    filePath := alertFile["node"]["alertLog"]
+    filePath, err := utils.GetKeyValueString("node", "alertLog")
     if err != nil {logs.Error("PingAnalyzer Error getting data from main.conf")}
 
     analyzerData := make(map[string]string)
@@ -709,6 +709,7 @@ func PingAnalyzer()(data map[string]string ,err error) {
     analyzerData["status"] = analyzerStatus
     analyzerData["path"] = filePath
     analyzerData["size"] = "0"
+
     if analyzerData["status"] == "Disabled" {
         return analyzerData, nil
     }
@@ -730,8 +731,11 @@ func ChangeAnalyzerStatus(anode map[string]string) (err error) {
     return nil
 }
 
-func SyncAnalyzer(file map[string][]byte) (err error) {
-    err = utils.WriteNewDataOnFile("conf/analyzer.json", file["data"])
+func SyncAnalyzer(file map[string][]byte) (err error) { 
+    alertFile, err := utils.GetKeyValueString("analyzer", "analyzerconf")
+    if err != nil {logs.Error("SyncAnalyzer Error getting data from main.conf")}
+
+    err = utils.WriteNewDataOnFile(alertFile, file["data"])
     if err != nil { logs.Error("Analyzer/SyncAnalyzer Error updating Analyzer file: "+err.Error()); return err}
     return err
 }

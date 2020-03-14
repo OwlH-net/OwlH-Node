@@ -2,8 +2,8 @@ package utils
 
 import (
     "encoding/json"
-    "strconv"
     "github.com/astaxie/beego/logs"
+    "strconv"
     "io/ioutil"
     "io"
     "errors"
@@ -11,33 +11,10 @@ import (
     "time"
     "os/exec"
     "fmt"
+    "path/filepath"
+    "strings"
     "crypto/rand"
 )
-
-
-//read data from main.conf
-func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
-    confFilePath := "conf/main.conf"
-    jsonPath, err := ioutil.ReadFile(confFilePath)
-    if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
-        return nil, err
-    }
-
-    var anode map[string]map[string]string
-    json.Unmarshal(jsonPath, &anode)
-
-    for k,y := range loadData { 
-        for y,_ := range y {
-            if v, ok := anode[k][y]; ok {
-                loadData[k][y] = v
-            }else{
-                loadData[k][y] = "None"
-            }
-        }
-    }
-    return loadData, nil
-}
 
 func UpdateBPFFile(path string, file string, bpf string) (err error) {
     //delete file content
@@ -50,41 +27,73 @@ func UpdateBPFFile(path string, file string, bpf string) (err error) {
     //write new bpf content
     bpfByteArray := []byte(bpf)
     err = WriteNewDataOnFile(path+file, bpfByteArray)
-    if err != nil {
-        logs.Error("Error writing new BPF data into file: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("Error writing new BPF data into file: "+err.Error()); return err}
     return nil
 }
 
 //create a BPF backup
 func BackupFullPath(path string) (err error) { 
+    copy, err := GetKeyValueString("execute", "copy")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+
     t := time.Now()
     destFolder := path+"-"+strconv.FormatInt(t.Unix(), 10)
-    cpCmd := exec.Command("cp", path, destFolder)
+    cpCmd := exec.Command(copy, path, destFolder)
     err = cpCmd.Run()
     if err != nil{
         logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error())
         return err
     }
+
     return nil
 }
 
-func BackupFile(path string, fileName string) (err error) { 
+func BackupFile(path string, fileName string) (err error) {  
+    backupFolder, err := GetKeyValueString("node", "backupFolder") 
+    if err != nil {logs.Error("utils.BackupFile Error getting backup path: "+err.Error()); return err}
+    copy, err := GetKeyValueString("execute", "copy")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+
+    // check if folder exists
+    if _, err := os.Stat(backupFolder); os.IsNotExist(err) {
+        err = os.MkdirAll(backupFolder, 0755)
+        if err != nil{logs.Error("utils.BackupFile Error creating main backup folder: "+err.Error()); return err}
+    }
+
+    //get older backup file
+    listOfFiles,err := FilelistPathByFile(backupFolder, fileName)
+    if err != nil{logs.Error("utils.BackupFile Error walking through backup folder: "+err.Error()); return err}
+    count := 0
+    previousBck := ""
+    for x := range listOfFiles{
+        count++
+        if previousBck == "" {
+            previousBck = x
+            continue
+        }else if previousBck > x{
+            previousBck = x
+        }
+    }
+
+    //delete older bck file if there are 5 bck files
+    if count == 5 {
+        err = os.Remove(backupFolder+previousBck)
+        if err != nil{logs.Error("utils.BackupFile Error deleting older backup file: "+err.Error())}
+    }
+
+    //create backup
     t := time.Now()
     newFile := fileName+"-"+strconv.FormatInt(t.Unix(), 10)
     srcFolder := path+fileName
-    destFolder := path+newFile
+    destFolder := backupFolder+newFile
+
     //check if file exist
     if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
-        return nil
+        return errors.New("utils.BackupFile error: Source file doesn't exists")
     }else{
-        cpCmd := exec.Command("cp", srcFolder, destFolder)
+        cpCmd := exec.Command(copy, srcFolder, destFolder)
         err = cpCmd.Run()
-        if err != nil{
-            logs.Error("utils.BackupFile Error exec cmd command: "+err.Error())
-            return err
-        }
+        if err != nil{logs.Error("utils.BackupFile Error exec cmd command: "+err.Error()); return err}
     }
     return nil
 }
@@ -102,7 +111,7 @@ func GetConfFiles()(loadDataReturn map[string]string, err error) {
     confFilePath := "./conf/main.conf"
     JSONconf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
+        logs.Error("utils/GetConfFiles -> can't open Conf file: " + confFilePath)
         return nil, err
     }
     var anode map[string]map[string]string
@@ -123,16 +132,13 @@ func Generate()(uuid string)  {
 
 func LoadDefaultServerData(fileName string)(json map[string]string, err error){
     //Get full path
-    loadData := map[string]map[string]string{}
-    loadData["files"] = map[string]string{}
-    loadData["files"][fileName] = ""
-    loadData,err = GetConf(loadData)
+    file, err := GetKeyValueString("files", fileName)
     if err != nil {
         logs.Error("LoadDefaultServerData Error getting data from main.conf: "+err.Error())
         return nil, err
     }
     fileContent := make(map[string]string)
-    rawData, err := ioutil.ReadFile(loadData["files"][fileName])
+    rawData, err := ioutil.ReadFile(file)
     if err != nil {
         logs.Error("LoadDefaultServerData Error reading file: "+err.Error())
         return nil,err
@@ -198,31 +204,7 @@ func RemoveFile(path string, file string)(err error){
     return nil
 }
 
-//read data from main.conf
-func GetConfArray(loadData map[string]map[string][]string)(loadDataReturn map[string]map[string][]string, err error) { 
-    confFilePath := "conf/main.conf"
-    jsonPathBpf, err := ioutil.ReadFile(confFilePath)
-    if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file: " + confFilePath)
-        return nil, err
-    }
-
-    var anode map[string]map[string][]string
-    json.Unmarshal(jsonPathBpf, &anode)
-
-    for k,y := range loadData { 
-        for y,_ := range y {
-            if v, ok := anode[k][y]; ok {
-                loadData[k][y] = v
-            }else{
-                loadData[k][y] = nil
-            }
-        }
-    }
-    return loadData, nil
-}
-
-func RunCommand(cmdtxt, params string)(err error){
+func RunCommand(cmdtxt string, params string)(err error){
     cmd := exec.Command(cmdtxt, params)
     logs.Notice("utils run command -> Running command "+cmdtxt+"with params " + params)
     err = cmd.Run()
@@ -231,4 +213,25 @@ func RunCommand(cmdtxt, params string)(err error){
         return err
     }
     return err
+}
+
+func FilelistPathByFile(path string, fileToSearch string)(files map[string][]byte, err error){
+    pathMap:= make(map[string][]byte)
+    err = filepath.Walk(path,
+        func(file string, info os.FileInfo, err error) error {
+        if err != nil {return err}
+        
+        if !info.IsDir() {
+            pathSplit := strings.Split(file, "/")
+            if strings.Contains(pathSplit[len(pathSplit)-1], fileToSearch){
+                content, err := ioutil.ReadFile(file)
+                if err != nil {logs.Error("Error filepath walk: "+err.Error()); return err}
+                pathMap[pathSplit[len(pathSplit)-1]] = content
+            }
+        }
+        return nil
+    })
+    if err != nil {logs.Error("Error filepath walk finish: "+err.Error()); return nil, err}
+
+    return pathMap, nil
 }

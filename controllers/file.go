@@ -4,6 +4,7 @@ import (
     "owlhnode/models"
     "encoding/json"
     "github.com/astaxie/beego"
+    "owlhnode/validation"
     "github.com/astaxie/beego/logs"
 )
 
@@ -17,15 +18,24 @@ type FileController struct {
 // @Failure 403 body is empty
 // @router /:fileName [get]
 func (n *FileController) SendFile() {
-    fileName := n.GetString(":fileName")
-    data, err := models.SendFile(fileName)
-
-    n.Data["json"] = data
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Info("send OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("File Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        fileName := n.GetString(":fileName")
+        data, err := models.SendFile(fileName)
+    
+        n.Data["json"] = data
+        if err != nil {
+            logs.Info("send OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+        logs.Info("send -> OUT -> %s", n.Data["json"])
     }
-    logs.Info("send -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -35,19 +45,28 @@ func (n *FileController) SendFile() {
 // @Failure 403 body is empty
 // @router / [put]
 func (n *FileController) SaveFile() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.SaveFile(anode)
-    anode["action"] = "PUT"
-    anode["controller"] = "FILE"
-    anode["router"] = "@router / [put]"
-
-    n.Data["json"] = map[string]string{"ack": "true"}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Info("save OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("File Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.SaveFile(anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "FILE"
+        anode["router"] = "@router / [put]"
+    
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Info("save OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+        logs.Info("save -> OUT -> %s", n.Data["json"])
     }
-    logs.Info("save -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -57,14 +76,23 @@ func (n *FileController) SaveFile() {
 // @Failure 403 body is empty
 // @router / [get]
 func (n *FileController) GetAllFiles() {
-    data,err := models.GetAllFiles()
-
-    n.Data["json"] = data
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Info("GetAllFiles OUT -- ERROR : %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("File Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        data,err := models.GetAllFiles()
+    
+        n.Data["json"] = data
+        if err != nil {
+            logs.Info("GetAllFiles OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+        logs.Info("GetAllFiles return %s", n.Data["json"])
     }
-    logs.Info("GetAllFiles return %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -74,11 +102,20 @@ func (n *FileController) GetAllFiles() {
 // @Failure 403 body is empty
 // @router /reloadFilesData [get]
 func (n *FileController) ReloadFilesData() {
-    data,err := models.ReloadFilesData()
-
-    n.Data["json"] = data
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        logs.Error("File Error validating token from master")
+logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{         
+        data,err := models.ReloadFilesData()
+    
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }

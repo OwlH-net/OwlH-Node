@@ -88,7 +88,6 @@ func UpdateNetworkInterface(data map[string]string) (err error) {
     
     //update zeek db interface
     err = ndb.UpdatePluginValue(data["service"], "interface", data["value"]); if err != nil {logs.Error("UpdateNetworkInterface Zeek interface update Error: "+err.Error()); return err}
-
     err = zeek.SyncCluster(data, "standalone"); if err != nil {logs.Error("UpdateNetworkInterface Zeek update interface and node.cfg Error: "+err.Error()); return err}
     // //restart zeek
     // err = zeek.DeployZeek()

@@ -4,26 +4,39 @@ import (
     "owlhnode/analyzer"
     "owlhnode/changeControl"
     "github.com/astaxie/beego/logs"
-
 )
 
-func PingAnalyzer()(data map[string]string ,err error) {
-    data, err = analyzer.PingAnalyzer()    
-    changecontrol.ChangeControlInsertData(err, "PingAnalyzer")    
+func PingAnalyzer()(data map[string]string, err error) {
+    data, err = analyzer.PingAnalyzer()
+    //changecontrol.ChangeControlInsertData(err, "PingAnalyzer")    
     return data, err
 }
 
-func ChangeAnalyzerStatus(uuid map[string]string) (err error) {
+func ChangeAnalyzerStatus(anode map[string]string) (err error) {
     logs.Info("============")
     logs.Info("ANALYZER - ChangeAnalyzerStatus")
-    cc := uuid
-    for key :=range uuid {
+    cc := anode
+    for key :=range anode {
         logs.Info(key +" -> "+cc[key])
     }
     
-    err = analyzer.ChangeAnalyzerStatus(uuid)
+    delete(anode,"action")
+    delete(anode,"controller")
+    delete(anode,"router")
     
-    changecontrol.ChangeControlInsertData(err, "ChangeAnalyzerStatus")    
+    err = analyzer.ChangeAnalyzerStatus(anode)
+    
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Change Analyzer Status"
+
+
+    changecontrol.InsertChangeControl(cc)
     return err
 }
 
@@ -35,7 +48,18 @@ func SyncAnalyzer(file map[string][]byte) (err error) {
     logs.Info("============")
     logs.Info("ANALYZER - SyncAnalyzer")
     logs.Info("file - conf/analyzer.json")
-        
-    changecontrol.ChangeControlInsertData(err, "SyncAnalyzer")    
-    return err
+    //TODO action
+    // err = analyzer.ChangeAnalyzerStatus(anode)
+    
+    // if err!=nil { 
+    //     cc["actionStatus"] = "error"
+    //     cc["errorDescription"] = err.Error()
+    // }else{
+    //     cc["actionStatus"] = "success"
+    // }
+
+    // cc["actionDescription"] = "sync Analyzer configuration"
+
+    // changecontrol.ChangeControlInsertData(cc, "SyncAnalyzer")    
+    return nil
 }

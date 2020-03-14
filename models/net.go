@@ -2,18 +2,18 @@ package models
 
 import (
     "owlhnode/net"
-   "owlhnode/changeControl"
+    "owlhnode/changeControl"
     "github.com/astaxie/beego/logs")
 
 func GetNetworkData()(values map[string]string, err error) {
     values,err = net.GetNetworkData()
-    changecontrol.ChangeControlInsertData(err, "GetNetworkData")    
+    //changecontrol.ChangeControlInsertData(err, "GetNetworkData")    
     return values,err
 }
 
 func LoadNetworkValuesSelected()(values map[string]map[string]string, err error) {
     values,err = net.LoadNetworkValuesSelected()
-    changecontrol.ChangeControlInsertData(err, "LoadNetworkValuesSelected")    
+    //changecontrol.ChangeControlInsertData(err, "LoadNetworkValuesSelected")    
     return values,err
 }
 
@@ -29,7 +29,18 @@ func UpdateNetworkInterface(data map[string]string) (err error) {
     delete(data,"router")
 
     err = net.UpdateNetworkInterface(data)
-    changecontrol.ChangeControlInsertData(err, "UpdateNetworkInterface")    
+
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Update default network Interface"
+
+    changecontrol.InsertChangeControl(cc)
+    //changecontrol.ChangeControlInsertData(err, "UpdateNetworkInterface")    
     return err
 }
 
