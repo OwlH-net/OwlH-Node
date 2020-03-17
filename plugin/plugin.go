@@ -675,7 +675,8 @@ func DeployStapService(anode map[string]string)(err error) {
 
         //check for a network->socket deployed
         for x := range allPlugins{
-            if x != anode["service"] && allPlugins[x]["type"] == anode["type"] && allPlugins[x]["collector"] == anode["collector"] && allPlugins[x]["port"] == anode["port"] && allPlugins[x]["interface"] == anode["interface"]{
+            if x != anode["service"] && allPlugins[x]["type"] == anode["type"] && allPlugins[x]["collector"] == anode["collector"] &&
+            allPlugins[x]["port"] == anode["port"] && allPlugins[x]["interface"] == anode["interface"] && allPlugins[x]["pid"] != "none" && allPlugins[x]["tcpdump"] != "none"{
                 logs.Error("This network-socket has been deployed yet")
                 _ = ndb.InsertPluginCommand(uuid, "status", "Error")
                 _ = ndb.InsertPluginCommand(uuid, "output", "There is already a network->socket running at this port, collector and interface")
