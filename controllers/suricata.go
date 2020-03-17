@@ -79,10 +79,11 @@ logs.Error(err.Error())
 // @Failure 403 body is empty
 // @router /sync [put]
 func (n *SuricataController) SyncRulesetFromMaster() {
+    logs.Notice("HERE!!!!")
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         logs.Error("Suricata Error validating token from master")
-logs.Error(err.Error())
+        logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}

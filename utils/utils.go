@@ -59,6 +59,12 @@ func BackupFile(path string, fileName string) (err error) {
         err = os.MkdirAll(backupFolder, 0755)
         if err != nil{logs.Error("utils.BackupFile Error creating main backup folder: "+err.Error()); return err}
     }
+    // check if file exists
+    if _, err := os.Stat(path+fileName); os.IsNotExist(err) {
+        logs.Error("utils.BackupFile file to backup doesn't exists. Can't backup the file.")
+        return nil
+    }
+    //return nil 
 
     //get older backup file
     listOfFiles,err := FilelistPathByFile(backupFolder, fileName)

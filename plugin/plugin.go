@@ -438,6 +438,14 @@ func ModifyStapValues(anode map[string]string)(err error) {
         }
         logs.Notice(allPlugins[anode["service"]]["name"]+" service updated!!!")
     }else if anode["type"] == "socket-pcap" || anode["type"] == "socket-network"{
+
+        //check for STAP certificate
+        if _, err := os.Stat(anode["cert"]); os.IsNotExist(err) {
+            logs.Error("STAP certificate does not exists")
+            err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}
+            return errors.New("STAP certificate does not exists")
+        }   
+
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
@@ -460,6 +468,13 @@ func ModifyStapValues(anode map[string]string)(err error) {
             logs.Notice(allPlugins[anode["service"]]["name"]+" service updated!!!")
         }
     }else if anode["type"] == "network-socket"{
+        //check for STAP certificate
+        if _, err := os.Stat(anode["cert"]); os.IsNotExist(err) {
+            logs.Error("STAP certificate does not exists")
+            err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}
+            return errors.New("STAP certificate does not exists")
+        }   
+
         err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
         err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"])  ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
