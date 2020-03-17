@@ -716,7 +716,6 @@ func DeployStapService(anode map[string]string)(err error) {
             }
         }
 
-
         //get tcpdump
         var grepTCPDUMP string
         for x := range allPlugins{
