@@ -576,7 +576,7 @@ func DeployStapService(anode map[string]string)(err error) {
             logs.Error(string(pipeError))
             _ = ndb.InsertPluginCommand(uuid, "status", "Error")
             _ = ndb.InsertPluginCommand(uuid, "output", string(pipeError))
-            return errors.New("Deploy socket-network error: Command unavailable")
+            return errors.New("Deploy socket-network error: Please, check warning log")
         }else{
             //update service status
             err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0])
@@ -645,7 +645,7 @@ func DeployStapService(anode map[string]string)(err error) {
             logs.Error(string(pipeError))
             _ = ndb.InsertPluginCommand(uuid, "status", "Error")
             _ = ndb.InsertPluginCommand(uuid, "output", string(pipeError))
-            return errors.New("Deploy socket-pcap error: Command unavailable")
+            return errors.New("Deploy socket-pcap error: Please, check warning log")
         }else{
             //update service status if there are a PID
             err = ndb.UpdatePluginValue(anode["service"],"pid",pidValue[0])
@@ -721,7 +721,7 @@ func DeployStapService(anode map[string]string)(err error) {
             logs.Error(string(pipeErrors))
             _ = ndb.InsertPluginCommand(uuid, "status", "Error")
             _ = ndb.InsertPluginCommand(uuid, "output", string(pipeErrors))
-            return errors.New("Deploy network-socket error: Command unavailable")
+            return errors.New("Deploy network-socket error: Please, check warning log")
         }else{
             err = ndb.UpdatePluginValue(anode["service"],"pid",pidValueSocat[0])
             if err != nil {
