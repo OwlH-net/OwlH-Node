@@ -235,6 +235,7 @@ func CheckServicesStatus()(){
     command, err := utils.GetKeyValueString("execute", "command")
     if err != nil { logs.Error("Error getting data from main.conf")}
 
+    time.Sleep(time.Second * 2) 
     allPlugins,_ := ndb.GetPlugins()
     for w := range allPlugins {
         if allPlugins[w]["pid"] != "none"{
@@ -561,7 +562,7 @@ func DeployStapService(anode map[string]string)(err error) {
         if err != nil {logs.Error("CMD START ERROR --> "+ err.Error())}
         // logs.Warn(cmd.Process.Pid)
 
-        time.Sleep(time.Second * 5) 
+        time.Sleep(time.Second * 2) 
         //Get deployed PID
         pid, err = exec.Command(command, param, strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)).Output()
         if err != nil {
@@ -630,6 +631,7 @@ func DeployStapService(anode map[string]string)(err error) {
             return err
         }
 
+        time.Sleep(time.Second * 2) 
         //get PID
         pid, err = exec.Command(command, param, strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)).Output()
         if err != nil {
@@ -704,6 +706,7 @@ func DeployStapService(anode map[string]string)(err error) {
             }
         }
 
+        time.Sleep(time.Second * 1) 
         //get tcpreplay pids
         collector = strings.Replace(openSSL, "<COLLECTOR>", allPlugins[anode["service"]]["collector"], -1)
         allValues := strings.Replace(collector, "<PORT>", allPlugins[anode["service"]]["port"], -1)
@@ -741,6 +744,7 @@ func DeployStapService(anode map[string]string)(err error) {
             }
         }
 
+        time.Sleep(time.Second * 1) 
         DumpTCP := strings.Replace(tcpdumpPID, "<TCPDUMP>", grepTCPDUMP, -1)
         DumpBPF := strings.Replace(DumpTCP, "<IFACE>", allPlugins[anode["service"]]["interface"], -1)
         allDumpValues := strings.Replace(DumpBPF, "<BPF>", allPlugins[anode["service"]]["bpf"], -1)
