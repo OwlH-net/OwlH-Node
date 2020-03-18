@@ -561,6 +561,7 @@ func DeployStapService(anode map[string]string)(err error) {
         if err != nil {logs.Error("CMD START ERROR --> "+ err.Error())}
         // logs.Warn(cmd.Process.Pid)
 
+        time.Sleep(time.Second * 5) 
         //Get deployed PID
         pid, err = exec.Command(command, param, strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)).Output()
         if err != nil {
