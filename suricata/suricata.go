@@ -158,6 +158,7 @@ func SyncRulesetFromMaster(file map[string][]byte)(err error){
     }
     // /usr/local/bin/suricatasc -c reload-rules /var/run/suricata/suricata-command.socket
     //SuricataRulesetReload
+    logs.Warn(suriRunning())
     if suriRunning(){
         suricatasc, err := utils.GetKeyValueString("SuricataRulesetReload", "suricatasc")
         if err != nil {logs.Error("suriRunning Error getting data from main.conf: "+err.Error()); return err}

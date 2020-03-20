@@ -17,11 +17,18 @@ import (
 )
 
 func ChangeServiceStatus(anode map[string]string)(err error) {
+    logs.Notice(anode)
     allPlugins,err := ndb.GetPlugins()
     if anode["type"] == "suricata"{
+        mainConfData, err := ndb.GetMainconfData()
+        if (mainConfData["suricata"]["status"] == "disabled"){ return errors.New("Please, enable main Suricata status before launching") }    
         if anode["status"] == "enabled"{
             for x := range allPlugins {
-                //get all db values and check if any
+                //check if suricata is deployed yet
+                if allPlugins[x]["type"] == "suricata" && x == anode["service"] && allPlugins[x]["status"] == "enabled"{
+                    return nil
+                }
+                //get all db values and check if there are any suricata deployed at the same interface
                 if allPlugins[x]["type"] == "suricata" && allPlugins[x]["pid"] != "none" && allPlugins[x]["interface"] == anode["interface"] && allPlugins[x]["status"] == "enabled" && x != anode["service"]{
                     logs.Error("Can't launch more than one suricata with same interface. Please, select other interface.")
                     return errors.New("Can't launch more than one suricata with same interface. Please, select other interface.")
@@ -36,7 +43,7 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
         }
     } else if anode["type"] == "zeek"{
         mainConfData, err := ndb.GetMainconfData()
-        if (mainConfData["zeek"]["status"] == "disabled"){ return nil }        
+        if (mainConfData["zeek"]["status"] == "disabled"){ return errors.New("Please, enable main Zeek status before launch") }        
         if anode["status"] == "enabled"{
             err = zeek.DeployZeek()
             if err != nil {logs.Error("plugin/ChangeServiceStatus error deploying zeek: "+err.Error()); return err}
@@ -367,6 +374,7 @@ func LaunchSuricataService(uuid string, iface string)(err error){
         err = os.Remove(suricataBackup+uuid+"-"+pidFile)
         if err != nil {logs.Error("plugin/LaunchSuricataService error deleting a pid file: "+err.Error())}
     }else{
+        time.Sleep(time.Second * 1)
         //read file
         currentpid, err := os.Open(suricataBackup+uuid+"-"+pidFile)
         if err != nil {logs.Error("plugin/LaunchSuricataService error openning Suricata: "+err.Error()); return err}
