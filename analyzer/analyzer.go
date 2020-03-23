@@ -721,7 +721,7 @@ func PingAnalyzer()(data map[string]string ,err error) {
 }
 
 func ChangeAnalyzerStatus(anode map[string]string) (err error) {
-    logs.Emergency("ANALYZER STATUS - NEW STATUS - "+anode["status"])
+    if anode["status"] != "Enabled" || anode["status"] != "Disabled" { logs.Error("ChangeAnalyzerStatus bad analyzer value spected for status"); return nil}
     err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
     if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
     
