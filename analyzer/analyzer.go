@@ -105,7 +105,7 @@ var counters chcounter
 
 func readconf()(err error) {
     analyzerCFG, err := utils.GetKeyValueString("analyzer", "analyzerconf")
-    if err != nil {logs.Error("AlertLog Error getting data from main.conf: "+err.Error()); return}
+    if err != nil {logs.Error("AlertLog Error getting data from main.conf: "+err.Error()); return err}
 
     confFile, err := os.Open(analyzerCFG)
     if err != nil {logs.Error("Error openning analyzer CFG: "+err.Error()); return err}
@@ -528,6 +528,7 @@ func ControlSource(file, uuid string) {
     logs.Info("start file %s control", file)
     filedet, err := os.Stat(file) 
     if os.IsNotExist(err) {
+        logs.Error("file %s doesn't exists. we don't control files like this.")
         return
     }
     stat, _ := filedet.Sys().(*syscall.Stat_t)
@@ -536,7 +537,7 @@ func ControlSource(file, uuid string) {
     logs.Info("file %s inode %d ", file, int(previousinode))
 
     t,err := utils.GetKeyValueString("loop", "ControlSource")
-    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    if err != nil {logs.Error("Search Error: Cannot load inode information.")}
     tDuration, err := strconv.Atoi(t)
     for {
         time.Sleep(time.Second * time.Duration(tDuration)) 
