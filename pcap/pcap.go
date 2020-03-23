@@ -13,11 +13,116 @@ import (
     "github.com/google/gopacket"
     "github.com/google/gopacket/layers"
     "github.com/google/gopacket/pcap"
+
 )
 
 
+type Macs struct {
+    Mac         net.HardwareAddr    `json:"mac"`
+    IPs         []IP                `json:"ips"`
+    White       bool                `json:"white"`
+    Onnewip     bool                `json:"onnewip"`
+    Alerted     bool                `json:"alerted"`
+    First       string              `json:"first"`
+    Last        string              `json:"last"`
+}
+
+type IP struct {
+    Ip          string              `json:"ip"`
+    White       bool                `json:"white"`
+    First       string              `json:"first"`
+    Last        string              `json:"last"`
+    Alerted     bool                `json:"alerted"`
+}
+
+type Alert struct {
+    Sid         string              `json:"sid"`
+    Type        string              `json:"type"`
+    Signature   string              `json:"signature"`
+    Timestamp   string              `json:"timestamp"`
+}
+
+type ARPConfig struct {
+    Onnewmac    bool
+    Onnewip     bool
+    Enabled     bool
+    Learning    bool
+    Interface   string
+}
+
+var arpmain ARPConfig
+var Knownmacs = map[string]Macs{}
+var Currentmacs = map[string]Macs{}
+
+func saveKnownMacs(){
+    return
+}
+
+func isknownMac(arp *layers.ARP)(is bool){
+    var dsthw net.HardwareAddr
+    dsthw = arp.DstHwAddress
+
+    if _, ok := Knownmacs[dsthw.String()]; ok {
+        logs.Info("mac %s exists", dsthw.String())
+        return true
+    } else {
+        logs.Info("mac %s does not exist.", dsthw.String())
+        return false
+    }
+    return false 
+
+}
+
+func addKnownMac(arp *layers.ARP){
+    var dsthw net.HardwareAddr
+    dsthw = arp.DstHwAddress
+
+    logs.Info("adding mac %s ", dsthw.String())
+
+    var cMac Macs
+    cMac.Mac = arp.DstHwAddress
+    Knownmacs[dsthw.String()] = cMac
+}
+
+func learnarp(arp *layers.ARP)(err error){
+
+    if ! isknownMac(arp) {
+        addKnownMac(arp)
+        saveKnownMacs()
+    }
+    return nil
+
+}
+
+func alertNewARP(arp *layers.ARP){
+    logs.Notice("alerting new arp")
+    return
+}
+
+func isknowMACIP(arp *layers.ARP)(isknown bool){
+    logs.Info("isknowMACIP")
+    return true
+}
+
+func checkarp(arp *layers.ARP){
+
+    if ! isknownMac(arp) {
+        if arpmain.Onnewmac {
+            alertNewARP(arp)
+        }
+    } else if ! isknowMACIP(arp) {
+        if arpmain.Onnewip {
+            alertNewARP(arp)
+        }
+    }
+    logs.Info("no era nada")
+    return nil 
+}
+
 func readARP(iface string)(err error) {
-    // var handle *pcap.Handle
+
+    iface = arpmain.Interface
+
     if handle1, err := pcap.OpenLive(iface, 65536, true, pcap.BlockForever); err != nil {
         logs.Error(err)
         return err
@@ -25,55 +130,57 @@ func readARP(iface string)(err error) {
         handle1.SetBPFFilter("arp")
         src := gopacket.NewPacketSource(handle1, layers.LayerTypeEthernet)
         in := src.Packets()
-    
-    // else if err := handle.SetBPFFilter("arp"); err != nil {  // optional
-    //   logs.Error(err)
-    //   return err
-    // } 
 
-    for {
-        packet := <-in
-        logs.Info ("new packet")
-        arpLayer := packet.Layer(layers.LayerTypeARP)
-        if arpLayer == nil {
-            continue
+        for {
+            packet := <-in
+            // logs.Info ("new packet")
+            arpLayer := packet.Layer(layers.LayerTypeARP)
+            if arpLayer == nil {
+                continue
+            }
+            arp := arpLayer.(*layers.ARP)
+            // content := string(arp.BaseLayer.Payload)
+            // logs.Info("arp.BaseLayer         %v",content         ) 
+            // logs.Info("arp.AddrType          %v",arp.AddrType         ) 
+            // logs.Info("arp.Protocol          %v",arp.Protocol         ) 
+            // logs.Info("arp.HwAddressSize     %v",arp.HwAddressSize    ) 
+            // logs.Info("arp.ProtAddressSize   %v",arp.ProtAddressSize  ) 
+            // logs.Info("arp.Operation         %v",arp.Operation        ) 
+            // logs.Info("arp.SourceHwAddress   %v",arp.SourceHwAddress  ) 
+            // logs.Info("arp.SourceProtAddress %v",arp.SourceProtAddress) 
+            // logs.Info("arp.DstHwAddress      %v",arp.DstHwAddress     ) 
+            // var srchw net.HardwareAddr
+            var dsthw net.HardwareAddr
+
+            // logs.Info("arp.DstProtAddress    %v",arp.DstProtAddress   ) 
+            if arp.Operation == 1 {
+                // srchw = arp.SourceHwAddress
+                // logs.Info("who has %v tells %v(%v)", net.IPv4(arp.DstProtAddress[0],arp.DstProtAddress[1],arp.DstProtAddress[2],arp.DstProtAddress[3]), net.IPv4(arp.SourceProtAddress[0],arp.SourceProtAddress[1],arp.SourceProtAddress[2],arp.SourceProtAddress[3]), srchw.String())
+            }else if arp.Operation == 2{
+                if arpmain.Learning {
+                    logs.Info("learning")
+                    learnarp(arp)
+                } else {
+                    logs.Info("live")
+                    checkarp(arp)
+                }
+                // dsthw := string(arp.DstHwAddress[0])+":"+string(arp.DstHwAddress[1])+":"+string(arp.DstHwAddress[2])+":"+string(arp.DstHwAddress[3])+":"+string(arp.DstHwAddress[4])+":"+string(arp.DstHwAddress[5])
+                dsthw = arp.DstHwAddress
+                logs.Info("%v is at %v", net.IPv4(arp.DstProtAddress[0],arp.DstProtAddress[1],arp.DstProtAddress[2],arp.DstProtAddress[3]), dsthw)
+            }else {
+                logs.Error("unkonwn operation %d", arp.Operation)
+            }
+
+            // if arp.Operation != layers.ARPReply || bytes.Equal([]byte(iface.HardwareAddr), arp.SourceHwAddress) {
+            //     // This is a packet I sent.
+            //     continue
+            // }
+            // Note:  we might get some packets here that aren't responses to ones we've sent,
+            // if for example someone else sends US an ARP request.  Doesn't much matter, though...
+            // all information is good information :)
+            // log.Printf("IP %v is at %v", net.IP(arp.SourceProtAddress), net.HardwareAddr(arp.SourceHwAddress))
+
         }
-        arp := arpLayer.(*layers.ARP)
-        // content := string(arp.BaseLayer.Payload)
-        // logs.Info("arp.BaseLayer         %v",content         ) 
-        // logs.Info("arp.AddrType          %v",arp.AddrType         ) 
-        // logs.Info("arp.Protocol          %v",arp.Protocol         ) 
-        // logs.Info("arp.HwAddressSize     %v",arp.HwAddressSize    ) 
-        // logs.Info("arp.ProtAddressSize   %v",arp.ProtAddressSize  ) 
-        // logs.Info("arp.Operation         %v",arp.Operation        ) 
-        // logs.Info("arp.SourceHwAddress   %v",arp.SourceHwAddress  ) 
-        // logs.Info("arp.SourceProtAddress %v",arp.SourceProtAddress) 
-        // logs.Info("arp.DstHwAddress      %v",arp.DstHwAddress     ) 
-        var srchw net.HardwareAddr
-        var dsthw net.HardwareAddr
-
-        // logs.Info("arp.DstProtAddress    %v",arp.DstProtAddress   ) 
-        if arp.Operation == 1 {
-            srchw = arp.SourceHwAddress
-            logs.Info("who has %v tells %v(%v)", net.IPv4(arp.DstProtAddress[0],arp.DstProtAddress[1],arp.DstProtAddress[2],arp.DstProtAddress[3]), net.IPv4(arp.SourceProtAddress[0],arp.SourceProtAddress[1],arp.SourceProtAddress[2],arp.SourceProtAddress[3]), srchw.String())
-        }else if arp.Operation == 2{
-            // dsthw := string(arp.DstHwAddress[0])+":"+string(arp.DstHwAddress[1])+":"+string(arp.DstHwAddress[2])+":"+string(arp.DstHwAddress[3])+":"+string(arp.DstHwAddress[4])+":"+string(arp.DstHwAddress[5])
-            dsthw = arp.DstHwAddress
-            logs.Info("%v is at %v", net.IPv4(arp.DstProtAddress[0],arp.DstProtAddress[1],arp.DstProtAddress[2],arp.DstProtAddress[3]), dsthw)
-        }else {
-            logs.Error("unkonwn operation %d", arp.Operation)
-        }
-
-        // if arp.Operation != layers.ARPReply || bytes.Equal([]byte(iface.HardwareAddr), arp.SourceHwAddress) {
-        //     // This is a packet I sent.
-        //     continue
-        // }
-        // Note:  we might get some packets here that aren't responses to ones we've sent,
-        // if for example someone else sends US an ARP request.  Doesn't much matter, though...
-        // all information is good information :)
-        // log.Printf("IP %v is at %v", net.IP(arp.SourceProtAddress), net.HardwareAddr(arp.SourceHwAddress))
-
-    }
     }
     return nil
 }
@@ -134,7 +241,14 @@ func Init() {
     }
     logs.Info(ifaces)
 
-    go readARP("eth0")
+    //leer del main.conf o de db la interface que se quiere usar
+    arpmain.Interface = "eth0"
+    //leer del main.conf o de db el estado de la deteccion de mac
+    arpmain.Learning = false
+    arpmain.Onnewip = true
+    arpmain.Onnewmac = true
+
+    go readARP("")
 
     // var wg sync.WaitGroup
     // for _, iface := range ifaces {
