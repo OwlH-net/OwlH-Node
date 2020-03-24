@@ -119,3 +119,49 @@ func (n *AutenticationController) AddUserGroupRolesFromMaster() {
 		n.ServeJSON()
 	}
 }
+
+// @Title SyncRolePermissions
+// @Description Add role permissions relation table from Master
+// @router /addRolePerm [put]
+func (n *AutenticationController) SyncRolePermissions() {
+	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        logs.Error("SyncRolePermissions Error validating token from master")
+        logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{ 
+		var anode map[string]map[string]string
+		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+		err := models.SyncRolePermissions(anode)
+		n.Data["json"] = map[string]string{"ack": "true"}
+		if err != nil {
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+		n.ServeJSON()
+	}
+}
+
+// @Title SyncPermissions
+// @Description Add permissions from Master
+// @router /addPerm [put]
+func (n *AutenticationController) SyncPermissions() {
+	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        logs.Error("SyncPermissions Error validating token from master")
+        logs.Error(err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    }else{ 
+		var anode map[string]map[string]string
+		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+		err := models.SyncPermissions(anode)
+		n.Data["json"] = map[string]string{"ack": "true"}
+		if err != nil {
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+		n.ServeJSON()
+	}
+}

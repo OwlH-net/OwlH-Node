@@ -21,20 +21,18 @@ func (n *FileController) SendFile() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         logs.Error("File Error validating token from master")
-logs.Error(err.Error())
+        logs.Error(err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else if !permissions{
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
     }else{         
         fileName := n.GetString(":fileName")
         data, err := models.SendFile(fileName)
-    
         n.Data["json"] = data
         if err != nil {
-            logs.Info("send OUT -- ERROR : %s", err.Error())
+            logs.Error("send OUT -- ERROR : %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
-        logs.Info("send -> OUT -> %s", n.Data["json"])
     }
     n.ServeJSON()
 }

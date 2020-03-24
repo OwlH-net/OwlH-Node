@@ -59,3 +59,34 @@ func CheckToken(token string, userUuid string, masterUuid string, permission str
 	}
 	return false,errors.New("There are no token.")
 }
+
+func VerifyToken(token string, user string, userUuid string)(err error){
+	masters,err := ndb.GetMasters(); if err != nil {logs.Error("CheckToken error getting master data: %s", err); return err}
+	for x := range masters{
+		tkn, err := Encode(masters[x]["secret"])
+		if err != nil {
+			logs.Error("Error checking Master token: %s", err); return err
+		}else{
+			if token == tkn {
+				if userUuid == "none"{
+					return nil
+				}else{
+					return errors.New("This user has not enough privileges level")
+				}
+			}else{
+				return errors.New("The token retrieved is false")
+			}
+		}		
+	}
+	return errors.New("There are no token.")
+}
+
+func VerifyPermissions(uuidUser string, object string, permissions []string)(err error){
+	for x := range permissions{
+		status,err := UserPrivilegeValidation2(uuidUser, permissions[x]); if err != nil {logs.Error("requestType error: %s",err); return err}
+		if status{
+			return nil
+		}		
+	}
+	return errors.New("Not enough permissions for this action")
+}

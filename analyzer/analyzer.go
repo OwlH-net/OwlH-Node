@@ -10,6 +10,7 @@ import (
     "github.com/astaxie/beego/logs"
     "bufio"
     "time"
+    "errors"
     "strconv"
     "owlhnode/utils"
     "owlhnode/database"
@@ -722,11 +723,15 @@ func PingAnalyzer()(data map[string]string ,err error) {
 }
 
 func ChangeAnalyzerStatus(anode map[string]string) (err error) {
-    if anode["status"] != "Enabled" || anode["status"] != "Disabled" { logs.Error("ChangeAnalyzerStatus bad analyzer value spected for status"); return nil}
-    err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
-    if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
-    
-    return nil
+    logs.Debug(anode)
+    if anode["status"] == "Enabled" || anode["status"] == "Disabled" { 
+        err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
+        if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
+                return nil
+    }else{
+        logs.Error("ChangeAnalyzerStatus bad analyzer value spected for status")
+        return errors.New("ChangeAnalyzerStatus bad analyzer value spected for status")
+    }
 }
 
 func SyncAnalyzer(file map[string][]byte) (err error) { 

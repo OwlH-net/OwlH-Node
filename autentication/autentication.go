@@ -182,3 +182,73 @@ func AddUserGroupRolesFromMaster(masterUgr map[string]map[string]string) (err er
 
 	return nil
 }
+
+func SyncRolePermissions(masterRolePerm map[string]map[string]string) (err error) {
+	nodeRolePerm, err := ndb.GetRolePermissions(); if err != nil {logs.Error("SyncRolePermissions Error getting Node userGroupRoles: %s",err); return err} 
+	//update all masters to "deleted" status
+	for w := range nodeRolePerm{
+		if nodeRolePerm[w]["type"] == "master"{
+			err = ndb.UpdateUserGroupRoles(w,"status", "deleted")
+			if err != nil {logs.Error("SyncRolePermissions Error updating status before update: %s",err); return err} 
+		}
+	}
+
+	//update or insert all elements
+	var existsValue bool
+	for y := range masterRolePerm{
+		for x := range nodeRolePerm{
+			if x == y{existsValue = true}
+		}
+		if existsValue {
+			err = ndb.UpdateRolePermissions(y,"masterID", masterRolePerm[y]["masterID"]); if err != nil {logs.Error("SyncRolePermissions Error updating node group masterID: %s",err); return err} 
+			err = ndb.UpdateRolePermissions(y,"type", masterRolePerm[y]["type"]); if err != nil {logs.Error("SyncRolePermissions Error updating node group type: %s",err); return err} 
+			err = ndb.UpdateRolePermissions(y,"status", masterRolePerm[y]["status"]); if err != nil {logs.Error("SyncRolePermissions Error updating node group status: %s",err); return err} 
+			err = ndb.UpdateRolePermissions(y,"role", masterRolePerm[y]["role"]); if err != nil {logs.Error("SyncRolePermissions Error updating node role: %s",err); return err} 
+			err = ndb.UpdateRolePermissions(y,"permission", masterRolePerm[y]["permission"]); if err != nil {logs.Error("SyncRolePermissions Error updating node permission: %s",err); return err} 
+			err = ndb.UpdateRolePermissions(y,"object", masterRolePerm[y]["object"]); if err != nil {logs.Error("SyncRolePermissions Error updating node object: %s",err); return err} 
+		}else{
+			err = ndb.InsertRolePermissions(y,"masterID", masterRolePerm[y]["masterID"]); if err != nil {logs.Error("SyncRolePermissions Error insert node group masterID: %s",err); return err} 
+			err = ndb.InsertRolePermissions(y,"type", masterRolePerm[y]["type"]); if err != nil {logs.Error("SyncRolePermissions Error insert node group type: %s",err); return err} 
+			err = ndb.InsertRolePermissions(y,"status", masterRolePerm[y]["status"]); if err != nil {logs.Error("SyncRolePermissions Error insert node group status: %s",err); return err} 
+			err = ndb.InsertRolePermissions(y,"role", masterRolePerm[y]["role"]); if err != nil {logs.Error("SyncRolePermissions Error insert node role: %s",err); return err} 
+			err = ndb.InsertRolePermissions(y,"permission", masterRolePerm[y]["permission"]); if err != nil {logs.Error("SyncRolePermissions Error insert node permission: %s",err); return err} 
+			err = ndb.InsertRolePermissions(y,"object", masterRolePerm[y]["object"]); if err != nil {logs.Error("SyncRolePermissions Error insert node object: %s",err); return err} 
+		}
+	}
+
+	return nil
+}
+
+func SyncPermissions(masterPerm map[string]map[string]string) (err error) {
+	nodeRolePerm, err := ndb.GetPermissions(); if err != nil {logs.Error("SyncPermissions Error getting Node userGroupRoles: %s",err); return err} 
+	//update all masters to "deleted" status
+	for w := range nodeRolePerm{
+		if nodeRolePerm[w]["type"] == "master"{
+			err = ndb.UpdatePermissions(w,"status", "deleted")
+			if err != nil {logs.Error("SyncPermissions Error updating status before update: %s",err); return err} 
+		}
+	}
+
+	//update or insert all elements
+	var existsValue bool
+	for y := range masterPerm{
+		for x := range nodeRolePerm{
+			if x == y{existsValue = true}
+		}
+		if existsValue {
+			err = ndb.UpdatePermissions(y,"masterID", masterPerm[y]["masterID"]); if err != nil {logs.Error("SyncPermissions Error updating node group masterID: %s",err); return err} 
+			err = ndb.UpdatePermissions(y,"type", masterPerm[y]["type"]); if err != nil {logs.Error("SyncPermissions Error updating node group type: %s",err); return err} 
+			err = ndb.UpdatePermissions(y,"status", masterPerm[y]["status"]); if err != nil {logs.Error("SyncPermissions Error updating node group status: %s",err); return err} 
+			err = ndb.UpdatePermissions(y,"desc", masterPerm[y]["desc"]); if err != nil {logs.Error("SyncPermissions Error updating node desc: %s",err); return err} 
+			err = ndb.UpdatePermissions(y,"permisionGroup", masterPerm[y]["permisionGroup"]); if err != nil {logs.Error("SyncPermissions Error updating node permisionGroup: %s",err); return err} 
+		}else{
+			err = ndb.InsertPermissions(y,"masterID", masterPerm[y]["masterID"]); if err != nil {logs.Error("SyncPermissions Error insert node group masterID: %s",err); return err} 
+			err = ndb.InsertPermissions(y,"type", masterPerm[y]["type"]); if err != nil {logs.Error("SyncPermissions Error insert node group type: %s",err); return err} 
+			err = ndb.InsertPermissions(y,"status", masterPerm[y]["status"]); if err != nil {logs.Error("SyncPermissions Error insert node group status: %s",err); return err} 
+			err = ndb.InsertPermissions(y,"desc", masterPerm[y]["desc"]); if err != nil {logs.Error("SyncPermissions Error insert node desc: %s",err); return err} 
+			err = ndb.InsertPermissions(y,"permisionGroup", masterPerm[y]["permisionGroup"]); if err != nil {logs.Error("SyncPermissions Error insert node permisionGroup: %s",err); return err} 
+		}
+	}
+
+	return nil
+}
