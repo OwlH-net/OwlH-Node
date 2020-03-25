@@ -17,17 +17,17 @@ import (
     "owlhnode/monitor"
     "owlhnode/utils"
     "owlhnode/configuration"
-    // "owlhnode/validation"
     "os"
     "crypto/tls"
-    // "os/exec"
     "bufio"
     "strings"
     "runtime"
+    "os/signal"
+    "syscall"
 )
 
 func main() {
-    logs.Info("Version OwlH Node: 0.12.0.20200323")
+    logs.Info("Version OwlH Node: 0.12.0.20200325")
     utils.Load()
 
     cancontinue := configuration.MainCheck()
@@ -86,9 +86,10 @@ func main() {
     logs.Info ("Main Starting -> reading GROUP DB")
     ndb.GConn() //group database
  
-    //launch logger    
+    //launch logger  
     monitor.Logger()
-    go monitor.FileRotation()
+    go ManageSignals()  
+    go monitor.FileRotation()    
     plugin.CheckServicesStatus()
     stap.StapInit()
     knownports.Init()
@@ -140,4 +141,21 @@ func OperativeSystemValues()(values map[string]string){
     }else{
         return nil
     }
+}
+
+func ManageSignals() {
+    sigs := make(chan os.Signal, 1)
+    signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2)
+
+    go func() {
+        sig := <-sigs
+        logs.Info("Signal received: "+ sig.String())
+
+        //kill plugins
+        plugin.StopPluginsGracefully()
+
+        //stop node
+        logs.Critical("Stopping Node...")
+        os.Exit(0)
+    }()
 }

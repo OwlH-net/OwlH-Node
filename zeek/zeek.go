@@ -277,7 +277,15 @@ func StartingZeek()(err error){
     start, err := utils.GetKeyValueString("zeek", "start")
     if err != nil {logs.Error("StartingZeek Error getting data from main.conf: "+err.Error())}
 
-    err = utils.RunCommand(cmd,start)
+    // err = utils.RunCommand(cmd,start)
+    logs.Warn("STARTING ZEEK")
+    logs.Warn("STARTING ZEEK")
+    logs.Warn("STARTING ZEEK")
+    logs.Warn("STARTING ZEEK")
+    logs.Warn("STARTING ZEEK")
+    logs.Warn("STARTING ZEEK")
+    logs.Warn("STARTING ZEEK")
+    err = utils.StartCommand(cmd,start)
     if err != nil {logs.Error("Error deploying zeek: "+err.Error()); return err}
 
     return nil

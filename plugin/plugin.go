@@ -17,7 +17,6 @@ import (
 )
 
 func ChangeServiceStatus(anode map[string]string)(err error) {
-    logs.Notice(anode)
     allPlugins,err := ndb.GetPlugins()
     if anode["type"] == "suricata"{
         mainConfData, err := ndb.GetMainconfData()
@@ -161,7 +160,6 @@ func AddPluginService(anode map[string]string) (err error) {
     }
 
     if anode["type"] == "socket-network"{
-        err = ndb.InsertPluginService(uuid, "node", anode["uuid"]); if err != nil {logs.Error("InsertPluginService node Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "name", anode["name"]); if err != nil {logs.Error("InsertPluginService name Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "type", anode["type"]); if err != nil {logs.Error("InsertPluginService type Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "interface", anode["interface"]); if err != nil {logs.Error("InsertPluginService interface Error: "+err.Error()); return err}
@@ -170,7 +168,6 @@ func AddPluginService(anode map[string]string) (err error) {
         err = ndb.InsertPluginService(uuid, "pid", "none"); if err != nil {logs.Error("InsertPluginService pid Error: "+err.Error()); return err}
     }
     if anode["type"] == "socket-pcap"{
-        err = ndb.InsertPluginService(uuid, "node", anode["uuid"]); if err != nil {logs.Error("InsertPluginService node Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "name", anode["name"]); if err != nil {logs.Error("InsertPluginService name Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "type", anode["type"]); if err != nil {logs.Error("InsertPluginService type Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "interface", anode["interface"]); if err != nil {logs.Error("InsertPluginService interface Error: "+err.Error()); return err}
@@ -182,7 +179,6 @@ func AddPluginService(anode map[string]string) (err error) {
         err = ndb.InsertPluginService(uuid, "pid", "none"); if err != nil {logs.Error("InsertPluginService pid Error: "+err.Error()); return err}
     }
     if anode["type"] == "network-socket"{
-        err = ndb.InsertPluginService(uuid, "node", anode["uuid"]); if err != nil {logs.Error("InsertPluginService node Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "name", anode["name"]); if err != nil {logs.Error("InsertPluginService name Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "type", anode["type"]); if err != nil {logs.Error("InsertPluginService type Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "interface", anode["interface"]); if err != nil {logs.Error("InsertPluginService interface Error: "+err.Error()); return err}
@@ -198,7 +194,6 @@ func AddPluginService(anode map[string]string) (err error) {
         for x := range allPlugins{
             if allPlugins[x]["type"] == "zeek"{ return errors.New("Can't Create more than one Zeek service.")}
         }
-        err = ndb.InsertPluginService(uuid, "node", anode["uuid"]); if err != nil {logs.Error("InsertPluginService node Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "interface", "none"); if err != nil {logs.Error("InsertPluginService node Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "name", anode["name"]); if err != nil {logs.Error("InsertPluginService name Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "type", anode["type"]); if err != nil {logs.Error("InsertPluginService type Error: "+err.Error()); return err}
@@ -214,7 +209,6 @@ func AddPluginService(anode map[string]string) (err error) {
             err = os.MkdirAll(path, 0755); if err != nil {logs.Error("InsertPluginService erro creating BPF directory: "+err.Error()); return err}
         }
 
-        err = ndb.InsertPluginService(uuid, "node", anode["uuid"]); if err != nil {logs.Error("InsertPluginService node Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "name", anode["name"]); if err != nil {logs.Error("InsertPluginService name Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "type", anode["type"]); if err != nil {logs.Error("InsertPluginService type Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "status", "disabled"); if err != nil {logs.Error("InsertPluginService status Error: "+err.Error()); return err}
@@ -805,26 +799,26 @@ func StopStapService(anode map[string]string)(err error) {
     uuid := utils.Generate()
     currentTime := time.Now()
     timeFormated := currentTime.Format("2006-01-02T15:04:05")
-    _ = ndb.InsertPluginCommand(uuid, "date", timeFormated); if err != nil {logs.Error("DeployStapService Error inserting output into database")}
-    _ = ndb.InsertPluginCommand(uuid, "id", anode["service"]); if err != nil {logs.Error("DeployStapService Error inserting identifier into database")}
-    _ = ndb.InsertPluginCommand(uuid, "type", allPlugins[anode["service"]]["type"]); if err != nil {logs.Error("DeployStapService Error inserting type into database")}
-    _ = ndb.InsertPluginCommand(uuid, "action", "Stop"); if err != nil {logs.Error("DeployStapService Error inserting type into database")}
+    _ = ndb.InsertPluginCommand(uuid, "date", timeFormated); if err != nil {logs.Error("StopStapService Error inserting output into database")}
+    _ = ndb.InsertPluginCommand(uuid, "id", anode["service"]); if err != nil {logs.Error("StopStapService Error inserting identifier into database")}
+    _ = ndb.InsertPluginCommand(uuid, "type", allPlugins[anode["service"]]["type"]); if err != nil {logs.Error("StopStapService Error inserting type into database")}
+    _ = ndb.InsertPluginCommand(uuid, "action", "Stop"); if err != nil {logs.Error("StopStapService Error inserting type into database")}
     
     if allPlugins[anode["service"]]["type"] == "socket-network" {
         //get pid
         pid, err := exec.Command(command, param, strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)).Output()
         if err != nil {
-            logs.Error("DeployStapService deploy socket STAP Error: "+err.Error())
-            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("DeployStapService Error inserting status into database")}
-            _ = ndb.InsertPluginCommand(uuid, "output", "Error getting PID value for socket->network service."); if err != nil {logs.Error("DeployStapService Error inserting output into database")}
+            logs.Error("StopStapService deploy socket STAP Error: "+err.Error())
+            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("StopStapService Error inserting status into database")}
+            _ = ndb.InsertPluginCommand(uuid, "output", "Error getting PID value for socket->network service."); if err != nil {logs.Error("StopStapService Error inserting output into database")}
             return err
         }
-        pidValue := strings.Split(string(pid), "\n")
         
         //insert command values
-        _ = ndb.InsertPluginCommand(uuid, "command", strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)); if err != nil {logs.Error("DeployStapService Error inserting command into database")}
-        _ = ndb.InsertPluginCommand(uuid, "description", "Stop socket->network service"); if err != nil {logs.Error("DeployStapService Error inserting description into database")}
+        _ = ndb.InsertPluginCommand(uuid, "command", strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)); if err != nil {logs.Error("StopStapService Error inserting command into database")}
+        _ = ndb.InsertPluginCommand(uuid, "description", "Stop socket->network service"); if err != nil {logs.Error("StopStapService Error inserting description into database")}
         
+        pidValue := strings.Split(string(pid), "\n")
         //Killing PID
         for z := range pidValue{
             pidToInt,_ := strconv.Atoi(pidValue[z])
@@ -835,25 +829,25 @@ func StopStapService(anode map[string]string)(err error) {
         //Updating service PID
         err = ndb.UpdatePluginValue(anode["service"],"pid","none")
         if err != nil {
-            logs.Error("DeployStapService update DB pid to none Error: "+err.Error())
-            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("DeployStapService Error inserting status into database")}
-            _ = ndb.InsertPluginCommand(uuid, "output", "Error deleting PID value after socket->network service stops."); if err != nil {logs.Error("DeployStapService Error inserting output into database")}
+            logs.Error("StopStapService update DB pid to none Error: "+err.Error())
+            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("StopStapService Error inserting status into database")}
+            _ = ndb.InsertPluginCommand(uuid, "output", "Error deleting PID value after socket->network service stops."); if err != nil {logs.Error("StopStapService Error inserting output into database")}
             return err
         }
     }else if allPlugins[anode["service"]]["type"] == "socket-pcap" {
         pid, err := exec.Command(command, param, strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)).Output()
         if err != nil {
-            logs.Error("DeployStapService deploy socket STAP Error: "+err.Error())
-            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("DeployStapService Error inserting status into database")}
-            _ = ndb.InsertPluginCommand(uuid, "output", "Error getting PID value for socket->network service."); if err != nil {logs.Error("DeployStapService Error inserting output into database")}
+            logs.Error("StopStapService deploy socket STAP Error: "+err.Error())
+            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("StopStapService Error inserting status into database")}
+            _ = ndb.InsertPluginCommand(uuid, "output", "Error getting PID value for socket->network service."); if err != nil {logs.Error("StopStapService Error inserting output into database")}
             return err
         }
-        pidValue := strings.Split(string(pid), "\n")
-
+        
         //insert command values
-        _ = ndb.InsertPluginCommand(uuid, "command", strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)); if err != nil {logs.Error("DeployStapService Error inserting command into database")}
-        _ = ndb.InsertPluginCommand(uuid, "description", "Stop socket->pcap service"); if err != nil {logs.Error("DeployStapService Error inserting description into database")}
-
+        _ = ndb.InsertPluginCommand(uuid, "command", strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)); if err != nil {logs.Error("StopStapService Error inserting command into database")}
+        _ = ndb.InsertPluginCommand(uuid, "description", "Stop socket->pcap service"); if err != nil {logs.Error("StopStapService Error inserting description into database")}
+        
+        pidValue := strings.Split(string(pid), "\n")
         //killing PID
         for z := range pidValue{
             pidToInt,_ := strconv.Atoi(pidValue[z])
@@ -864,24 +858,24 @@ func StopStapService(anode map[string]string)(err error) {
         //Updating service PID
         err = ndb.UpdatePluginValue(anode["service"],"pid","none")
         if err != nil {
-            logs.Error("DeployStapService update DB pid to none Error: "+err.Error())
-            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("DeployStapService Error inserting status into database")}
-            _ = ndb.InsertPluginCommand(uuid, "output", "Error deleting PID value after socket->pcap service stops."); if err != nil {logs.Error("DeployStapService Error inserting output into database")}
+            logs.Error("StopStapService update DB pid to none Error: "+err.Error())
+            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("StopStapService Error inserting status into database")}
+            _ = ndb.InsertPluginCommand(uuid, "output", "Error deleting PID value after socket->pcap service stops."); if err != nil {logs.Error("StopStapService Error inserting output into database")}
             return err
         }
     }else if allPlugins[anode["service"]]["type"] == "network-socket" {
         //insert command values
-        _ = ndb.InsertPluginCommand(uuid, "command", strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)); if err != nil {logs.Error("DeployStapService Error inserting command into database")}
-        _ = ndb.InsertPluginCommand(uuid, "description", "Stop network->socket service"); if err != nil {logs.Error("DeployStapService Error inserting description into database")}
+        _ = ndb.InsertPluginCommand(uuid, "command", strings.Replace(socatPID, "<PORT>", allPlugins[anode["service"]]["port"], -1)); if err != nil {logs.Error("StopStapService Error inserting command into database")}
+        _ = ndb.InsertPluginCommand(uuid, "description", "Stop network->socket service"); if err != nil {logs.Error("StopStapService Error inserting description into database")}
 
         //kill OPENSSL
         collector := strings.Replace(openSSL, "<COLLECTOR>",allPlugins[anode["service"]]["collector"], -1)
         allValues := strings.Replace(collector, "<PORT>", allPlugins[anode["service"]]["port"], -1)
         pid, err := exec.Command(command, param, allValues).Output()
         if err != nil {
-            logs.Error("DeployStapService deploy network-socket STAP Error: "+err.Error())
-            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("DeployStapService Error inserting status into database")}
-            _ = ndb.InsertPluginCommand(uuid, "output", "Error getting PID value for network->socket service."); if err != nil {logs.Error("DeployStapService Error inserting output into database")}
+            logs.Error("StopStapService deploy network-socket STAP Error: "+err.Error())
+            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("StopStapService Error inserting status into database")}
+            _ = ndb.InsertPluginCommand(uuid, "output", "Error getting PID value for network->socket service."); if err != nil {logs.Error("StopStapService Error inserting output into database")}
             return err
         }
         pidValue := strings.Split(string(pid), "\n")
@@ -903,13 +897,12 @@ func StopStapService(anode map[string]string)(err error) {
         allDumpValues := strings.Replace(DumpBPF, "<BPF>", allPlugins[anode["service"]]["bpf"], -1)
         pid, err = exec.Command(command, param, allDumpValues).Output()
         if err != nil {
-            logs.Error("DeployStapService deploy network-socket getting tcpdump pid error: "+err.Error())
-            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("DeployStapService Error inserting status into database")}
-            _ = ndb.InsertPluginCommand(uuid, "output", "Error getting tcpdump PID value for kill network->socket service."); if err != nil {logs.Error("DeployStapService Error inserting output into database")}
+            logs.Error("StopStapService deploy network-socket getting tcpdump pid error: "+err.Error())
+            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("StopStapService Error inserting status into database")}
+            _ = ndb.InsertPluginCommand(uuid, "output", "Error getting tcpdump PID value for kill network->socket service."); if err != nil {logs.Error("StopStapService Error inserting output into database")}
             return err
         }
         pidValueTcpdump := strings.Split(string(pid), "\n")
-
         for v := range pidValueTcpdump{
             pidToInt,_ := strconv.Atoi(pidValueTcpdump[v])
             process, _ := os.FindProcess(pidToInt)
@@ -918,20 +911,20 @@ func StopStapService(anode map[string]string)(err error) {
 
         err = ndb.UpdatePluginValue(anode["service"],"tcpdump","none")
         if err != nil {
-            logs.Error("DeployStapService update DB tcpdump to none Error: "+err.Error())
-            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("DeployStapService Error inserting status into database")}
-            _ = ndb.InsertPluginCommand(uuid, "output", "Error deleting tcpdump PID value after network->socket service stops."); if err != nil {logs.Error("DeployStapService Error inserting output into database")}
+            logs.Error("StopStapService update DB tcpdump to none Error: "+err.Error())
+            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("StopStapService Error inserting status into database")}
+            _ = ndb.InsertPluginCommand(uuid, "output", "Error deleting tcpdump PID value after network->socket service stops."); if err != nil {logs.Error("StopStapService Error inserting output into database")}
             return err
         }
         err = ndb.UpdatePluginValue(anode["service"],"pid","none")
         if err != nil {
-            logs.Error("DeployStapService update DB pid to none Error: "+err.Error())
-            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("DeployStapService Error inserting status into database")}
-            _ = ndb.InsertPluginCommand(uuid, "output", "Error deleting PID value after network->socket service ."); if err != nil {logs.Error("DeployStapService Error inserting output into database")}
+            logs.Error("StopStapService update DB pid to none Error: "+err.Error())
+            _ = ndb.InsertPluginCommand(uuid, "status", "Error"); if err != nil {logs.Error("StopStapService Error inserting status into database")}
+            _ = ndb.InsertPluginCommand(uuid, "output", "Error deleting PID value after network->socket service ."); if err != nil {logs.Error("StopStapService Error inserting output into database")}
             return err
         }
     }
-    _ = ndb.InsertPluginCommand(uuid, "status", "Success"); if err != nil {logs.Error("DeployStapService Error inserting status into database")}
+    _ = ndb.InsertPluginCommand(uuid, "status", "Success"); if err != nil {logs.Error("StopStapService Error inserting status into database")}
     logs.Notice(allPlugins[anode["service"]]["type"]+" service stopped successfuly!")
 
     return nil
@@ -972,4 +965,80 @@ func GetServiceCommands(anode map[string]string)(data map[string]map[string]stri
     if err != nil {logs.Error("GetServiceCommands Error: "+err.Error()); return nil, err}
 
     return commandService, err
+}
+
+func StopPluginsGracefully()(){
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil { logs.Error("Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil { logs.Error(" Error getting data from main.conf")}
+    socatPID, err := utils.GetKeyValueString("execute", "socatPID")
+    if err != nil { logs.Error(" Error getting data from main.conf")}
+    openSSL, err := utils.GetKeyValueString("execute", "openSSL")
+    if err != nil { logs.Error(" Error getting data from main.conf")}
+    tcpdumpPID, err := utils.GetKeyValueString("execute", "tcpdumpPID")
+    if err != nil { logs.Error(" Error getting data from main.conf")}
+    suricataBackup, err := utils.GetKeyValueString("suricata", "backup")  
+    if err != nil {logs.Error("StopSuricataService Error getting data from main.conf: "+err.Error())}
+    suricataPidfile, err := utils.GetKeyValueString("suricata", "pidfile")  
+    if err != nil {logs.Error("StopSuricataService Error getting data from main.conf: "+err.Error())}
+    plugins,err := ndb.GetPlugins()
+    if err != nil {logs.Error("StopPluginsGracefully Error: "+err.Error())}
+
+    for id := range plugins{
+        if plugins[id]["type"] == "suricata"{
+            if plugins[id]["pid"] != "none"{
+                //kill suricata process
+                PidInt,_ := strconv.Atoi(strings.Trim(string(plugins[id]["pid"]), "\n"))
+                process, _ := os.FindProcess(PidInt)
+                _ = process.Kill()
+                //delete pid file
+                _ = os.Remove(suricataBackup+id+"-"+suricataPidfile)
+            }            
+        }else if plugins[id]["type"] == "socket-network" || plugins[id]["type"] == "socket-pcap" {
+            if plugins[id]["pid"] != "none"{
+                pid, _ := exec.Command(command, param, strings.Replace(socatPID, "<PORT>", plugins[id]["port"], -1)).Output()
+                pidValue := strings.Split(string(pid), "\n")
+                //Killing PID
+                for z := range pidValue{
+                    pidToInt,_ := strconv.Atoi(pidValue[z])
+                    process, _ := os.FindProcess(pidToInt)
+                    _ = process.Kill()
+                }
+            }
+        }else if plugins[id]["type"] == "network-socket"{
+            if plugins[id]["pid"] != "none" || plugins[id]["tcpdump"] != "none"{
+                //kill tcpreplay
+                collector := strings.Replace(openSSL, "<COLLECTOR>",plugins[id]["collector"], -1)
+                allValues := strings.Replace(collector, "<PORT>", plugins[id]["port"], -1)
+                pid, _ := exec.Command(command, param, allValues).Output()
+                pidValue := strings.Split(string(pid), "\n")
+                for z := range pidValue{
+                    pidToInt,_ := strconv.Atoi(pidValue[z])
+                    process, _ := os.FindProcess(pidToInt)
+                    _ = process.Kill()
+                }
+                //kill tcpdump
+                var grepTCPDUMP string
+                for x := range plugins{
+                    if plugins[x]["type"] == "network-socket" && plugins[x]["tcpdump"] != "none"{
+                        grepTCPDUMP = grepTCPDUMP + "| grep -v "+plugins[x]["tcpdump"]
+                    }
+                }
+                DumpTCP := strings.Replace(tcpdumpPID, "<TCPDUMP>", grepTCPDUMP, -1)
+                DumpBPF := strings.Replace(DumpTCP, "<IFACE>", plugins[id]["interface"], -1)
+                allDumpValues := strings.Replace(DumpBPF, "<BPF>", plugins[id]["bpf"], -1)
+                pid, _ = exec.Command(command, param, allDumpValues).Output()
+                pidValueTcpdump := strings.Split(string(pid), "\n")
+                for v := range pidValueTcpdump{
+                    pidToInt,_ := strconv.Atoi(pidValueTcpdump[v])
+                    process, _ := os.FindProcess(pidToInt)
+                    _ = process.Kill()
+                }
+            }
+        }
+    }
+    //kill zeek
+    err = zeek.StopingZeek()
+    if err != nil {logs.Error("StopPluginsGracefully Error stopping Zeek: "+err.Error())}
 }
