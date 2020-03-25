@@ -7,21 +7,29 @@ import (
 )
 
 var GeoDb *geoip2.Reader
+var running bool
 
 func Init() {
     var err error
+    running = false
     GeoDb, err = geoip2.Open("conf/GeoLite2-City.mmdb")
     if err != nil {
         logs.Error("unable to load GEO database " + err.Error())
+        return
     }
+    running = true
     //defer GeoDb.Close()
 }
 
 func GetGeoInfo(nip string)(geoinfo map[string]string) {
+    if ! running {
+        return nil
+    }
     ip := net.ParseIP(nip)
     record, err := GeoDb.City(ip)
     if err != nil {
         logs.Error(err)
+        return nil 
     }
     geoinfo = map[string]string{}
     if record.City.Names != nil {

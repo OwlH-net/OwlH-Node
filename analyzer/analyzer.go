@@ -2,6 +2,7 @@ package analyzer
 
 import (
     "encoding/json"
+    "errors"
     "os"
     "syscall"
     "io/ioutil"
@@ -10,7 +11,6 @@ import (
     "github.com/astaxie/beego/logs"
     "bufio"
     "time"
-    "errors"
     "strconv"
     "owlhnode/utils"
     "owlhnode/database"
@@ -87,14 +87,14 @@ type Event struct {
 
 var monitorfiles            = map[string]bool{}
 
-var CHstartpipeline         = make (chan string, 10000)
-var CHprefilter             = make (chan string, 10000)
-var CHmapper                = make (chan string, 10000)
-var CHtag                   = make (chan string, 10000)
-var CHfeed                  = make (chan string, 10000)
-var CHpostfilter            = make (chan string, 10000)
-var CHwriter                = make (chan string, 10000)
-var CHdispatcher            = make (chan Event, 10000)
+var CHstartpipeline         = make (chan string, 1000000)
+var CHprefilter             = make (chan string, 1000000)
+var CHmapper                = make (chan string, 1000000)
+var CHtag                   = make (chan string, 1000000)
+var CHfeed                  = make (chan string, 1000000)
+var CHpostfilter            = make (chan string, 1000000)
+var CHwriter                = make (chan string, 1000000)
+var CHdispatcher            = make (chan Event, 1000000)
 
 
 var config Analyzer
@@ -102,7 +102,8 @@ var tags Tags
 var postfilters Filters
 var prefilters Filters
 var IoCs = map[string][]string{}
-var counters chcounter
+var counters, previous chcounter
+
 
 func readconf()(err error) {
     analyzerCFG, err := utils.GetKeyValueString("analyzer", "analyzerconf")
@@ -281,7 +282,7 @@ func fieldExists(vjson map[string]interface{}, srcfield string)(exists bool){
 }
 
 func DoPreFilter(wkr int){
-    logs.Info("Prefilter -> %d -> Started",wkr)
+    //logs.Info("Prefilter -> %d -> Started",wkr)
     for {
         line := <- CHprefilter 
         jsoninterface := make(map[string]interface{})
@@ -322,7 +323,7 @@ func DoPreFilter(wkr int){
 }
 
 func DoTag(wkr int){
-    logs.Info("Tag -> %d -> Started",wkr)
+    //logs.Info("Tag -> %d -> Started",wkr)
     for {
         line := <- CHtag
         jsoninterface := make(map[string]interface{})
@@ -370,7 +371,7 @@ func DoTag(wkr int){
 }
 
 func DoPostFilter(wkr int){
-    logs.Info("Postfilter -> %d -> Started",wkr)
+    //logs.Info("Postfilter -> %d -> Started",wkr)
     for {
         line := <- CHpostfilter 
         jsoninterface := make(map[string]interface{})
@@ -417,11 +418,11 @@ func DoWriter(wkrid int) {
     outputfile, err := utils.GetKeyValueString("node", "alertLog")
     if err != nil {
         logs.Error("AlertLog Error getting data from main.conf: " + err.Error())
-        return
+        outputfile = "/var/log/owlh/alerts.log"
     }
     ofile, err := os.OpenFile(outputfile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
     if err != nil {
-        logs.Error("Analyzer Writer: can't open output file: " + outputfile + " -> " + err.Error())
+        logs.Error("Analyzer Writer: can't open or create output file: " + outputfile + " -> " + err.Error())
         return
     }
     logs.Info("WRITER -> Started -> " + outputfile)
@@ -563,7 +564,10 @@ func StartSource(file string) {
     uuid := utils.Generate()
     monitorfiles[uuid] = true
     t,err := utils.GetKeyValueString("loop", "StartSource")
-    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    if err != nil {
+        logs.Error("Search Error: Cannot load node information.")
+        t = "5"
+    }
     tDuration, err := strconv.Atoi(t)
     for {
         logs.Info("tailing - %s", file)
@@ -578,6 +582,8 @@ func StartSource(file string) {
         go ControlSource(file, uuid)
         for line := range t.Lines {
             if !monitorfiles[uuid] {
+                delete(monitorfiles, uuid)
+                //go StartSource(file)
                 return
             }
             counters.lines += 1
@@ -612,6 +618,37 @@ func CHstats(){
     logs.Info("CHpostfilter %d items",len(CHpostfilter))
     logs.Info("CHwriter %d items",len(CHwriter))
     logs.Info("***************")
+}
+
+func CHEPS(t int){
+
+    EPSPrefilter := (counters.CHprefilter - previous.CHprefilter) / t
+    previous.CHprefilter = counters.CHprefilter
+
+    EPSMapper := (counters.CHmapper - previous.CHmapper) / t
+    previous.CHmapper = counters.CHmapper
+
+    EPSTag := (counters.CHtag - previous.CHtag) / t
+    previous.CHtag = counters.CHtag
+
+    EPSFeed := (counters.CHfeed - previous.CHfeed) / t
+    previous.CHfeed = counters.CHfeed
+
+    EPSPostfilter := (counters.CHpostfilter - previous.CHpostfilter) / t
+    previous.CHpostfilter = counters.CHpostfilter
+
+    EPSWriter := (counters.CHwriter - previous.CHwriter) / t
+    previous.CHwriter = counters.CHwriter
+
+    logs.Info("Channels EPS")
+    logs.Info("***************")
+    logs.Info("CHprefilter %d eps",EPSPrefilter)
+    logs.Info("CHmapper %d eps",EPSMapper)
+    logs.Info("CHtag %d eps",EPSTag)
+    logs.Info("CHfeed %d eps",EPSFeed)
+    logs.Info("CHpostfilter %d eps",EPSPostfilter)
+    logs.Info("CHwriter %d epss",EPSWriter)
+    logs.Info("***************")    
 }
 
 func CHcounter(){
@@ -656,6 +693,7 @@ func CHcontrol(){
         time.Sleep(time.Second * time.Duration(tDuration)) 
         CHstats()
         CHcounter()
+        CHEPS(tDuration)
         logs.Warn("monitorfiles size is %d", len(monitorfiles))
     }
 }
@@ -672,12 +710,12 @@ func InitAnalizer() {
     readpostexcludes()
     readpreexcludes()
     StartWriter(1)
-    StartMapper(4)
-    StartFeed(4)
-    StartTag(4)
-    StartDispatcher(4)
-    StartPreFilter(4)
-    StartPostFilter(4)
+    StartMapper(100)
+    StartFeed(100)
+    StartTag(100)
+    StartDispatcher(100)
+    StartPreFilter(100)
+    StartPostFilter(100)
 
     LoadSources()
     go CHcontrol()
@@ -727,11 +765,12 @@ func ChangeAnalyzerStatus(anode map[string]string) (err error) {
     if anode["status"] == "Enabled" || anode["status"] == "Disabled" { 
         err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
         if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
-                return nil
+        return nil
     }else{
         logs.Error("ChangeAnalyzerStatus bad analyzer value spected for status")
         return errors.New("ChangeAnalyzerStatus bad analyzer value spected for status")
     }
+
 }
 
 func SyncAnalyzer(file map[string][]byte) (err error) { 

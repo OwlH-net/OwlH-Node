@@ -116,7 +116,7 @@ func checkarp(arp *layers.ARP){
         }
     }
     logs.Info("no era nada")
-    return 
+    return
 }
 
 func readARP(iface string)(err error) {
