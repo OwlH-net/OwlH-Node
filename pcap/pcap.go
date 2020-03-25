@@ -55,6 +55,7 @@ var Knownmacs = map[string]Macs{}
 var Currentmacs = map[string]Macs{}
 
 func saveKnownMacs(){
+    
     return
 }
 

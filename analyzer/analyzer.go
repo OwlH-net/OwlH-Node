@@ -85,7 +85,12 @@ type Event struct {
     Line            string
 }
 
-var monitorfiles            = map[string]bool{}
+type monitfile struct {
+    File            string
+    Status          bool
+}
+
+var monitorfiles            = map[string]monitfile{}
 
 var CHstartpipeline         = make (chan string, 1000000)
 var CHprefilter             = make (chan string, 1000000)
@@ -527,28 +532,34 @@ func StartWriter(wkr int) {
 }
 
 func ControlSource(file, uuid string) {
+
     logs.Info("start file %s control", file)
     filedet, err := os.Stat(file) 
     if os.IsNotExist(err) {
         logs.Error("file %s doesn't exists. we don't control files like this.")
         return
     }
+
     stat, _ := filedet.Sys().(*syscall.Stat_t)
+
     var previousinode uint64
     previousinode = stat.Ino
     logs.Info("file %s inode %d ", file, int(previousinode))
 
     t,err := utils.GetKeyValueString("loop", "ControlSource")
-    if err != nil {logs.Error("Search Error: Cannot load inode information.")}
+    if err != nil {logs.Error("Search Error: Cannot load controlsource - loop time from main.conf.")}
     tDuration, err := strconv.Atoi(t)
+
     for {
         time.Sleep(time.Second * time.Duration(tDuration)) 
         if fileinfo, err := os.Stat(file); !os.IsNotExist(err) {
             stat, _ := fileinfo.Sys().(*syscall.Stat_t)
-            logs.Info("current inode %d vs %d", stat.Ino, previousinode) 
+            logs.Info("%s, current inode %d vs %d", file, stat.Ino, previousinode) 
             if previousinode != stat.Ino {
                 logs.Warn("file %s inode changed, restarting tail with new inode", file)
-                monitorfiles[uuid] = false
+                mfile := monitorfiles[uuid]
+                mfile.Status = false
+                monitorfiles[uuid] = mfile
                 go StartSource(file)
                 return
             }
@@ -556,39 +567,71 @@ func ControlSource(file, uuid string) {
     }
 }
 
+
+func IsFileMonitored(file string)(monitored bool){
+    for uuid := range monitorfiles {
+        mfile := monitorfiles[uuid]
+        if mfile.File == file && mfile.Status {
+            return true
+        }
+    }
+    return false
+}
+
 func StartSource(file string) {
+
     logs.Info("Starting tail of source file: "+file)
     var seekv tail.SeekInfo
+    
+    if IsFileMonitored(file) {
+        logs.Info("file %s if being monitored, won't duplicate tailing", file)
+        return
+    }
+
     seekv.Offset = 0
     seekv.Whence = os.SEEK_END
+
     uuid := utils.Generate()
-    monitorfiles[uuid] = true
+    var mfile monitfile
+    mfile.Status = true
+    mfile.File = file
+    monitorfiles[uuid] = mfile
+
     t,err := utils.GetKeyValueString("loop", "StartSource")
     if err != nil {
-        logs.Error("Search Error: Cannot load node information.")
+        logs.Error("Search Error: Cannot load StartSource-loop param from main.conf, defaulting to 5")
         t = "5"
     }
     tDuration, err := strconv.Atoi(t)
+
     for {
         logs.Info("tailing - %s", file)
         if _, err := os.Stat(file); os.IsNotExist(err) {
             time.Sleep(time.Second * time.Duration(tDuration)) 
             continue
         }
-        t, err := tail.TailFile(file, tail.Config{Follow: true, Location: &seekv})
+        t, err := tail.TailFile(file, tail.Config{Follow: true, Poll: true, Location: &seekv})
         if err != nil {
             logs.Error(">>>>>> Tail over file %s error: %s", file, err.Error())
+            return
         }
+
+
         go ControlSource(file, uuid)
+        
         for line := range t.Lines {
-            if !monitorfiles[uuid] {
-                delete(monitorfiles, uuid)
+            if ! monitorfiles[uuid].Status {
+                //delete(monitorfiles, uuid)
                 //go StartSource(file)
+                logs.Info("file %s is not ready anymore, closing tail for uuid %s", file, uuid)
+                t.Stop()
+                t.Cleanup()
                 return
             }
             counters.lines += 1
             ToDispatcher("start",line.Text)
         }
+
         logs.Info("End tailing - %s", file)
     }
 }
@@ -685,6 +728,17 @@ func MonitorFile(file string, size int, ofile *os.File) {
     }
 }
 
+func FilesControl() {
+    logs.Warn("monitorfiles size is %d", len(monitorfiles))
+    for uuid := range monitorfiles {
+        if ! monitorfiles[uuid].Status {
+            delete (monitorfiles, uuid)
+        }
+    }
+    logs.Warn("monitorfiles size after cleaning is %d", len(monitorfiles))
+
+}
+
 func CHcontrol(){
     t,err := utils.GetKeyValueString("loop", "CHcontrol")
     if err != nil {logs.Error("Search Error: Cannot load node information.")}
@@ -694,7 +748,7 @@ func CHcontrol(){
         CHstats()
         CHcounter()
         CHEPS(tDuration)
-        logs.Warn("monitorfiles size is %d", len(monitorfiles))
+        FilesControl()
     }
 }
 
