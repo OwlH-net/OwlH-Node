@@ -260,6 +260,15 @@ func CheckServicesStatus()(){
                     } 
                 }
             }else if allPlugins[w]["type"] == "zeek"{
+                if allPlugins[w]["type"] == "zeek" && allPlugins[w]["user"] == "savedByUser" {
+                    //delete all previous zeek database data
+                    err = zeek.RemoveZeekData(); if err != nil { logs.Error("CheckServicesStatus error removing previous Zeek database data: "+err.Error()) }
+                    //deploy zeek data 
+                    err = zeek.DeployZeek(); if err != nil { logs.Error("CheckServicesStatus error deploying previous Zeek database data: "+err.Error()) }
+                    //save new Zeek data 
+                    err = zeek.SaveZeekData(); if err != nil { logs.Error("CheckServicesStatus error removing previous Zeek database data: "+err.Error()) }
+                }
+
                 zeekctl, err := utils.GetKeyValueString("zeek", "zeekctl")  
                 if err != nil {logs.Error("StopZeek Error getting data from main.conf: "+err.Error())}
                 status, err := utils.GetKeyValueString("execute", "status")  
@@ -969,21 +978,21 @@ func GetServiceCommands(anode map[string]string)(data map[string]map[string]stri
 
 func StopPluginsGracefully()(){
     command, err := utils.GetKeyValueString("execute", "command")
-    if err != nil { logs.Error("Error getting data from main.conf")}
+    if err != nil { logs.Error("StopPluginsGracefullyError getting data from main.conf")}
     param, err := utils.GetKeyValueString("execute", "param")
-    if err != nil { logs.Error(" Error getting data from main.conf")}
+    if err != nil { logs.Error("StopPluginsGracefully Error getting data from main.conf")}
     socatPID, err := utils.GetKeyValueString("execute", "socatPID")
-    if err != nil { logs.Error(" Error getting data from main.conf")}
+    if err != nil { logs.Error("StopPluginsGracefully Error getting data from main.conf")}
     openSSL, err := utils.GetKeyValueString("execute", "openSSL")
-    if err != nil { logs.Error(" Error getting data from main.conf")}
+    if err != nil { logs.Error("StopPluginsGracefully Error getting data from main.conf")}
     tcpdumpPID, err := utils.GetKeyValueString("execute", "tcpdumpPID")
-    if err != nil { logs.Error(" Error getting data from main.conf")}
+    if err != nil { logs.Error("StopPluginsGracefully Error getting data from main.conf")}
     suricataBackup, err := utils.GetKeyValueString("suricata", "backup")  
-    if err != nil {logs.Error("StopSuricataService Error getting data from main.conf: "+err.Error())}
+    if err != nil {logs.Error("StopPluginsGracefully Error getting data from main.conf: "+err.Error())}
     suricataPidfile, err := utils.GetKeyValueString("suricata", "pidfile")  
-    if err != nil {logs.Error("StopSuricataService Error getting data from main.conf: "+err.Error())}
+    if err != nil {logs.Error("StopPluginsGracefully Error getting data from main.conf: "+err.Error())}
     plugins,err := ndb.GetPlugins()
-    if err != nil {logs.Error("StopPluginsGracefully Error: "+err.Error())}
+    if err != nil {logs.Error("StopPluginsGracefully Error getting plugins: "+err.Error())}
 
     for id := range plugins{
         if plugins[id]["type"] == "suricata"{
@@ -994,7 +1003,11 @@ func StopPluginsGracefully()(){
                 _ = process.Kill()
                 //delete pid file
                 _ = os.Remove(suricataBackup+id+"-"+suricataPidfile)
-            }            
+            }
+        }else if plugins[id]["type"] == "zeek"{         
+            if plugins[id]["user"] == "savedByUser"{
+                err = zeek.StoppingZeek(); if err != nil { logs.Error("StopPluginsGracefully Error stopping Zeek: "+err.Error()) }                
+            }
         }else if plugins[id]["type"] == "socket-network" || plugins[id]["type"] == "socket-pcap" {
             if plugins[id]["pid"] != "none"{
                 pid, _ := exec.Command(command, param, strings.Replace(socatPID, "<PORT>", plugins[id]["port"], -1)).Output()
@@ -1038,7 +1051,4 @@ func StopPluginsGracefully()(){
             }
         }
     }
-    //kill zeek
-    err = zeek.StopingZeek()
-    if err != nil {logs.Error("StopPluginsGracefully Error stopping Zeek: "+err.Error())}
 }

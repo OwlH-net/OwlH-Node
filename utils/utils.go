@@ -212,7 +212,6 @@ func RemoveFile(path string, file string)(err error){
 
 func RunCommand(cmdtxt string, params string)(err error){
     cmd := exec.Command(cmdtxt, params)
-    logs.Notice("utils run command -> Running command "+cmdtxt+"with params " + params)
     err = cmd.Run()
     if err != nil {
         logs.Error("utils run command -> "+err.Error())
@@ -223,7 +222,6 @@ func RunCommand(cmdtxt string, params string)(err error){
 
 func StartCommand(cmdtxt string, params string)(err error){
     cmd := exec.Command(cmdtxt, params)
-    logs.Notice("utils run command -> Running command "+cmdtxt+"with params " + params)
     err = cmd.Start()
     if err != nil {
         logs.Error("utils run command -> "+err.Error())

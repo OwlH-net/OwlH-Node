@@ -211,11 +211,14 @@ func LaunchZeekMainConf(anode map[string]string) (err error) {
     if anode["param"] == "start"{
         err = zeek.StartingZeek()
     }else if anode["param"] == "stop"{
-        err = zeek.StopingZeek()
+        err = zeek.StoppingZeek()
+        err = zeek.RemoveZeekData()
     }else if anode["param"] == "deploy"{
         err = zeek.DeployZeek()
     }
-
+    if anode["saveZeek"] == "true" && anode["param"] != "stop" {
+        err = zeek.SaveZeekData()
+    }
     // err = zeek.LaunchZeekMainConf(anode)
     // changecontrol.ChangeControlInsertData(err, "SyncClusterFile")    
     return err
