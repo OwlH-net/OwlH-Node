@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "errors"
     "os"
+    "net"
     "syscall"
     "io/ioutil"
     "strings"
@@ -788,6 +789,7 @@ func InitAnalizer() {
 
 func Init(){
     go InitAnalizer()
+    go dgram()
 }
 
 func PingAnalyzer()(data map[string]string ,err error) {
@@ -834,4 +836,35 @@ func SyncAnalyzer(file map[string][]byte) (err error) {
     err = utils.WriteNewDataOnFile(alertFile, file["data"])
     if err != nil { logs.Error("Analyzer/SyncAnalyzer Error updating Analyzer file: "+err.Error()); return err}
     return err
+}
+
+
+func dgram() {
+    socketPath := "/var/log/suricata/eve_json.socket"
+
+    // unlink it before doing anything
+    syscall.Unlink(socketPath)
+
+    // resolve unix address
+    laddr, err := net.ResolveUnixAddr("unixgram", socketPath)
+    if err != nil {
+        println("Could not resolve unix socket: " + err.Error())
+        return
+    }
+
+    // listen on the socket
+    conn, err := net.ListenUnixgram("unixgram", laddr)
+    if err != nil {
+        println("Could not listen on unix socket datagram: " + err.Error())
+        return
+    }
+    // close socket when we finish
+    defer conn.Close()
+
+    // scan text
+    scanner := bufio.NewScanner(conn)
+    for scanner.Scan(){
+        //logs.Info("line is - %s", string(scanner.Bytes()))
+        ToDispatcher("start",string(scanner.Bytes()))
+    }
 }
