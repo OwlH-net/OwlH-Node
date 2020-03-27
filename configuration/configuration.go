@@ -594,7 +594,27 @@ func checkFields()(ok bool){
     field.Ftable     = "mainconf"
     field.Fquery     = "select main_param from mainconf where main_param='mode' and main_uniqueid='zeek'"
     field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','mode','standalone')"
-    field.Fname      = "zeek - cluster mode"
+    field.Fname      = "zeek - standalone mode"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "mainconf"
+    field.Fquery     = "select main_param from mainconf where main_param='status' and main_uniqueid='zeek'"
+    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','status','disabled')"
+    field.Fname      = "zeek - status disabled"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn      = "pluginConn"
+    field.Ftable     = "mainconf"
+    field.Fquery     = "select main_param from mainconf where main_param='previousStatus' and main_uniqueid='zeek'"
+    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','previousStatus','stop')"
+    field.Fname      = "zeek - previous status stop"
     ok = CheckField(field)
     if !ok {
         return false
@@ -624,24 +644,6 @@ func checkFields()(ok bool){
     field.Fquery     = "select plugin_param from plugins where plugin_param='type'"
     field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','type','zeek')"
     field.Fname      = "plugin - type"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "plugins"
-    field.Fquery     = "select plugin_param from plugins where plugin_param='status'"
-    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','status','disabled')"
-    field.Fname      = "plugin - status"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "plugins"
-    field.Fquery     = "select plugin_param from plugins where plugin_param='previousStatus'"
-    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','previousStatus','none')"
-    field.Fname      = "plugin - previousStatus"
     ok = CheckField(field)
     if !ok {
         return false

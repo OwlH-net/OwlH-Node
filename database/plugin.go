@@ -158,7 +158,7 @@ func GetMainconfParam(uniqid string, param string) (value string, err error) {
 
 }
 
-func GetMainconfData()(path map[string]map[string]string, err error){
+func GetMainconfData()(values map[string]map[string]string, err error){
     var mainconfValues = map[string]map[string]string{}
     var uniqid string
     var param string

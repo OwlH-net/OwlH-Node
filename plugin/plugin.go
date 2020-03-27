@@ -86,31 +86,39 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
             }
         }
     } else if anode["service"] == "zeek" {
-        for x := range allPlugins {
-            if anode["status"] == "disabled"{
-                if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "zeek"{
-                    err = ndb.UpdatePluginValue(x,"previousStatus","enabled")
-                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
-
-                    err = ndb.UpdatePluginValue(x,"status","disabled")
-                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
-                    
-                    data, err := zeek.StopZeek(); logs.Error(data)
-                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error deploying zeek: "+err.Error()); return err}
-                }
-            }else if anode["status"] == "enabled"{
-                if allPlugins[x]["previousStatus"] == "enabled" && allPlugins[x]["type"] == "zeek"{
-                    err = ndb.UpdatePluginValue(x,"previousStatus","none")
-                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
-
-                    err = ndb.UpdatePluginValue(x,"status","enabled")
-                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
-
-                    err = zeek.DeployZeek()
-                    if err != nil {logs.Error("plugin/ChangeMainServiceStatus error deploying zeek: "+err.Error()); return err}
-                }
-            }
+        if anode["status"] == "enabled"{
+            err = ndb.UpdateMainconfValue("zeek", "status", "enabled")
+            if err != nil {logs.Error("ChangeMainServiceStatus error changing mainconf database status: "+err.Error()); return err}
+        }else if anode["status"] == "disabled"{
+            err = zeek.StoppingZeek()
+            if err != nil {logs.Error("ChangeMainServiceStatus error stopping Zeek: "+err.Error()); return err}            
+            err = ndb.UpdateMainconfValue("zeek", "status", "disabled")
+            if err != nil {logs.Error("ChangeMainServiceStatus error changing mainconf database status: "+err.Error()); return err}            
         }
+        // for x := range allPlugins {
+            // if anode["status"] == "disabled"{
+            //     if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "zeek"{
+            //         err = ndb.UpdatePluginValue(x,"previousStatus","enabled")
+            //         if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
+
+            //         err = ndb.UpdatePluginValue(x,"status","disabled")
+            //         if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
+                    
+            //         data, err := zeek.StopZeek(); logs.Error(data)
+            //         if err != nil {logs.Error("plugin/ChangeMainServiceStatus error deploying zeek: "+err.Error()); return err}
+            //     }
+            // }else if anode["status"] == "enabled"{
+            //     if allPlugins[x]["previousStatus"] == "enabled" && allPlugins[x]["type"] == "zeek"{
+            //         err = ndb.UpdatePluginValue(x,"previousStatus","none")
+            //         if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
+
+            //         err = ndb.UpdatePluginValue(x,"status","enabled")
+            //         if err != nil {logs.Error("plugin/ChangeMainServiceStatus error updating pid at DB: "+err.Error()); return err}
+
+            //         err = zeek.DeployZeek()
+            //         if err != nil {logs.Error("plugin/ChangeMainServiceStatus error deploying zeek: "+err.Error()); return err}
+            //     }
+            // }
     }
 
     return err
@@ -260,36 +268,55 @@ func CheckServicesStatus()(){
                     } 
                 }
             }else if allPlugins[w]["type"] == "zeek"{
-                if allPlugins[w]["type"] == "zeek" && allPlugins[w]["user"] == "savedByUser" {
-                    //delete all previous zeek database data
-                    err = zeek.RemoveZeekData(); if err != nil { logs.Error("CheckServicesStatus error removing previous Zeek database data: "+err.Error()) }
-                    //deploy zeek data 
-                    err = zeek.DeployZeek(); if err != nil { logs.Error("CheckServicesStatus error deploying previous Zeek database data: "+err.Error()) }
-                    //save new Zeek data 
-                    err = zeek.SaveZeekData(); if err != nil { logs.Error("CheckServicesStatus error removing previous Zeek database data: "+err.Error()) }
-                }
-
-                zeekctl, err := utils.GetKeyValueString("zeek", "zeekctl")  
-                if err != nil {logs.Error("StopZeek Error getting data from main.conf: "+err.Error())}
-                status, err := utils.GetKeyValueString("execute", "status")  
-                if err != nil {logs.Error("StopZeek Error getting data from main.conf: "+err.Error())}
-
-                pid, err := exec.Command("bash","-c",zeekctl+" "+status).Output()
-                if err != nil {logs.Error("plugin/CheckServicesStatus Checking Zeek PID: "+err.Error())}
-
-                if allPlugins[w]["status"] == "enabled"{                    
-                    if (len(pid) == 0){
-                        err = zeek.DeployZeek()                        
-                        if err != nil {logs.Error("plugin/CheckQServicesStatus error deploying zeek: "+err.Error())}
-                        logs.Notice("Launch Zeek after Node stops")
-                    }
-                }else if (allPlugins[w]["status"] == "disabled") {
-                    if (len(pid) != 0){
-                        _,err = zeek.StopZeek()
-                        if err != nil {logs.Error("plugin/CheckServicesStatus error stopping zeek: "+err.Error())}
-                        logs.Notice("Zeek stopped...")
+                values,err := ndb.GetMainconfData()
+                if err != nil {logs.Error("plugin/CheckServicesStatus error checking mainconf database for Zeek: "+err.Error())}
+                for id := range values {
+                    if id == "zeek"{
+                        if values[id]["status"] == "enabled" && values[id]["previousStatus"] == "start" {
+                            zeekStatus, err := zeek.ZeekCurrentStatus()
+                            if err != nil {logs.Error("plugin/CheckServicesStatus Checking zeek status: "+err.Error())}
+                            if zeekStatus != "running" {
+                                err = zeek.DeployZeek()
+                                if err != nil {logs.Error("plugin/CheckServicesStatus Deploying zeek: "+err.Error())}
+                            }
+                        }
                     }
                 }
+
+
+
+
+
+                // if allPlugins[w]["type"] == "zeek" && allPlugins[w]["user"] == "savedByUser" {
+                //     //delete all previous zeek database data
+                //     err = zeek.RemoveZeekData(); if err != nil { logs.Error("CheckServicesStatus error removing previous Zeek database data: "+err.Error()) }
+                //     //deploy zeek data 
+                //     err = zeek.DeployZeek(); if err != nil { logs.Error("CheckServicesStatus error deploying previous Zeek database data: "+err.Error()) }
+                //     //save new Zeek data 
+                //     err = zeek.SaveZeekData(); if err != nil { logs.Error("CheckServicesStatus error removing previous Zeek database data: "+err.Error()) }
+                // }
+
+                // zeekctl, err := utils.GetKeyValueString("zeek", "zeekctl")  
+                // if err != nil {logs.Error("StopZeek Error getting data from main.conf: "+err.Error())}
+                // status, err := utils.GetKeyValueString("execute", "status")  
+                // if err != nil {logs.Error("StopZeek Error getting data from main.conf: "+err.Error())}
+
+                // pid, err := exec.Command("bash","-c",zeekctl+" "+status).Output()
+                // if err != nil {logs.Error("plugin/CheckServicesStatus Checking Zeek PID: "+err.Error())}
+
+                // if allPlugins[w]["status"] == "enabled"{                    
+                //     if (len(pid) == 0){
+                //         err = zeek.DeployZeek()                        
+                //         if err != nil {logs.Error("plugin/CheckQServicesStatus error deploying zeek: "+err.Error())}
+                //         logs.Notice("Launch Zeek after Node stops")
+                //     }
+                // }else if (allPlugins[w]["status"] == "disabled") {
+                //     if (len(pid) != 0){
+                //         _,err = zeek.StopZeek()
+                //         if err != nil {logs.Error("plugin/CheckServicesStatus error stopping zeek: "+err.Error())}
+                //         logs.Notice("Zeek stopped...")
+                //     }
+                // }
             }else if allPlugins[w]["type"] == "socket-network" {
                 if allPlugins[w]["pid"] != "none" {   
                     anode := make(map[string]string)
@@ -1005,9 +1032,12 @@ func StopPluginsGracefully()(){
                 _ = os.Remove(suricataBackup+id+"-"+suricataPidfile)
             }
         }else if plugins[id]["type"] == "zeek"{         
-            if plugins[id]["user"] == "savedByUser"{
-                err = zeek.StoppingZeek(); if err != nil { logs.Error("StopPluginsGracefully Error stopping Zeek: "+err.Error()) }                
-            }
+            mainConfData, err := ndb.GetMainconfData()
+            if err != nil {logs.Error("StopPluginsGracefully Error getting main conf data: "+err.Error())} 
+            if (mainConfData["zeek"]["status"] == "enabled" && mainConfData["zeek"]["previousStatus"] == "start"){ 
+                err = zeek.StoppingZeek()   
+                if err != nil {logs.Error("StopPluginsGracefully Error stopping Zeek: "+err.Error())} 
+            }    
         }else if plugins[id]["type"] == "socket-network" || plugins[id]["type"] == "socket-pcap" {
             if plugins[id]["pid"] != "none"{
                 pid, _ := exec.Command(command, param, strings.Replace(socatPID, "<PORT>", plugins[id]["port"], -1)).Output()

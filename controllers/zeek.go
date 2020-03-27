@@ -142,7 +142,7 @@ logs.Error(err.Error())
 }
 
 // @Title ChangeZeekMode
-// @Description get Zeek status
+// @Description change zeek mode
 // @Success 200 {object} models.zeek
 // @router /changeZeekMode [put]
 func (n *ZeekController) ChangeZeekMode() {
@@ -170,7 +170,7 @@ logs.Error(err.Error())
 }
 
 // @Title AddClusterValue
-// @Description get Zeek status
+// @Description Add zeek cluster value
 // @Success 200 {object} models.zeek
 // @router /addClusterValue [post]
 func (n *ZeekController) AddClusterValue() {
