@@ -135,8 +135,12 @@ func SetBPF(n map[string]string)(err error) {
 }
 
 //Retrieve data, make a backup file and write the new data on the original file
-func SyncRulesetFromMaster(file map[string][]byte)(err error){
+func SyncRulesetFromMaster(file map[string][]byte)(err error){    
     fileRetrieved := file["data"]
+
+    if fileRetrieved == nil || len(fileRetrieved) <= 0{
+        return errors.New("SyncRulesetFromMaster error: Can't Synchronize empty ruleset")
+    }
 
     path, err := utils.GetKeyValueString("suricataRuleset", "path")
     if err != nil {logs.Error("SyncRulesetFromMaster Error getting data from main.conf: "+err.Error()); return err}
@@ -158,7 +162,6 @@ func SyncRulesetFromMaster(file map[string][]byte)(err error){
     }
     // /usr/local/bin/suricatasc -c reload-rules /var/run/suricata/suricata-command.socket
     //SuricataRulesetReload
-    logs.Warn(suriRunning())
     if suriRunning(){
         suricatasc, err := utils.GetKeyValueString("SuricataRulesetReload", "suricatasc")
         if err != nil {logs.Error("suriRunning Error getting data from main.conf: "+err.Error()); return err}
