@@ -15,6 +15,7 @@ import (
     "time"
     "owlhnode/utils"
     "owlhnode/database"
+    "path/filepath"
 )
 
 func WazuhPath() (exists bool) {
@@ -176,11 +177,24 @@ type AllFiles struct {
 func ModifyWazuhFile(anode map[string]interface{})(err error) {
     ossec, err := utils.GetKeyValueString("loadDataWazuhPath", "ossec")  
     if err != nil {logs.Error("ModifyWazuhFile Error getting data from main.conf"); return err}
+    ossecFile, err := utils.GetKeyValueString("loadDataWazuhPath", "file")  
+    if err != nil {logs.Error("ModifyWazuhFile Error getting data from main.conf"); return err}
+    ossecFileFullPath, err := utils.GetKeyValueString("loadDataWazuhPath", "fullPath")  
+    if err != nil {logs.Error("ModifyWazuhFile Error getting data from main.conf"); return err}
 
     receivedWazuhFiles := AllFiles{}
     byteData, _ := json.Marshal(anode)
     json.Unmarshal(byteData, &receivedWazuhFiles)
 
+    //check fgor empty array
+    if receivedWazuhFiles.Paths == nil || len(receivedWazuhFiles.Paths) <= 0 {
+        return errors.New("ModifyWazuhFile error - New content is empty")
+    }
+    //backup file
+    err = utils.BackupFile(ossecFileFullPath, ossecFile)
+    if err != nil {logs.Error("ModifyWazuhFile error: "+err.Error()); return errors.New("ModifyWazuhFile error - Backup failed")}
+
+    //modify ossec file
     file, err := os.Open(ossec)
     if err != nil {logs.Error("Error ModifyWazuhFile readding file: "+err.Error()); return err}
     defer file.Close()
@@ -287,19 +301,26 @@ func LoadFileLastLines(file map[string]string)(data map[string]string, err error
     return linesResult, err
 }
 
-func SaveFileContentWazuh(file map[string]string)(err error) {
-    err = utils.BackupFullPath(file["path"])
-    if err != nil {
-        logs.Info("SaveFileContentWazuh. Error doing backup with function BackupFullPath: "+err.Error())
-        return err
-    }
+func SaveFileContentWazuh(file map[string]string)(err error) { 
+    bytearray := []byte(file["content"])
+    
+    //check for empty file content
+    if bytearray == nil || len(bytearray) <= 0 { logs.Error("SaveFileContentWazuh error - New content is empty"); return errors.New("SaveFileContentWazuh error - New content is empty")}
+    
+    //split path 
+    fileName := filepath.Base(file["path"])
+    fileDir := filepath.Dir(file["path"])
+
+    //backup file
+    err = utils.BackupFile(fileDir+"/", fileName)
+    if err != nil {logs.Error("ModifyWazuhFile error: "+err.Error()); return errors.New("ModifyWazuhFile error - Backup failed")}
+
+    // err = utils.BackupFullPath(file["path"])
+    // if err != nil {logs.Info("SaveFileContentWazuh. Error doing backup with function BackupFullPath: "+err.Error()); return err}
 
     //make byte array for save the file modified
-    bytearray := []byte(file["content"])
     err = utils.WriteNewDataOnFile(file["path"], bytearray)
-    if err != nil {
-        logs.Info("SaveFileContentWazuh error doing backup with function WriteNewDataOnFile: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Info("SaveFileContentWazuh error doing backup with function WriteNewDataOnFile: "+err.Error()); return err}
+
     return nil
 }
