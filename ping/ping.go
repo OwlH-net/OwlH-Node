@@ -160,7 +160,7 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
                 if err != nil {logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error launching suricata again: "+err.Error()); return nil, err}
             }
 
-            //check if process is running even though database status is enabled            
+            //check if process is running even though database status is disabled            
             pid, err := exec.Command(command, param, strings.Replace(suriPID, "<ID>",  "grep "+x+" |", -1)).Output()
             if err != nil {logs.Error("ping/PingPluginsNode Checking suricata PID: "+err.Error())}
             if strings.Split(string(pid), "\n")[0] == "" {
@@ -169,17 +169,24 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
                 allPlugins[x]["running"] = "true"
             }
         }
-        //check if process is running even though database status is enabled
-        if allPlugins[x]["type"] == "zeek" && allPlugins[x]["pid"] != "none"{            
-            zk := zeek.GetZeek()
-            if zk.Nodes == nil {
+        //check if process is running even though database status is disabled
+        if allPlugins[x]["type"] == "zeek" && allPlugins[x]["pid"] != "none"{     
+            //check zeek
+            if !zeek.ZeekPath() || !zeek.ZeekBin() {
                 allPlugins[x]["running"] = "false"                
             }else{
-                for node := range zk.Nodes {
-                    if zk.Nodes[node].Status != "running"{
-                        allPlugins[x]["running"] = "false"
-                    }else{
-                        allPlugins[x]["running"] = "true"
+                zk,err := zeek.GetZeek()
+                if err != nil {return nil, err}
+    
+                if zk.Nodes == nil || len(zk.Nodes) <= 0 {
+                    allPlugins[x]["running"] = "false"                
+                }else{
+                    for node := range zk.Nodes {
+                        if zk.Nodes[node].Status != "running"{
+                            allPlugins[x]["running"] = "false"
+                        }else{
+                            allPlugins[x]["running"] = "true"
+                        }
                     }
                 }
             }

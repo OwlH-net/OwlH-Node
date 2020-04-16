@@ -158,10 +158,11 @@ func ZeekCurrentStatus()(status string, err error) {
     return status,nil
 }
 
-func GetZeek()(zeek Zeek) {
+func GetZeek()(zeek Zeek, err error) {
     logs.Info("Zeek Getting zeek values")
     zeek.Path = ZeekPath()
     zeek.Bin = ZeekBin()
+    if !zeek.Path || !zeek.Bin { return zeek, errors.New("Zeek path or binary not exists")}
     zeek.Mode = ZeekMode()
     zeek.Managed = ZeekManaged()
     nodes, err := ZeekStatus(); if err != nil {logs.Error(err.Error())}
@@ -183,7 +184,7 @@ func GetZeek()(zeek Zeek) {
             zeek.Running = append(zeek.Running, newStatus)
         }
     }
-    return zeek
+    return zeek,nil
 }
 
 func SetZeek(zeekdata Zeek)(newzeekdata Zeek, err error) {
@@ -203,7 +204,9 @@ func SetZeek(zeekdata Zeek)(newzeekdata Zeek, err error) {
         logs.Warn("======= EXTRA ========")
     }
 
-    newzeekdata = GetZeek()
+    newzeekdata,err = GetZeek()
+    if err != nil {return newzeekdata, err}
+
     return newzeekdata, nil
 }
 

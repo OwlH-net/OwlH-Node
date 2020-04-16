@@ -111,7 +111,8 @@ func PrintMemUsage() {
 }
  
 func PercentFloat(val, total uint64)(percent uint64) {
-    return (val * 100) / total
+    percent = (val * 100) / total
+    return percent
 }
  
 func PrintDiskUsage() {
@@ -122,7 +123,7 @@ func PrintDiskUsage() {
     // GlobalMonitor.HD.UsedDisk = fmt.Sprintf("%v", bToMb(diskStat.Used))
  
     disk := DiskUsage("/")
-    GlobalMonitor.HD.Percentage = fmt.Sprintf("%.2f", PercentFloat(disk.Used, disk.All)) 
+    GlobalMonitor.HD.Percentage = fmt.Sprintf("%v", PercentFloat(disk.Used, disk.All)) 
     GlobalMonitor.HD.TotalDisk = fmt.Sprintf("%.2f", float64(disk.All)/float64(GB))
     GlobalMonitor.HD.UsedDisk = fmt.Sprintf("%.2f", float64(disk.Used)/float64(GB))
     GlobalMonitor.HD.FreeDisk = fmt.Sprintf("%.2f", float64(disk.Free)/float64(GB))

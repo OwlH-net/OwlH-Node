@@ -8,7 +8,7 @@ import (
 
 func GetZeek() (status zeek.Zeek, err error) {
     logs.Info("Zeek Status!!")
-    status = zeek.GetZeek()
+    status,err = zeek.GetZeek()
     // changecontrol.ChangeControlInsertData(err, "GetZeek")    
     return status,err
 }
