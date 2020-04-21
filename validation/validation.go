@@ -33,34 +33,7 @@ func Encode(secret string) (val string, err error) {
 	return tokenString, err
 }
 
-func CheckToken(token string, userUuid string, masterUuid string, permission string)(hasPrivileges bool, err error){	
-	//check token
-	masters,err := ndb.GetMasters(); if err != nil {logs.Error("CheckToken error getting master data: %s", err); return false, err}
-	for x := range masters{
-		tkn, err := Encode(masters[x]["secret"])
-		if err != nil {
-			logs.Error("Error checking Master token: %s", err); return false, err
-		}else{
-			if token == tkn {
-				if userUuid == "none"{
-					return true,nil
-				}else{
-					status,err := UserPrivilegeValidation(userUuid, permission); if err != nil {logs.Error("Privileges error: %s",err); return false,err}
-					if status{
-						return true,nil
-					}else{
-						return false,errors.New("This user has not enough privileges level")
-					}
-				}
-			}else{
-				return false,errors.New("The token retrieved is false")
-			}
-		}		
-	}
-	return false,errors.New("There are no token.")
-}
-
-func VerifyToken(token string, user string, userUuid string)(err error){
+func VerifyToken(token string, userUuid string)(err error){
 	masters,err := ndb.GetMasters(); if err != nil {logs.Error("CheckToken error getting master data: %s", err); return err}
 	for x := range masters{
 		tkn, err := Encode(masters[x]["secret"])
@@ -68,25 +41,25 @@ func VerifyToken(token string, user string, userUuid string)(err error){
 			logs.Error("Error checking Master token: %s", err); return err
 		}else{
 			if token == tkn {
-				if userUuid == "none"{
+			// 	if userUuid == "none"{
 					return nil
-				}else{
-					return errors.New("This user has not enough privileges level")
-				}
-			}else{
-				return errors.New("The token retrieved is false")
+			// 	}else{
+			// 		return errors.New("This user has not enough privileges level")
+			// 	}
+			// }else{
+			// 	return errors.New("The token retrieved is false")
 			}
 		}		
 	}
-	return errors.New("There are no token.")
+	return errors.New("VerifyToken - Incorrect Token")
 }
 
-func VerifyPermissions(uuidUser string, object string, permissions []string)(err error){
+func VerifyPermissions(uuidUser string, object string, permissions []string)(hasPermissions bool, err error){
 	for x := range permissions{
-		status,err := UserPrivilegeValidation2(uuidUser, permissions[x]); if err != nil {logs.Error("requestType error: %s",err); return err}
+		status,err := UserPermissionsValidation(uuidUser, permissions[x]); if err != nil {logs.Error("VerifyPermissions error - requestType error: %s",err); return false,err}
 		if status{
-			return nil
+			return true,nil
 		}		
 	}
-	return errors.New("Not enough permissions for this action")
+	return false,nil
 }

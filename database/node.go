@@ -598,3 +598,51 @@ func UpdatePermissions(uuid string, param string, value string) (err error) {
     if (err != nil){logs.Error("UpdatePermissions UPDATE error: "+err.Error()); return err}
     return nil
 }
+
+
+func GetRoleGroups()(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select rg_uniqueid,rg_param,rg_value from roleGroups";
+    rows, err := Nodedb.Query(sql)
+    if err != nil {
+        logs.Error("GetRoleGroups Nodedb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetRoleGroups -- Nodedb.Query return error: %s", err.Error())
+            return nil, err
+        }
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
+
+
+func InsertRoleGroups(uuid string, param string, value string)(err error){
+    dataValues, err := Nodedb.Prepare("insert into roleGroups(rg_uniqueid,rg_param,rg_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertRoleGroups prepare error: "+err.Error()); return err}
+
+    _, err = dataValues.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertRoleGroups exec error: "+err.Error()); return err}
+
+    defer dataValues.Close()
+    
+    return nil
+}
+
+
+func UpdateRoleGroups(uuid string, param string, value string) (err error) {
+    dataValues, err := Nodedb.Prepare("update roleGroups set rg_value = ? where rg_uniqueid = ? and rg_param = ?;")
+    if (err != nil){logs.Error("UpdateRoleGroups UPDATE prepare error: "+err.Error()); return err}
+    
+    _, err = dataValues.Exec(&value, &uuid, &param)
+    defer dataValues.Close()
+    if (err != nil){logs.Error("UpdateRoleGroups UPDATE error: "+err.Error()); return err}
+    return nil
+}

@@ -106,7 +106,7 @@ func StopWazuh()(data string, err error){
     return "Wazuh stopped ",nil
 }
 
-func PingWazuhFiles() (files map[int]map[string]string, err error) {    
+func PingWazuhFiles() (files map[string]map[string]string, err error) {    
     file, err := os.Open("/var/ossec/etc/ossec.conf")
     if err != nil {logs.Error(err); return nil, err}
     defer file.Close()
@@ -114,7 +114,7 @@ func PingWazuhFiles() (files map[int]map[string]string, err error) {
     scanner := bufio.NewScanner(file)
     isInit := false
     isEnd := false
-    filesPath := make(map[int]map[string]string)
+    filesPath := make(map[string]map[string]string)
     count := 0;
     var size int64
     for scanner.Scan() {
@@ -135,9 +135,9 @@ func PingWazuhFiles() (files map[int]map[string]string, err error) {
                     size = fi.Size()
                 }
                 
-                if filesPath[count] == nil { filesPath[count] = map[string]string{}}
-                filesPath[count]["path"] = locationFound[1]
-                filesPath[count]["size"] = strconv.FormatInt(size, 10)
+                if filesPath[strconv.Itoa(count)] == nil { filesPath[strconv.Itoa(count)] = map[string]string{}}
+                filesPath[strconv.Itoa(count)]["path"] = locationFound[1]
+                filesPath[strconv.Itoa(count)]["size"] = strconv.FormatInt(size, 10)
 
                 //Add new Incident
                 //Add incident to database
@@ -265,8 +265,11 @@ func ModifyWazuhFile(anode map[string]interface{})(err error) {
 
     if err := scanner.Err(); err != nil {logs.Error("ModifyWazuhFile. Scanner file error: "+err.Error()); return err}
 
-    saveIntoFile, err := os.OpenFile(ossec, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+    saveIntoFile, err := os.OpenFile(ossec, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
     if err != nil {logs.Error("Error ModifyWazuhFile readding file: "+err.Error()); return err}
+
+    //move backup for check error .bck
+
     defer saveIntoFile.Close()
     saveIntoFile.Truncate(0)
     saveIntoFile.Seek(0,0)

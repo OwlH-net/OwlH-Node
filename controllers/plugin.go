@@ -2,7 +2,6 @@ package controllers
 
 import (
     "github.com/astaxie/beego"
-    "github.com/astaxie/beego/logs"
     "owlhnode/models"
     "owlhnode/validation"
     "encoding/json"
@@ -16,13 +15,16 @@ type PluginController struct {
 // @Description Change a specific plugin service status
 // @router /ChangeServiceStatus [put]
 func (n *PluginController) ChangeServiceStatus() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Plugin Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"ChangeServiceStatus"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -43,14 +45,17 @@ logs.Error(err.Error())
 // @Description Change a specific plugin service status
 // @router /ChangeMainServiceStatus [put]
 func (n *PluginController) ChangeMainServiceStatus() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Plugin Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"ChangeMainServiceStatus"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{     
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -69,14 +74,17 @@ logs.Error(err.Error())
 // @Description delete a specific plugin service
 // @router /deleteService [delete]
 func (n *PluginController) DeleteService() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
-    if err != nil {
-        logs.Error("Plugin Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"DeleteService"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{     
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "DELETE"
@@ -96,14 +104,17 @@ logs.Error(err.Error())
 // @Success 200 {object} models.suricata
 // @router /addService [put]
 func (n *PluginController) AddPluginService() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Plugin Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"AddPluginService"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{        
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -123,14 +134,17 @@ logs.Error(err.Error())
 // @Description Change a specific plugin service status
 // @router /SaveSuricataInterface [put]
 func (n *PluginController) SaveSuricataInterface() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Plugin Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"SaveSuricataInterface"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{          
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -149,14 +163,17 @@ logs.Error(err.Error())
 // @Description Change a specific plugin service status
 // @router /deployStapService [put]
 func (n *PluginController) DeployStapService() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Plugin Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"DeployStapService"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{       
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -175,14 +192,17 @@ logs.Error(err.Error())
 // @Description Change a specific plugin service status
 // @router /stopStapService [put]
 func (n *PluginController) StopStapService() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Plugin Error validating token from master")
-        logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"StopStapService"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{        
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -201,14 +221,17 @@ func (n *PluginController) StopStapService() {
 // @Description Change a specific plugin service status
 // @router /modifyStapValues [put]
 func (n *PluginController) ModifyStapValues() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Plugin Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"ModifyStapValues"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{       
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -227,14 +250,17 @@ logs.Error(err.Error())
 // @Description Change a specific plugin service status
 // @router /changeSuricataTable [put]
 func (n *PluginController) ChangeSuricataTable() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Plugin Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"ChangeSuricataTable"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{      
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -253,14 +279,17 @@ logs.Error(err.Error())
 // @Description get commands for specific service
 // @router /getCommands [put]
 func (n *PluginController) GetServiceCommands() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Plugin Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetServiceCommands"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{        
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"

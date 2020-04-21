@@ -59,7 +59,7 @@ func StopWazuh() (data string, err error) {
     return data,err
 }
 
-func PingWazuhFiles() (files map[int]map[string]string, err error) {
+func PingWazuhFiles() (files map[string]map[string]string, err error) {
     files, err = wazuh.PingWazuhFiles()
     // changecontrol.ChangeControlInsertData(err, "PingWazuhFiles")    
     return files ,err

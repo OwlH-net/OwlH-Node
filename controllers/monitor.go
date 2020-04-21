@@ -5,7 +5,6 @@ import (
     "encoding/json"
     "owlhnode/validation"
     "github.com/astaxie/beego"
-    "github.com/astaxie/beego/logs"
 )
 
 type MonitorController struct {
@@ -29,13 +28,16 @@ func (n *MonitorController) GetLastStatus() {
 // @Success 200 {object} models.monitor
 // @router /addFile [post]
 func (n *MonitorController) AddMonitorFile() { 
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
-    if err != nil {
-        logs.Error("AddMonitorFile Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"AddMonitorFile"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -58,13 +60,16 @@ logs.Error(err.Error())
 // @Success 200 {object} models.monitor
 // @router /pingMonitorFiles [get]
 func (n *MonitorController) PingMonitorFiles() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("PingMonitorFiles Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"PingMonitorFiles"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         data,err := models.PingMonitorFiles()
         n.Data["json"] = data
@@ -78,13 +83,16 @@ logs.Error(err.Error())
 // @Success 200 {object} models.monitor
 // @router /deleteFile [delete]
 func (n *MonitorController) DeleteMonitorFile() { 
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
-    if err != nil {
-        logs.Error("DeleteMonitorFile Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"DeleteMonitorFile"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -107,13 +115,16 @@ logs.Error(err.Error())
 // @Success 200 {object} models.monitor
 // @router /changeRotationStatus [put]
 func (n *MonitorController) ChangeRotationStatus() { 
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("ChangeRotationStatus Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"ChangeRotationStatus"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -136,13 +147,16 @@ logs.Error(err.Error())
 // @Success 200 {object} models.monitor
 // @router /editRotation [put]
 func (n *MonitorController) EditRotation() { 
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("EditRotation Error validating token from master")
-logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"EditRotation"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

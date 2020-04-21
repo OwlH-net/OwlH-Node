@@ -138,3 +138,22 @@ func SyncPermissions(perms map[string]map[string]string) (err error) {
     changecontrol.InsertChangeControl(cc)
     return err
 }
+
+func SyncRoleGroups(perms map[string]map[string]string) (err error) {
+    logs.Info("============")
+    logs.Info("AUTENTICATION - SyncRoleGroups")
+    cc := make(map[string]string)
+    
+    err = autentication.SyncRoleGroups(perms)
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+
+    cc["actionDescription"] = "Add role groups from Master"
+
+    changecontrol.InsertChangeControl(cc)
+    return err
+}

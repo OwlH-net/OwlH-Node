@@ -48,6 +48,10 @@ func MainCheck()(cancontinue bool){
     if !ok {
         return false
     }
+    // ok = checkPermissionsFields()
+    // if !ok {
+    //     return false
+    // }
     return true
 }
 
@@ -249,6 +253,14 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "roleGroups"
+    table.Tconn = "nodeConn"
+    table.Tcreate = "CREATE TABLE roleGroups (rg_id integer PRIMARY KEY AUTOINCREMENT,rg_uniqueid text NOT NULL,rg_param text NOT NULL,rg_value text NOT NULL);"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     return true
 }
 
@@ -264,105 +276,105 @@ func checkFields()(ok bool){
     ok = CheckField(field)
     if !ok {return false}
 
-    //add admin permission by default
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='delete' and per_param='desc' and per_value='http get request'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('delete','desc','http get request')"
-    field.Fname      = "permissions - delete desc"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='delete' and per_param='permisionGroup' and per_value='admin'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('delete','permisionGroup','admin')"
-    field.Fname      = "permissions - delete group"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='post' and per_param='desc' and per_value='http get request'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('post','desc','http get request')"
-    field.Fname      = "permissions - post desc"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='post' and per_param='permisionGroup' and per_value='admin'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('post','permisionGroup','admin')"
-    field.Fname      = "permissions - post group"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='put' and per_param='desc' and per_value='http get request'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('put','desc','http get request')"
-    field.Fname      = "permissions - put desc"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='put' and per_param='permisionGroup' and per_value='admin'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('put','permisionGroup','admin')"
-    field.Fname      = "permissions - put group"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='get' and per_param='desc' and per_value='http get request'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('get','desc','http get request')"
-    field.Fname      = "permissions - get desc"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='get' and per_param='permisionGroup' and per_value='admin'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('get','permisionGroup','admin')"
-    field.Fname      = "permissions - get group"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='admin' and per_param='desc' and per_value='Get everything'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('admin','desc','Get everything')"
-    field.Fname      = "permissions - admin desc"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='admin' and per_param='permisionGroup' and per_value='admin'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('admin','permisionGroup','admin')"
-    field.Fname      = "permissions - admin group"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='getRulesetSourceDetails' and per_param='desc' and per_value='Get ruleset source details'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('getRulesetSourceDetails','desc','Get ruleset source details')"
-    field.Fname      = "permissions - admin desc"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='getRulesetSourceDetails' and per_param='permisionGroup' and per_value='OpenRules'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('getRulesetSourceDetails','permisionGroup','OpenRules')"
-    field.Fname      = "permissions - admin group"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllRulesetSource' and per_param='desc' and per_value='Get all ruleset source values'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllRulesetSource','desc','Get all ruleset source values')"
-    field.Fname      = "permissions - admin desc"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllRulesetSource' and per_param='permisionGroup' and per_value='OpenRules'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllRulesetSource','permisionGroup','OpenRules')"
-    field.Fname      = "permissions - admin group"
-    ok = CheckField(field)
-    if !ok {return false}
+    // //add admin permission by default
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='delete' and per_param='desc' and per_value='http get request'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('delete','desc','http get request')"
+    // field.Fname      = "permissions - delete desc"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='delete' and per_param='permisionGroup' and per_value='admin'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('delete','permisionGroup','admin')"
+    // field.Fname      = "permissions - delete group"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='post' and per_param='desc' and per_value='http get request'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('post','desc','http get request')"
+    // field.Fname      = "permissions - post desc"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='post' and per_param='permisionGroup' and per_value='admin'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('post','permisionGroup','admin')"
+    // field.Fname      = "permissions - post group"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='put' and per_param='desc' and per_value='http get request'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('put','desc','http get request')"
+    // field.Fname      = "permissions - put desc"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='put' and per_param='permisionGroup' and per_value='admin'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('put','permisionGroup','admin')"
+    // field.Fname      = "permissions - put group"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='get' and per_param='desc' and per_value='http get request'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('get','desc','http get request')"
+    // field.Fname      = "permissions - get desc"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='get' and per_param='permisionGroup' and per_value='admin'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('get','permisionGroup','admin')"
+    // field.Fname      = "permissions - get group"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='admin' and per_param='desc' and per_value='Get everything'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('admin','desc','Get everything')"
+    // field.Fname      = "permissions - admin desc"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='admin' and per_param='permisionGroup' and per_value='admin'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('admin','permisionGroup','admin')"
+    // field.Fname      = "permissions - admin group"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='getRulesetSourceDetails' and per_param='desc' and per_value='Get ruleset source details'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('getRulesetSourceDetails','desc','Get ruleset source details')"
+    // field.Fname      = "permissions - admin desc"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='getRulesetSourceDetails' and per_param='permisionGroup' and per_value='OpenRules'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('getRulesetSourceDetails','permisionGroup','OpenRules')"
+    // field.Fname      = "permissions - admin group"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllRulesetSource' and per_param='desc' and per_value='Get all ruleset source values'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllRulesetSource','desc','Get all ruleset source values')"
+    // field.Fname      = "permissions - admin desc"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "nodeConn"
+    // field.Ftable     = "permissions"
+    // field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllRulesetSource' and per_param='permisionGroup' and per_value='OpenRules'"
+    // field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllRulesetSource','permisionGroup','OpenRules')"
+    // field.Fname      = "permissions - admin group"
+    // ok = CheckField(field)
+    // if !ok {return false}
 
      //add values to rolePermissions realition table
      field.Fconn      = "nodeConn"

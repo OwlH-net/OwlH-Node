@@ -18,13 +18,17 @@ type PortsController struct {
 // @Success 200 {object} models.ports
 // @router /PingPorts [get]
 func (n *PortsController) PingPorts() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"PingPorts"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{       
         data, err := models.PingPorts()
         n.Data["json"] = data
         if err != nil {
@@ -40,13 +44,17 @@ func (n *PortsController) PingPorts() {
 // @Success 200 {object} models.ports
 // @router / [get]
 func (n *PortsController) ShowPorts() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"ShowPorts"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{      
         logs.Info ("ports controller -> GET")
         data,err := models.ShowPorts()
         n.Data["json"] = data
@@ -63,13 +71,17 @@ func (n *PortsController) ShowPorts() {
 // @Success 200 {object} models.ports
 // @router /mode [put]
 func (n *PortsController) ChangeMode() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"ChangeMode"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{        
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -91,13 +103,17 @@ func (n *PortsController) ChangeMode() {
 // @Success 200 {object} models.ports
 // @router /status [put]
 func (n *PortsController) ChangeStatus() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"ChangeStatus"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{      
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -123,13 +139,17 @@ func (n *PortsController) ChangeStatus() {
 // @Success 200 {object} models.ports
 // @router /delete [put]
 func (n *PortsController) DeletePorts() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"DeletePorts"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{          
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -151,13 +171,17 @@ func (n *PortsController) DeletePorts() {
 // @Success 200 {object} models.ports
 // @router /deleteAll [put]
 func (n *PortsController) DeleteAllPorts() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"DeleteAllPorts"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{      
         var anode map[string]string
         anode["action"] = "PUT"
         anode["controller"] = "PORTS"

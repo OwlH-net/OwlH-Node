@@ -112,7 +112,7 @@ func FileRotation()(){
 				})
 				if err != nil {logs.Error("FileRotation Error filepath walk finish: "+err.Error())}
 
-				file, err := os.OpenFile(rotate[x]["path"], os.O_RDWR, 0755); if err != nil {logs.Error("FileRotation ERROR readding file: "+err.Error())}
+				file, err := os.OpenFile(rotate[x]["path"], os.O_RDWR, 0644); if err != nil {logs.Error("FileRotation ERROR readding file: "+err.Error())}
 				defer file.Close()
 				fileInfo, err := file.Stat()
 	

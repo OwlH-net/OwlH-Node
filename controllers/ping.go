@@ -30,12 +30,16 @@ func (n *PingController) PingNode() {
 // @Description update node data
 // @router /updateNode [put]
 func (n *PingController) UpdateNodeData() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"UpdateNodeData"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -58,12 +62,16 @@ func (n *PingController) UpdateNodeData() {
 // @Description get ping for node
 // @router /services [get]
 func (n *PingController) PingService() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"PingService"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         err := models.PingService()
         n.Data["json"] = map[string]string{"ack": "true"}
@@ -78,12 +86,16 @@ func (n *PingController) PingService() {
 // @Description get ping for node
 // @router /deployservice [put]
 func (n *PingController) DeployService() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"DeployService"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -103,12 +115,16 @@ func (n *PingController) DeployService() {
 // @Description get ping for node
 // @router /mainconf [get]
 func (n *PingController) GetMainconfData() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetMainconfData"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         data,err := models.GetMainconfData()
         n.Data["json"] = data
@@ -124,17 +140,27 @@ func (n *PingController) GetMainconfData() {
 // @Success 200 {object} models.ping
 // @router /PingPluginsNode [get]
 func (n *PingController) PingPluginsNode() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        var errorResponse = map[string]map[string]string{}
+        errorResponse["hasError"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = errorResponse
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"PingPluginsNode"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        var errorResponse = map[string]map[string]string{}
+        errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none"}
+        n.Data["json"] = errorResponse
     }else{         
         data, err := models.PingPluginsNode()
         n.Data["json"] = data
         if err != nil {
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+            var errorResponse = map[string]map[string]string{}
+            errorResponse["hasError"] = map[string]string{"ack": "false", "error": err.Error()}
+            n.Data["json"] = errorResponse
         }
     }
     n.ServeJSON()
@@ -145,12 +171,16 @@ func (n *PingController) PingPluginsNode() {
 // @Success 200 {object} models.ping
 // @router /saveNodeInformation [put]
 func (n *PingController) SaveNodeInformation() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"SaveNodeInformation"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -171,12 +201,16 @@ func (n *PingController) SaveNodeInformation() {
 // @Success 200 {object} models.ping
 // @router / [delete]
 func (n *PingController) DeleteNode() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"DeleteNode"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         logs.Info("ACTION -> PUT")
         logs.Info("CONTROLLER -> PING")

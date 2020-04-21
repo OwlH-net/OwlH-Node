@@ -4,7 +4,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"owlhnode/models"
-	"owlhnode/validation"
+	// "owlhnode/validation"
 	"encoding/json"
 )
 
@@ -31,14 +31,17 @@ func (n *AutenticationController) CreateMasterToken() {
 // @Description Add users from Master
 // @router /addUser [put]
 func (n *AutenticationController) AddUserFromMaster() {
-	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("AddUserFromMaster Error validating token from master")
-        logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{ 
+	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    // if errToken != nil {
+    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+    //     n.ServeJSON()
+    //     return
+    // }    
+    // permissions := []string{"AddUserFromMaster"}
+    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    // if permissionsErr != nil || hasPermission == false {
+    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    // }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 		err := models.AddUserFromMaster(anode)
@@ -47,22 +50,24 @@ func (n *AutenticationController) AddUserFromMaster() {
 			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 		}
 		n.ServeJSON()
-	}
+	// }
 }
 
 // @Title AddRolesFromMaster
 // @Description Add roles from Master
 // @router /addRole [put]
 func (n *AutenticationController) AddRolesFromMaster() {
-	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("AddRolesFromMaster Error validating token from master")
-        logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-        logs.Error("Not enough permissions")
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{ 
+	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    // if errToken != nil {
+    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+    //     n.ServeJSON()
+    //     return
+    // }    
+    // permissions := []string{"AddRolesFromMaster"}
+    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    // if permissionsErr != nil || hasPermission == false {
+    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    // }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 		err := models.AddRolesFromMaster(anode)
@@ -71,21 +76,24 @@ func (n *AutenticationController) AddRolesFromMaster() {
 			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 		}
 		n.ServeJSON()
-	}
+	// }
 }
 
 // @Title AddGroupFromMaster
 // @Description Add groups from Master
 // @router /addGroup [put]
 func (n *AutenticationController) AddGroupFromMaster() {
-	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("AddGroupFromMaster Error validating token from master")
-        logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{ 
+	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    // if errToken != nil {
+    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+    //     n.ServeJSON()
+    //     return
+    // }    
+    // permissions := []string{"AddGroupFromMaster"}
+    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    // if permissionsErr != nil || hasPermission == false {
+    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    // }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 		err := models.AddGroupFromMaster(anode)
@@ -94,21 +102,24 @@ func (n *AutenticationController) AddGroupFromMaster() {
 			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 		}
 		n.ServeJSON()
-	}
+	// }
 }
 
 // @Title AddUserGroupRolesFromMaster
 // @Description Add userGroupRoles from Master
 // @router /addUgr [put]
 func (n *AutenticationController) AddUserGroupRolesFromMaster() {
-	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("AddUserGroupRolesFromMaster Error validating token from master")
-        logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{ 
+	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    // if errToken != nil {
+    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+    //     n.ServeJSON()
+    //     return
+    // }    
+    // permissions := []string{"AddUserGroupRolesFromMaster"}
+    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    // if permissionsErr != nil || hasPermission == false {
+    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    // }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 		err := models.AddUserGroupRolesFromMaster(anode)
@@ -117,21 +128,24 @@ func (n *AutenticationController) AddUserGroupRolesFromMaster() {
 			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 		}
 		n.ServeJSON()
-	}
+	// }
 }
 
 // @Title SyncRolePermissions
 // @Description Add role permissions relation table from Master
 // @router /addRolePerm [put]
 func (n *AutenticationController) SyncRolePermissions() {
-	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("SyncRolePermissions Error validating token from master")
-        logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{ 
+	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    // if errToken != nil {
+    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+    //     n.ServeJSON()
+    //     return
+    // }    
+    // permissions := []string{"SyncRolePermissions"}
+    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    // if permissionsErr != nil || hasPermission == false {
+    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    // }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 		err := models.SyncRolePermissions(anode)
@@ -140,21 +154,24 @@ func (n *AutenticationController) SyncRolePermissions() {
 			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 		}
 		n.ServeJSON()
-	}
+	// }
 }
 
 // @Title SyncPermissions
 // @Description Add permissions from Master
 // @router /addPerm [put]
 func (n *AutenticationController) SyncPermissions() {
-	permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), "none", n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("SyncPermissions Error validating token from master")
-        logs.Error(err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{ 
+	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    // if errToken != nil {
+    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+    //     n.ServeJSON()
+    //     return
+    // }    
+    // permissions := []string{"SyncPermissions"}
+    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    // if permissionsErr != nil || hasPermission == false {
+    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    // }else{ 
 		var anode map[string]map[string]string
 		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 		err := models.SyncPermissions(anode)
@@ -163,5 +180,31 @@ func (n *AutenticationController) SyncPermissions() {
 			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 		}
 		n.ServeJSON()
-	}
+	// }
+}
+
+// @Title SyncRoleGroups
+// @Description Add permissions from Master
+// @router /addRoleGroups [put]
+func (n *AutenticationController) SyncRoleGroups() {
+	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    // if errToken != nil {
+    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+    //     n.ServeJSON()
+    //     return
+    // }    
+    // permissions := []string{"SyncRoleGroups"}
+    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    // if permissionsErr != nil || hasPermission == false {
+    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    // }else{ 
+		var anode map[string]map[string]string
+		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+		err := models.SyncRoleGroups(anode)
+		n.Data["json"] = map[string]string{"ack": "true"}
+		if err != nil {
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+		n.ServeJSON()
+	// }
 }

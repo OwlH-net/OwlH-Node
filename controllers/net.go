@@ -2,7 +2,6 @@ package controllers
 
 import (
     "github.com/astaxie/beego"
-    "github.com/astaxie/beego/logs"
     "owlhnode/models"
     "owlhnode/validation"
     "encoding/json"
@@ -16,12 +15,16 @@ type NetController struct {
 // @Description get network data
 // @router / [get]
 func (n *NetController) GetNetworkData() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetNetworkData"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         values,err := models.GetNetworkData()
         
@@ -37,12 +40,16 @@ func (n *NetController) GetNetworkData() {
 // @Description get network values selected by user
 // @router /values [get]
 func (n *NetController) LoadNetworkValuesSelected() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"LoadNetworkValuesSelected"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         values,err := models.LoadNetworkValuesSelected()
         
@@ -60,12 +67,16 @@ func (n *NetController) LoadNetworkValuesSelected() {
 // @Failure 403 body is empty
 // @router / [put]
 func (n *NetController) UpdateNetworkInterface() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"UpdateNetworkInterface"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

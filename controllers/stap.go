@@ -17,13 +17,17 @@ type StapController struct {
 // @Success 200 {object} models.stap
 // @router / [post]
 func (n *StapController) AddServer() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"AddServer"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{       
         logs.Info ("stap controller -> AddServer")
         
         var newServer map[string]string
@@ -48,13 +52,17 @@ func (n *StapController) AddServer() {
 // @Success 200 {object} models.stap
 // @router / [get]
 func (n *StapController) GetAllServers() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetAllServers"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{       
         logs.Info ("stap controller -> GetAllServers")
     
         servers, err := models.GetAllServers()
@@ -74,13 +82,17 @@ func (n *StapController) GetAllServers() {
 // @Success 200 {object} models.stap
 // @router /server/:uuid [get]
 func (n *StapController) GetServer() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetServer"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{       
         logs.Info ("stap controller -> GetServer")
         uuid := n.GetString(":uuid") 
         server, err := models.GetServer(uuid)
@@ -100,13 +112,17 @@ func (n *StapController) GetServer() {
 // @Success 200 {object} models.stap
 // @router /ping/:uuid [get]
 func (n *StapController) PingStap() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"PingStap"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{          
         logs.Info ("Stap controller -> PingStap")
         uuid := n.GetString(":uuid")
         logs.Info("Ping Stap uuid = "+uuid)
@@ -126,13 +142,17 @@ func (n *StapController) PingStap() {
 // @Failure 403 body is empty
 // @router /RunStap/:uuid [put]
 func (n *StapController) RunStap() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"RunStap"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{       
         logs.Info("RunStap -> In")
         uuid := n.GetString(":uuid")
         var anode map[string]string
@@ -163,13 +183,17 @@ func (n *StapController) RunStap() {
 // @Failure 403 body is empty
 // @router /StopStap/:uuid [put]
 func (n *StapController) StopStap() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"StopStap"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{       
         logs.Info("StopStap -> In")
         uuid := n.GetString(":uuid")
         var anode map[string]string
@@ -199,13 +223,17 @@ func (n *StapController) StopStap() {
 // @Failure 403 body is empty
 // @router /RunStapServer/:serveruuid [put]
 func (n *StapController) RunStapServer() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"RunStapServer"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{        
         logs.Info("RunStapServer -> In")
         serveruuid := n.GetString(":serveruuid")
             var anode map[string]string
@@ -236,13 +264,17 @@ func (n *StapController) RunStapServer() {
 // @Failure 403 body is empty
 // @router /StopStapServer/:serveruuid [put]
 func (n *StapController) StopStapServer() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"StopStapServer"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{      
         logs.Info("StopStapServer -> In")
         serveruuid := n.GetString(":serveruuid")
         var anode map[string]string
@@ -271,12 +303,16 @@ func (n *StapController) StopStapServer() {
 // @Success 200 {object} models.stap
 // @router /PingServerStap/:server [get]
 func (n *StapController) PingServerStap() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"PingServerStap"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         logs.Info ("stap controller -> PingServerStap")
         server := n.GetString(":server")
@@ -298,13 +334,17 @@ func (n *StapController) PingServerStap() {
 // @Failure 403 body is empty
 // @router /DeleteStapServer/:serveruuid [put]
 func (n *StapController) DeleteStapServer() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"DeleteStapServer"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{        
         logs.Info("DeleteStapServer -> In")
         serveruuid := n.GetString(":serveruuid")
         var anode map[string]string
@@ -335,13 +375,17 @@ func (n *StapController) DeleteStapServer() {
 // @Failure 403 body is empty
 // @router /EditStapServer [put]
 func (n *StapController) EditStapServer() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
-    if err != nil {
-        logs.Error("Error validating token from master")
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{    
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    }else{         
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"EditStapServer"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{        
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"

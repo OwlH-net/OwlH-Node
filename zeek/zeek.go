@@ -494,7 +494,7 @@ func SyncCluster(anode map[string]string, clusterType string) (err error) {
         }
     }
 
-    saveIntoFile, err := os.OpenFile(path , os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+    saveIntoFile, err := os.OpenFile(path , os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
     if err != nil {logs.Error("Error SyncCluster readding file: "+err.Error()); return err}
     defer saveIntoFile.Close()
     saveIntoFile.Truncate(0)
