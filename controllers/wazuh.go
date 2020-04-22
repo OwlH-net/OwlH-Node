@@ -24,7 +24,7 @@ func (n *WazuhController) Get() {
         return
     }    
     permissions := []string{"GetWazuh"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -52,7 +52,7 @@ func (n *WazuhController) RunWazuh() {
         return
     }    
     permissions := []string{"RunWazuh"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{          
@@ -90,7 +90,7 @@ func (n *WazuhController) StopWazuh() {
         return
     }    
     permissions := []string{"StopWazuh"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{        
@@ -129,10 +129,10 @@ func (n *WazuhController) PingWazuhFiles() {
         return
     }    
     permissions := []string{"PingWazuhFiles"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         var errorResponse = map[string]map[string]string{}
-        errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none"}
+        errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none", "error": "Not enough permissions"}
         n.Data["json"] = errorResponse
     }else{       
         files, err := models.PingWazuhFiles()
@@ -159,7 +159,7 @@ func (n *WazuhController) DeleteWazuhFile() {
         return
     }    
     permissions := []string{"DeleteWazuhFile"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{      
@@ -189,7 +189,7 @@ func (n *WazuhController) AddWazuhFile() {
         return
     }    
     permissions := []string{"AddWazuhFile"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -219,7 +219,7 @@ func (n *WazuhController) LoadFileLastLines() {
         return
     }    
     permissions := []string{"LoadFileLastLines"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{        
@@ -249,7 +249,7 @@ func (n *WazuhController) SaveFileContentWazuh() {
         return
     }    
     permissions := []string{"SaveFileContentWazuh"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         

@@ -7,6 +7,7 @@ import (
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
     "encoding/json"
+    
 )
 
 type ZeekController struct {
@@ -25,7 +26,7 @@ func (n *ZeekController) Get() {
         return
     }    
     permissions := []string{"GetZeek"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{       
@@ -53,7 +54,7 @@ func (n *ZeekController) Set() {
         return
     }    
     permissions := []string{"Set"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{          
@@ -90,7 +91,7 @@ func (n *ZeekController) RunZeek() {
         return
     }    
     permissions := []string{"RunZeek"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -128,7 +129,7 @@ func (n *ZeekController) StopZeek() {
         return
     }    
     permissions := []string{"StopZeek"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -165,7 +166,7 @@ func (n *ZeekController) ChangeZeekMode() {
         return
     }    
     permissions := []string{"ChangeZeekMode"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -196,7 +197,7 @@ func (n *ZeekController) AddClusterValue() {
         return
     }    
     permissions := []string{"AddClusterValue"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -229,10 +230,10 @@ func (n *ZeekController) PingCluster() {
         return
     }    
     permissions := []string{"PingCluster"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         var errorResponse = map[string]map[string]string{}
-        errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none"}
+        errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none", "error": "Not enough permissions"}
         n.Data["json"] = errorResponse
     }else{         
         data,err := models.PingCluster()
@@ -258,7 +259,7 @@ func (n *ZeekController) EditClusterValue() {
         return
     }    
     permissions := []string{"EditClusterValue"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{          
@@ -288,7 +289,7 @@ func (n *ZeekController) DeleteClusterValue() {
         return
     }    
     permissions := []string{"DeleteClusterValue"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{        
@@ -318,7 +319,7 @@ func (n *ZeekController) SyncCluster() {
         return
     }    
     permissions := []string{"SyncCluster"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{          
@@ -350,7 +351,7 @@ func (n *ZeekController) SavePolicyFiles() {
         return
     }    
     permissions := []string{"SavePolicyFiles"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{        
@@ -386,7 +387,7 @@ func (n *ZeekController) SyncClusterFile() {
         return
     }    
     permissions := []string{"SyncClusterFile"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -421,7 +422,7 @@ func (n *ZeekController) LaunchZeekMainConf() {
         return
     }    
     permissions := []string{"LaunchZeekMainConf"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{        
@@ -474,7 +475,7 @@ func (n *ZeekController) SyncZeekValues() {
         return
     }    
     permissions := []string{"SyncZeekValues"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{          

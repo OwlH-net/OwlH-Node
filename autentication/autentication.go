@@ -98,13 +98,13 @@ func AddRolesFromMaster(masterRole map[string]map[string]string) (err error) {
 		if existsRole {
 			err = ndb.UpdateUserRoles(y,"type", masterRole[y]["type"]); if err != nil {logs.Error("AddRolesFromMaster Error updating node role type: %s",err); return err} 
 			err = ndb.UpdateUserRoles(y,"role", masterRole[y]["role"]); if err != nil {logs.Error("AddRolesFromMaster Error updating node role name: %s",err); return err} 
-			err = ndb.UpdateUserRoles(y,"permissions", masterRole[y]["permissions"]); if err != nil {logs.Error("AddRolesFromMaster Error updating node permissions name: %s",err); return err} 
+			// err = ndb.UpdateUserRoles(y,"permissions", masterRole[y]["permissions"]); if err != nil {logs.Error("AddRolesFromMaster Error updating node permissions name: %s",err); return err} 
 			err = ndb.UpdateUserRoles(y,"masterID", masterRole[y]["masterID"]); if err != nil {logs.Error("AddRolesFromMaster Error updating node role masterID: %s",err); return err} 
 			err = ndb.UpdateUserRoles(y,"status", masterRole[y]["status"]); if err != nil {logs.Error("AddRolesFromMaster Error updating node role status: %s",err); return err} 
 		}else{
 			err = ndb.InsertUserRole(y, "type", masterRole[y]["type"]); if err != nil {logs.Error("AddRolesFromMaster Error inserting type: %s",err); return err} 
 			err = ndb.InsertUserRole(y, "role", masterRole[y]["role"]); if err != nil {logs.Error("AddRolesFromMaster Error inserting role: %s",err); return err} 
-			err = ndb.InsertUserRole(y, "permissions", masterRole[y]["permissions"]); if err != nil {logs.Error("AddRolesFromMaster Error inserting permissions: %s",err); return err} 
+			// err = ndb.InsertUserRole(y, "permissions", masterRole[y]["permissions"]); if err != nil {logs.Error("AddRolesFromMaster Error inserting permissions: %s",err); return err} 
 			err = ndb.InsertUserRole(y, "masterID", masterRole[y]["masterID"]); if err != nil {logs.Error("AddRolesFromMaster Error inserting master id: %s",err); return err} 
 			err = ndb.InsertUserRole(y, "status", masterRole[y]["status"]); if err != nil {logs.Error("AddRolesFromMaster Error inserting status id: %s",err); return err} 
 		}
@@ -196,6 +196,7 @@ func SyncRolePermissions(masterRolePerm map[string]map[string]string) (err error
 	//update or insert all elements
 	var existsValue bool
 	for y := range masterRolePerm{
+		existsValue = false
 		for x := range nodeRolePerm{
 			if x == y{existsValue = true}
 		}
@@ -204,16 +205,16 @@ func SyncRolePermissions(masterRolePerm map[string]map[string]string) (err error
 			err = ndb.UpdateRolePermissions(y,"type", masterRolePerm[y]["type"]); if err != nil {logs.Error("SyncRolePermissions Error updating node group type: %s",err); return err} 
 			err = ndb.UpdateRolePermissions(y,"status", masterRolePerm[y]["status"]); if err != nil {logs.Error("SyncRolePermissions Error updating node group status: %s",err); return err} 
 			err = ndb.UpdateRolePermissions(y,"role", masterRolePerm[y]["role"]); if err != nil {logs.Error("SyncRolePermissions Error updating node role: %s",err); return err} 
-			err = ndb.UpdateRolePermissions(y,"permission", masterRolePerm[y]["permission"]); if err != nil {logs.Error("SyncRolePermissions Error updating node permission: %s",err); return err} 
+			err = ndb.UpdateRolePermissions(y,"permissions", masterRolePerm[y]["permissions"]); if err != nil {logs.Error("SyncRolePermissions Error updating node permissions: %s",err); return err} 
 			err = ndb.UpdateRolePermissions(y,"object", masterRolePerm[y]["object"]); if err != nil {logs.Error("SyncRolePermissions Error updating node object: %s",err); return err} 
 		}else{
 			err = ndb.InsertRolePermissions(y,"masterID", masterRolePerm[y]["masterID"]); if err != nil {logs.Error("SyncRolePermissions Error insert node group masterID: %s",err); return err} 
 			err = ndb.InsertRolePermissions(y,"type", masterRolePerm[y]["type"]); if err != nil {logs.Error("SyncRolePermissions Error insert node group type: %s",err); return err} 
 			err = ndb.InsertRolePermissions(y,"status", masterRolePerm[y]["status"]); if err != nil {logs.Error("SyncRolePermissions Error insert node group status: %s",err); return err} 
 			err = ndb.InsertRolePermissions(y,"role", masterRolePerm[y]["role"]); if err != nil {logs.Error("SyncRolePermissions Error insert node role: %s",err); return err} 
-			err = ndb.InsertRolePermissions(y,"permission", masterRolePerm[y]["permission"]); if err != nil {logs.Error("SyncRolePermissions Error insert node permission: %s",err); return err} 
+			err = ndb.InsertRolePermissions(y,"permissions", masterRolePerm[y]["permissions"]); if err != nil {logs.Error("SyncRolePermissions Error insert node permissions: %s",err); return err} 
 			err = ndb.InsertRolePermissions(y,"object", masterRolePerm[y]["object"]); if err != nil {logs.Error("SyncRolePermissions Error insert node object: %s",err); return err} 
-		}
+		}		
 	}
 
 	return nil
@@ -232,6 +233,7 @@ func SyncPermissions(masterPerm map[string]map[string]string) (err error) {
 	//update or insert all elements
 	var existsValue bool
 	for y := range masterPerm{
+		existsValue = false
 		for x := range nodePerm{
 			if x == y{existsValue = true}
 		}
@@ -266,6 +268,7 @@ func SyncRoleGroups(masterPerm map[string]map[string]string) (err error) {
 	//update or insert all elements
 	var existsValue bool
 	for y := range masterPerm{
+		existsValue = false
 		for x := range nodePerm{
 			if x == y{existsValue = true}
 		}

@@ -37,7 +37,7 @@ func (n *PingController) UpdateNodeData() {
         return
     }    
     permissions := []string{"UpdateNodeData"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -69,7 +69,7 @@ func (n *PingController) PingService() {
         return
     }    
     permissions := []string{"PingService"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -93,7 +93,7 @@ func (n *PingController) DeployService() {
         return
     }    
     permissions := []string{"DeployService"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -122,7 +122,7 @@ func (n *PingController) GetMainconfData() {
         return
     }    
     permissions := []string{"GetMainconfData"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -149,10 +149,10 @@ func (n *PingController) PingPluginsNode() {
         return
     }    
     permissions := []string{"PingPluginsNode"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         var errorResponse = map[string]map[string]string{}
-        errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none"}
+        errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none", "error": "Not enough permissions"}
         n.Data["json"] = errorResponse
     }else{         
         data, err := models.PingPluginsNode()
@@ -178,7 +178,7 @@ func (n *PingController) SaveNodeInformation() {
         return
     }    
     permissions := []string{"SaveNodeInformation"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
@@ -208,7 +208,7 @@ func (n *PingController) DeleteNode() {
         return
     }    
     permissions := []string{"DeleteNode"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
