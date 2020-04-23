@@ -13,14 +13,16 @@ func CreateMasterToken(login map[string]string) (token string, err error) {
 	masterExists := false
 	users,err := ndb.GetLoginData()
 	if err != nil {logs.Error("CreateMasterToken error getting login data: %s", err); return "",errors.New("CreateMasterToken error getting login data")}
+	masters,err := ndb.GetMasters()
+	if err != nil {logs.Error("CreateMasterToken error getting master data: %s", err); return "",errors.New("CreateMasterToken error getting master data")}
 
 	for x := range users{
 		hashedPassFromMaster, err := validation.CheckPasswordHash(login["pass"], users[x]["pass"])
 		if err != nil {continue}
-
+	
 		if login["user"] == users[x]["user"] && hashedPassFromMaster{			
-			masters,err := ndb.GetMasters()
 			for masterid := range masters {
+				
 				if masters[masterid]["master"] == login["master"] && masters[masterid]["login"] == x{
 					masterExists = true
 					token,err = validation.Encode(masters[masterid]["secret"])

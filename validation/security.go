@@ -15,8 +15,6 @@ func UserPermissionsValidation(uuidUser string, permissionRequest string) (val b
 	rolePerm, err := ndb.GetRolePermissions(); if err != nil {logs.Error("UserPermissionsValidation error getting user rolePermissions: %s",err); return false, err}
 	allPerm, err := ndb.GetPermissions(); if err != nil {logs.Error("UserPermissionsValidation error getting user GetPermissions: %s",err); return false, err}
 	
-	logs.Notice(uuidUser+"   --   "+permissionRequest)
-	
 	//check if permission exists
 	permExists := false
 	for x := range allPerm{
@@ -24,15 +22,10 @@ func UserPermissionsValidation(uuidUser string, permissionRequest string) (val b
 	}
 	if !permExists {logs.Error("Permissions validation error - This permission don't exists"); return false,err}
 
-	logs.Notice("Check all relations")
 	for x := range allRelations{
-		logs.Info("Searching user: "+allRelations[x]["user"]+"  // Role: "+allRelations[x]["role"]+"  //  Group: "+allRelations[x]["group"])
 		if allRelations[x]["user"] == uuidUser{
-			logs.Notice(allRelations[x]["user"]+" equals "+uuidUser)
 			//Check if user role has admin permissions
 			for w := range rolePerm{
-				logs.Info("Searching role: "+rolePerm[w]["role"]+"  // Permissions: "+rolePerm[w]["permissions"])
-				logs.Notice("Role check: "+rolePerm[w]["role"])
 				if allRelations[x]["role"] == rolePerm[w]["role"] && allRelations[x]["role"] != ""{
 					//split permissions
 					permissionsList := strings.Split(rolePerm[w]["permissions"], ",")
@@ -53,10 +46,8 @@ func UserPermissionsValidation(uuidUser string, permissionRequest string) (val b
 
 			//check group roles for user groups
 			for s := range allRelations{
-				logs.Notice("Group check: "+allRelations[s]["role"])
 				if allRelations[s]["group"] == allRelations[x]["group"] && allRelations[x]["group"] != ""{
 					for roleID := range rolePerm{
-						logs.Notice("Group role check: "+rolePerm[roleID]["role"])					
 						if rolePerm[roleID]["role"] == allRelations[s]["role"]{
 							//split permissions
 							permissionsList := strings.Split(rolePerm[roleID]["permissions"], ",")

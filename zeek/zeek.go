@@ -224,14 +224,16 @@ func ZeekMode()(mode string) {
         var init = regexp.MustCompile(`type=`)
         owlhInit := init.FindStringSubmatch(scanner.Text())
         if owlhInit != nil {
-            val := strings.Trim(scanner.Text(), "type=")
+            // val := strings.Trim(scanner.Text(), "type=")
+            val := strings.Replace(scanner.Text(), "type=", "", -1)
+
             //save current mode into DB
             err = ndb.UpdateMainconfValue("zeek","mode",val) //uuid, param, value
             if err != nil {logs.Error("Error Zeek Mode Get current Mode: "+err.Error()); return "Error: Zeek Mode PUT current Mode at DB: "+err.Error()}
         }
     }
 
-    //get current mode into DB
+    //get current mode from DB
     currentmode, err := ndb.GetMainconfParam("zeek","mode")
     if err != nil {logs.Error("Error Zeek Mode Get current Mode: "+err.Error()); return "Error: Zeek Mode Get current Mode at DB: "+err.Error()}
 

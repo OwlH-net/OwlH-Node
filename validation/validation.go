@@ -55,10 +55,7 @@ func VerifyToken(token string, userUuid string)(err error){
 }
 
 func VerifyPermissions(uuidUser string, object string, permissions []string)(hasPermissions bool, err error){
-	logs.Info("User UUID --> "+uuidUser)
-	logs.Info("User Permissions --> %v", permissions)
 	for x := range permissions{
-		logs.Info("Permission requested --> "+permissions[x])
 		status,err := UserPermissionsValidation(uuidUser, permissions[x]); if err != nil {logs.Error("VerifyPermissions error - requestType error: %s",err); return false,err}
 		if status{
 			return true,nil
