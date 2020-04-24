@@ -56,13 +56,15 @@ func suriRunning() (running bool) {
 
     out, err := exec.Command(command, param, cmd).Output()
     if err == nil {
-        if strings.Contains(string(out), "suricata") {
+        // if strings.Contains(string(out), "suricata") {
             spid := regexp.MustCompile("[0-9]+")
             pid := spid.FindAllString(string(out),1)
-            //logs.Info("Suricata is running -> " + string(out))
+            if len(pid)<=0 || pid == nil {
+                return false
+            }
             logs.Info("Suricata PID -> %s", pid[0])
             return true
-        }
+        // }
     }
     logs.Error("Suricata isn't running " + string(out))
     return false
