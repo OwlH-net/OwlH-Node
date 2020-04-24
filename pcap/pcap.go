@@ -3,9 +3,11 @@ package pcap
 import (
     // "bytes"
     // "encoding/binary"
-    // "errors"
+    "encoding/json"
+    "errors"
     // "log"
     "net"
+    "io/ioutil"
     // "sync"
     "github.com/astaxie/beego/logs"
     "github.com/google/gopacket"
@@ -271,6 +273,46 @@ func Init() {
     // readARP("")
 }
  
+const (
+    Known = iota
+    Current
+)
+
+func ReadMacFileContent(alertabout int)(err error){    
+    switch alertabout {
+        case Known:
+            byteValue, err := ioutil.ReadFile(arpmain.KnownFile)
+            if err != nil {logs.Error("ReadFileContent - error getting KnownFile content -> %s" + err.Error()); return err}
+            json.Unmarshal(byteValue, &Knownmacs)
+        case Current:
+            byteValue, err := ioutil.ReadFile(arpmain.CurrentFile)
+            if err != nil {logs.Error("ReadFileContent - error getting CurrentFile content -> %s" + err.Error()); return err}
+            json.Unmarshal(byteValue, &Currentmacs)
+        default:
+            return errors.New("ReadMacFileContent Invalid unmarshal variable")
+    }
+
+    return nil
+}
+
+func WriteMacFileContent(alertabout int)(err error){    
+    switch alertabout {
+        case Known:
+            values, _ := json.Marshal(Knownmacs)
+            err = ioutil.WriteFile(arpmain.KnownFile, values, 0644)
+            if err!=nil{ logs.Error("ReadFileContent - error writing file content -> %s" + err.Error()); return err}
+        case Current:
+            values, _ := json.Marshal(Currentmacs)
+            err = ioutil.WriteFile(arpmain.CurrentFile, values, 0644)
+            if err!=nil{ logs.Error("ReadFileContent - error writing file content -> %s" + err.Error()); return err}
+        default:
+            return errors.New("ReadMacFileContent Invalid unmarshal variable")
+    }
+
+    return nil
+}
+
+
 // var wg sync.WaitGroup
 // for _, iface := range ifaces {
 //     // wg.Add(1)
