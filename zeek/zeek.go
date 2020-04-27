@@ -525,13 +525,13 @@ func SavePolicyFiles(files map[string]map[string][]byte)(err error){
 }
 
 func SyncClusterFile(anode map[string][]byte) (err error) {
-    logs.Info("Zeek sync cluster file")
     path, err := utils.GetKeyValueString("zeek", "nodeconfig")
     if err != nil {logs.Error("SyncClusterFile Error readding main.conf: "+err.Error())}
 
     err = utils.WriteNewDataOnFile(path, anode["data"])
     if err != nil{logs.Error("zeek/SyncClusterFile Error writting cluster file content: "+err.Error()); return err}
-    return err
+    
+    return nil
 }
 
 // func SaveZeekData() (err error) {

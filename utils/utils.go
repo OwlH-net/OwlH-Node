@@ -10,6 +10,8 @@ import (
     "os"
     "time"
     "os/exec"
+    "archive/tar"
+    "compress/gzip"
     "fmt"
     "path/filepath"
     "strings"
@@ -249,4 +251,66 @@ func FilelistPathByFile(path string, fileToSearch string)(files map[string][]byt
     if err != nil {logs.Error("Error filepath walk finish: "+err.Error()); return nil, err}
 
     return pathMap, nil
+}
+
+
+//extract tar.gz files
+func ExtractFile(tarGzFile string, pathDownloads string)(err error){
+    base := filepath.Base(tarGzFile)
+    fileType := strings.Split(base, ".")
+
+    wget, err := GetKeyValueString("execute", "command")
+    if err != nil {logs.Error("ExtractFile Error getting data from main.conf"); return err}
+
+    if fileType[len(fileType)-1] == "rules"{
+        cmd := exec.Command(wget, tarGzFile, "-O", pathDownloads)
+        cmd.Stdout = os.Stdout
+        cmd.Stderr = os.Stderr
+        cmd.Run()
+    }else{
+        file, err := os.Open(tarGzFile)
+        defer file.Close()
+        if err != nil {
+            return err
+        }
+
+        uncompressedStream, err := gzip.NewReader(file)
+        if err != nil {
+            return err
+        }
+
+        tarReader := tar.NewReader(uncompressedStream)
+        for true {
+            header, err := tarReader.Next()
+            if err == io.EOF {
+                break
+            }
+            if err != nil {
+                return err
+            }
+
+            switch header.Typeflag {
+            case tar.TypeDir:
+                err := os.MkdirAll(pathDownloads+"/"+header.Name, 0755);
+                if err != nil {
+                    logs.Error("TypeDir: "+err.Error())
+                    return err
+                }
+            case tar.TypeReg:
+                outFile, err := os.Create(pathDownloads+"/"+header.Name)
+                _, err = io.Copy(outFile, tarReader)
+                if err != nil {
+                    logs.Error("TypeReg: "+err.Error())
+                    return err
+                }
+            default:
+                logs.Error(
+                    "ExtractTarGz: uknown type: %s in %s",
+                    header.Typeflag,
+                    header.Name)
+            }
+        }
+    }
+
+    return nil
 }

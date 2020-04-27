@@ -73,7 +73,7 @@ func SyncRulesetFromMaster(n map[string][]byte) (err error) {
     return err
 }
 
-func SaveConfigFile(files map[string]map[string][]byte) (err error) {
+func SaveConfigFile(files map[string][]byte) (err error) {
     cc := files
     logs.Info("============")
     logs.Info("SURICATA - SaveConfigFile")

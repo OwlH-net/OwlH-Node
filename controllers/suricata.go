@@ -128,9 +128,9 @@ func (n *SuricataController) SaveConfigFile() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{        
-        var anode map[string]map[string][]byte
+        var anode map[string][]byte
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
+
         logs.Info("ACTION -> POST")
         logs.Info("CONTROLLER -> SURICATA")
         logs.Info("ROUTER -> @router / [post]")

@@ -8,6 +8,7 @@ import (
     "regexp"
     "owlhnode/utils"
     "owlhnode/database"
+    // "encoding/json"
     "errors"
     "io/ioutil"
 )
@@ -222,18 +223,38 @@ func GetSuricataServices()(data map[string]map[string]string, err error) {
     return data,nil
 }
 
-func SaveConfigFile(files map[string]map[string][]byte)(err error){
-    for nodePath, file := range files {
-        //check path
-        if _, err := os.Stat(nodePath); os.IsNotExist(err) {
-            os.MkdirAll(nodePath, os.ModePerm)
-        }
+func SaveConfigFile(files map[string][]byte)(err error){
 
-        for file,_ := range file {            
-            err = utils.WriteNewDataOnFile(nodePath+"/"+file, files[nodePath][file])
-            if err != nil{logs.Error("SaveConfigFile Error writting data into "+nodePath+"/"+file+" file: "+err.Error()); return err}
+    for x := range files{
+        logs.Notice(x)
+        logs.Warn(files[x])
+        if _, err := os.Stat(x); os.IsNotExist(err) {
+            os.MkdirAll(x, os.ModePerm)
         }
+        
+        //write and create tar.gzip file
+        err = ioutil.WriteFile(x+"/file.tar.gzip", files[x], 0644)
+        if err != nil {logs.Error("SaveConfigFile Error: "+err.Error()); return err}    
+        
+        //unzip
+        err = utils.ExtractFile(x+"/file.tar.gzip", x)
+        if err != nil {logs.Error("SaveConfigFile ExtractFile Error: "+err.Error()); return err}    
+    
+        //remove tar.gz file
+        os.Remove(x+"/file.tar.gzip")
     }
+
+    // for nodePath, file := range files {
+    //     //check path
+    //     if _, err := os.Stat(nodePath); os.IsNotExist(err) {
+    //         os.MkdirAll(nodePath, os.ModePerm)
+    //     }
+
+    //     for file,_ := range file {            
+    //         err = utils.WriteNewDataOnFile(nodePath+"/"+file, files[nodePath][file])
+    //         if err != nil{logs.Error("SaveConfigFile Error writting data into "+nodePath+"/"+file+" file: "+err.Error()); return err}
+    //     }
+    // }
     return nil
 }
 
