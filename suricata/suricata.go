@@ -11,6 +11,8 @@ import (
     // "encoding/json"
     "errors"
     "io/ioutil"
+    // "encoding/base64"
+    // "crypto/sha256"
 )
 
 //Retrieve suricata path from main.conf
@@ -307,4 +309,22 @@ func ReloadSuricataMainConf(anode map[string]string) (err error) {
     _,err = exec.Command(command, param, cmd+" "+anode["pid"]).Output()
     if err != nil {logs.Error("ReloadSuricataMainConf/Error starting suricata from main conf: "+err.Error());return err}
     return nil
+}
+
+func GetMD5files(files map[string]map[string]string) (data map[string]map[string]string, err error) {
+    var MD5data = map[string]map[string]string{}
+    
+    for x := range files {
+        if MD5data[x] == nil {MD5data[x] = map[string]string{}}
+
+        md5,err := utils.CalculateMD5(files[x]["nodepath"]+"/"+files[x]["path"])
+        MD5data[x]["path"] = files[x]["path"]
+        if err != nil {
+            MD5data[x]["md5"] = ""
+        }else{
+            MD5data[x]["md5"] = md5
+        }
+    }
+
+    return MD5data,err
 }

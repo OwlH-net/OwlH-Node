@@ -390,3 +390,46 @@ func (n *SuricataController) ReloadSuricataMainConf() {
     }
     n.ServeJSON()
 }
+
+// @Title GetMD5files
+// @Description Reload Suricata Main Conf
+// @Success 200 {object} models.suricata
+// @Failure 403 body is empty
+// @router /getMD5files [put]
+func (n *SuricataController) GetMD5files() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        var errorResponse = map[string]map[string]string{}
+        errorResponse["hasError"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = errorResponse
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetMD5files"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        var errorResponse = map[string]map[string]string{}
+        errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none", "error": "Not enough permissions"}
+        n.Data["json"] = errorResponse
+    }else{          
+        var anode map[string]map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        logs.Info("ACTION -> PUT")
+        logs.Info("CONTROLLER -> SURICATA")
+        logs.Info("ROUTER -> @router /GetMD5files [put]")
+        for key := range anode {
+            logs.Info("key -> "+key)
+        }
+    
+        data,err := models.GetMD5files(anode) 
+        n.Data["json"] = data
+        if err != nil {
+            logs.Info("GetMD5files OUT -- ERROR : %s", err.Error())
+            var errorResponse = map[string]map[string]string{}
+            errorResponse["hasError"] = map[string]string{"ack": "false", "error": err.Error()}
+            n.Data["json"] = errorResponse
+        }
+    }
+    n.ServeJSON()
+}

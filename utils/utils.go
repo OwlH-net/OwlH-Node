@@ -15,6 +15,8 @@ import (
     "fmt"
     "path/filepath"
     "strings"
+    "crypto/md5"
+    "encoding/hex"
     "crypto/rand"
 )
 
@@ -313,4 +315,23 @@ func ExtractFile(tarGzFile string, pathDownloads string)(err error){
     }
 
     return nil
+}
+
+func CalculateMD5(path string)(md5Data string, err error){
+    file, err := os.Open(path)
+    if err != nil {
+        logs.Error("Error calculating md5: %s", err.Error())
+        return "",err
+    }
+    defer file.Close()
+    hash := md5.New()
+    _, err = io.Copy(hash, file)
+    if err != nil {
+        logs.Error("Error copying md5: %s", err.Error())
+        return "",err
+    }
+    hashInBytes := hash.Sum(nil)[:16]
+    returnMD5String := hex.EncodeToString(hashInBytes)
+
+    return returnMD5String,nil
 }

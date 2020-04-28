@@ -124,3 +124,9 @@ func ReloadSuricataMainConf(anode map[string]string) (err error) {
     changecontrol.ChangeControlInsertData(err, "ReloadSuricataMainConf")    
     return err
 }
+
+func GetMD5files(files map[string]map[string]string) (data map[string]map[string]string, err error) {
+    data,err = suricata.GetMD5files(files)
+    // changecontrol.ChangeControlInsertData(err, "GetMD5files")    
+    return data,err
+}
