@@ -140,10 +140,8 @@ func SetBPF(n map[string]string)(err error) {
 }
 
 //Retrieve data, make a backup file and write the new data on the original file
-func SyncRulesetFromMaster(file map[string][]byte)(err error){    
-    fileRetrieved := file["data"]
-
-    if fileRetrieved == nil || len(fileRetrieved) <= 0{
+func SyncRulesetFromMaster(file map[string][]byte)(err error){ 
+    if file["data"] == nil || len(file["data"]) <= 0{
         return errors.New("SyncRulesetFromMaster error: Can't Synchronize empty ruleset")
     }
 
@@ -151,16 +149,23 @@ func SyncRulesetFromMaster(file map[string][]byte)(err error){
     if err != nil {logs.Error("SyncRulesetFromMaster Error getting data from main.conf: "+err.Error()); return err}
     fileToEdit, err := utils.GetKeyValueString("suricataRuleset", "file")
     if err != nil {logs.Error("SyncRulesetFromMaster Error getting data from main.conf: "+err.Error()); return err}
+    
+    //get name from db
+    pluginName,err := ndb.GetPluginsByParam(string(file["service"]),"name")
+    if err != nil {logs.Error("SyncRulesetFromMaster Error getting data from database: "+err.Error()); return err}
+
+    //replace file by name
+    plug := strings.Replace(fileToEdit, "<NAME>", pluginName, -1)
 
     //create owlh.rules backup
-    err = utils.BackupFile(path, fileToEdit)
+    err = utils.BackupFile(path, plug)
     if err != nil{
         logs.Error("Error creating owlh.rules backup: "+err.Error())
         return err    
     }
     
     //write new data into owlh.rules file
-    err = utils.WriteNewDataOnFile(path+fileToEdit, fileRetrieved)
+    err = utils.WriteNewDataOnFile(path+plug, file["data"])
     if err != nil{
         logs.Error("Error writting data into owlh.rules file: "+err.Error())
         return err    
@@ -228,8 +233,6 @@ func GetSuricataServices()(data map[string]map[string]string, err error) {
 func SaveConfigFile(files map[string][]byte)(err error){
 
     for x := range files{
-        logs.Notice(x)
-        logs.Warn(files[x])
         if _, err := os.Stat(x); os.IsNotExist(err) {
             os.MkdirAll(x, os.ModePerm)
         }
@@ -245,18 +248,6 @@ func SaveConfigFile(files map[string][]byte)(err error){
         //remove tar.gz file
         os.Remove(x+"/file.tar.gzip")
     }
-
-    // for nodePath, file := range files {
-    //     //check path
-    //     if _, err := os.Stat(nodePath); os.IsNotExist(err) {
-    //         os.MkdirAll(nodePath, os.ModePerm)
-    //     }
-
-    //     for file,_ := range file {            
-    //         err = utils.WriteNewDataOnFile(nodePath+"/"+file, files[nodePath][file])
-    //         if err != nil{logs.Error("SaveConfigFile Error writting data into "+nodePath+"/"+file+" file: "+err.Error()); return err}
-    //     }
-    // }
     return nil
 }
 
@@ -317,7 +308,7 @@ func GetMD5files(files map[string]map[string]string) (data map[string]map[string
     for x := range files {
         if MD5data[x] == nil {MD5data[x] = map[string]string{}}
 
-        md5,err := utils.CalculateMD5(files[x]["nodepath"]+"/"+files[x]["path"])
+        md5,err := utils.CalculateMD5(files[x]["nodepath"]+files[x]["path"])
         MD5data[x]["path"] = files[x]["path"]
         if err != nil {
             MD5data[x]["md5"] = ""

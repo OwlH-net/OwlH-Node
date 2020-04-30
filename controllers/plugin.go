@@ -130,17 +130,17 @@ func (n *PluginController) AddPluginService() {
     n.ServeJSON()
 }
 
-// @Title SaveSuricataInterface
+// @Title UpdateSuricataValue
 // @Description Change a specific plugin service status
-// @router /SaveSuricataInterface [put]
-func (n *PluginController) SaveSuricataInterface() {
+// @router /updateSuricataValue [put]
+func (n *PluginController) UpdateSuricataValue() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
         n.ServeJSON()
         return
     }    
-    permissions := []string{"SaveSuricataInterface"}
+    permissions := []string{"UpdateSuricataValue"}
     hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
@@ -150,7 +150,7 @@ func (n *PluginController) SaveSuricataInterface() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /SaveSuricataInterface [put]"
-        err := models.SaveSuricataInterface(anode)
+        err := models.UpdateSuricataValue(anode)
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -217,17 +217,17 @@ func (n *PluginController) StopStapService() {
     n.ServeJSON()
 }
 
-// @Title ModifyStapValues
+// @Title ModifyNodeOptionValues
 // @Description Change a specific plugin service status
-// @router /modifyStapValues [put]
-func (n *PluginController) ModifyStapValues() {
+// @router /modifyNodeOptionValues [put]
+func (n *PluginController) ModifyNodeOptionValues() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
         n.ServeJSON()
         return
     }    
-    permissions := []string{"ModifyStapValues"}
+    permissions := []string{"ModifyNodeOptionValues"}
     hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
@@ -236,8 +236,8 @@ func (n *PluginController) ModifyStapValues() {
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
-        anode["router"] = "@router /modifyStapValues [put]"
-        err := models.ModifyStapValues(anode)
+        anode["router"] = "@router /modifyNodeOptionValues [put]"
+        err := models.ModifyNodeOptionValues(anode)
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -297,6 +297,35 @@ func (n *PluginController) GetServiceCommands() {
         anode["router"] = "@router /GetServiceCommands [put]"
         data, err := models.GetServiceCommands(anode)
         n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveSurictaRulesetSelected
+// @Description get commands for specific service
+// @router /setRuleset [put]
+func (n *PluginController) SaveSurictaRulesetSelected() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"SaveSurictaRulesetSelected"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{        
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "PLUGIN"
+        anode["router"] = "@router /SaveSurictaRulesetSelected [put]"
+        err := models.SaveSurictaRulesetSelected(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }

@@ -139,7 +139,7 @@ func DeleteService(anode map[string]string)(err error) {
         }
         if _, err := os.Stat(path+anode["service"]+"-"+filter); !os.IsNotExist(err) {
             err = os.Remove(path+anode["service"]+"-"+filter)
-            if err != nil {logs.Error("plugin/SaveSuricataInterface error deleting a pid file: "+err.Error())}
+            if err != nil {logs.Error("plugin/DeleteService error deleting a pid file: "+err.Error())}
         }
     }else if allPlugins[anode["service"]]["type"] == "zeek" {
         if allPlugins[anode["service"]]["status"] == "enabled" {
@@ -223,16 +223,31 @@ func AddPluginService(anode map[string]string) (err error) {
         err = ndb.InsertPluginService(uuid, "previousStatus", "none"); if err != nil {logs.Error("InsertPluginService previousStatus Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "interface", ""); if err != nil {logs.Error("InsertPluginService interface Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "bpf", ""); if err != nil {logs.Error("InsertPluginService bpf Error: "+err.Error()); return err}
+        err = ndb.InsertPluginService(uuid, "bpfFile", ""); if err != nil {logs.Error("InsertPluginService bpfFile Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "ruleset", ""); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}
+        err = ndb.InsertPluginService(uuid, "rulesetName", ""); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}
+        err = ndb.InsertPluginService(uuid, "configFile", ""); if err != nil {logs.Error("InsertPluginService configFile Error: "+err.Error()); return err}
         err = ndb.InsertPluginService(uuid, "pid", "none"); if err != nil {logs.Error("InsertPluginService ruleset Error: "+err.Error()); return err}
     }
 
     return nil
 }
 
-func SaveSuricataInterface(anode map[string]string)(err error) {
-    err = ndb.UpdatePluginValue(anode["service"],anode["param"],anode["interface"])
-    if err != nil {logs.Error("plugin/SaveSuricataInterface error: "+err.Error()); return err}
+func UpdateSuricataValue(anode map[string]string)(err error) {
+    err = ndb.UpdatePluginValue(anode["service"],anode["param"],anode["value"])
+    if err != nil {logs.Error("plugin/UpdateSuricataValue error: "+err.Error()); return err}
+    return err
+}
+
+func SaveSurictaRulesetSelected(anode map[string]string)(err error) {
+    logs.Notice(anode)
+    //update uuid
+    err = ndb.UpdatePluginValue(anode["service"],"ruleset",anode["rulesetID"])
+    if err != nil {logs.Error("plugin/SaveSurictaRulesetSelected id error: "+err.Error()); return err}
+    //update name
+    err = ndb.UpdatePluginValue(anode["service"],"rulesetName",anode["rulesetName"])
+    if err != nil {logs.Error("plugin/SaveSurictaRulesetSelected name error: "+err.Error()); return err}
+
     return err
 }
 
@@ -445,7 +460,7 @@ func StopSuricataService(uuid string, status string)(err error){
 
     //change DB pid
     err = ndb.UpdatePluginValue(uuid,"pid","none")
-    if err != nil {logs.Error("plugin/SaveSuricataInterface error updating pid at DB: "+err.Error()); return err}
+    if err != nil {logs.Error("plugin/StopSuricataService error updating pid at DB: "+err.Error()); return err}
 
     //change DB status
     err = ndb.UpdatePluginValue(uuid,"previousStatus",status)
@@ -458,22 +473,28 @@ func StopSuricataService(uuid string, status string)(err error){
     return nil
 }
 
-func ModifyStapValues(anode map[string]string)(err error) {
+func ModifyNodeOptionValues(anode map[string]string)(err error) {
     allPlugins,err := ndb.GetPlugins()
     if anode["type"] == "zeek"{
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues zeek Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyNodeOptionValues zeek Error: "+err.Error()); return err}
         if allPlugins[anode["service"]]["status"] == "enabled" {
             err = zeek.DeployZeek()
-            if err != nil {logs.Error("plugin/ModifyStapValues error deploying zeek: "+err.Error()); return err}
+            if err != nil {logs.Error("plugin/ModifyNodeOptionValues error deploying zeek: "+err.Error()); return err}
         }
         logs.Notice(allPlugins[anode["service"]]["name"]+" service updated!!!")
     }else if anode["type"] == "suricata"{
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyStapValues suricata Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]); if err != nil {logs.Error("ModifyNodeOptionValues suricata Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"configFile",anode["configFile"]); if err != nil {logs.Error("ModifyNodeOptionValues suricata Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"ruleset",anode["ruleset"]); if err != nil {logs.Error("ModifyNodeOptionValues suricata Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"rulesetName",anode["rulesetName"]); if err != nil {logs.Error("ModifyNodeOptionValues suricata Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"iface",anode["interface"]); if err != nil {logs.Error("ModifyNodeOptionValues suricata Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"bpf",anode["bpf"]); if err != nil {logs.Error("ModifyNodeOptionValues suricata Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"bpfFile",anode["bpfFile"]); if err != nil {logs.Error("ModifyNodeOptionValues suricata Error: "+err.Error()); return err}
         if allPlugins[anode["service"]]["status"] == "enabled" {
             err = StopSuricataService(anode["service"], allPlugins[anode["service"]]["status"])
-            if err != nil {logs.Error("plugin/ModifyStapValues error stopping suricata: "+err.Error()); return err}
+            if err != nil {logs.Error("plugin/ModifyNodeOptionValues error stopping suricata: "+err.Error()); return err}
             err = LaunchSuricataService(anode["service"], allPlugins[anode["service"]]["interface"])
-            if err != nil {logs.Error("plugin/ModifyStapValues error deploying suricata: "+err.Error()); return err}
+            if err != nil {logs.Error("plugin/ModifyNodeOptionValues error deploying suricata: "+err.Error()); return err}
         }
         logs.Notice(allPlugins[anode["service"]]["name"]+" service updated!!!")
     }else if anode["type"] == "socket-pcap" || anode["type"] == "socket-network"{
@@ -481,54 +502,54 @@ func ModifyStapValues(anode map[string]string)(err error) {
         //check for STAP certificate
         if _, err := os.Stat(anode["cert"]); os.IsNotExist(err) {
             logs.Error("STAP certificate does not exists")
-            err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}
+            err = StopStapService(anode); if err != nil {logs.Error("ModifyNodeOptionValues socket-network stopping error: "+err.Error()); return err}
             return errors.New("STAP certificate does not exists")
         }   
 
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyNodeOptionValues "+anode["type"]+" Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyNodeOptionValues "+anode["type"]+" Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"]) ; if err != nil {logs.Error("ModifyNodeOptionValues "+anode["type"]+" Error: "+err.Error()); return err}
         if anode["type"] == "socket-pcap"{
-            err = ndb.UpdatePluginValue(anode["service"],"pcap-path",anode["pcap-path"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
-            err = ndb.UpdatePluginValue(anode["service"],"pcap-prefix",anode["pcap-prefix"]) ; if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" Error: "+err.Error()); return err}
+            err = ndb.UpdatePluginValue(anode["service"],"pcap-path",anode["pcap-path"]) ; if err != nil {logs.Error("ModifyNodeOptionValues "+anode["type"]+" Error: "+err.Error()); return err}
+            err = ndb.UpdatePluginValue(anode["service"],"pcap-prefix",anode["pcap-prefix"]) ; if err != nil {logs.Error("ModifyNodeOptionValues "+anode["type"]+" Error: "+err.Error()); return err}
         }
         for x := range allPlugins{
             if ((allPlugins[x]["type"] == "socket-network" || allPlugins[x]["type"] == "socket-pcap") && (anode["service"] != x)){
                 if allPlugins[x]["port"] == anode["port"] {
-                    err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}        
+                    err = StopStapService(anode); if err != nil {logs.Error("ModifyNodeOptionValues socket-network stopping error: "+err.Error()); return err}        
                     logs.Error("Can't deploy socket-network or "+anode["type"]+" with the same port")
                     return errors.New("Can't deploy socket-network or "+anode["type"]+" with the same port")
                 }
             }
         }
         if allPlugins[anode["service"]]["pid"] != "none" {
-            err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" stopping error: "+err.Error()); return err}
-            err = DeployStapService(anode); if err != nil {logs.Error("ModifyStapValues "+anode["type"]+" deploying error: "+err.Error()); return err}
+            err = StopStapService(anode); if err != nil {logs.Error("ModifyNodeOptionValues "+anode["type"]+" stopping error: "+err.Error()); return err}
+            err = DeployStapService(anode); if err != nil {logs.Error("ModifyNodeOptionValues "+anode["type"]+" deploying error: "+err.Error()); return err}
             logs.Notice(allPlugins[anode["service"]]["name"]+" service updated!!!")
         }
     }else if anode["type"] == "network-socket"{
         //check for STAP certificate
         if _, err := os.Stat(anode["cert"]); os.IsNotExist(err) {
             logs.Error("STAP certificate does not exists")
-            err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues socket-network stopping error: "+err.Error()); return err}
+            err = StopStapService(anode); if err != nil {logs.Error("ModifyNodeOptionValues socket-network stopping error: "+err.Error()); return err}
             return errors.New("STAP certificate does not exists")
         }   
 
-        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"])  ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
-        err = ndb.UpdatePluginValue(anode["service"],"collector",anode["collector"]) ; if err != nil {logs.Error("ModifyStapValues network-socket Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"name",anode["name"]) ; if err != nil {logs.Error("ModifyNodeOptionValues network-socket Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"port",anode["port"]) ; if err != nil {logs.Error("ModifyNodeOptionValues network-socket Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"cert",anode["cert"])  ; if err != nil {logs.Error("ModifyNodeOptionValues network-socket Error: "+err.Error()); return err}
+        err = ndb.UpdatePluginValue(anode["service"],"collector",anode["collector"]) ; if err != nil {logs.Error("ModifyNodeOptionValues network-socket Error: "+err.Error()); return err}
         for x := range allPlugins{
             if x != anode["service"] && allPlugins[x]["type"] == anode["type"] && allPlugins[x]["collector"] == anode["collector"] && allPlugins[x]["port"] == anode["port"] && allPlugins[x]["interface"] == anode["interface"]{
                 logs.Error("This network-socket has been deployed yet. Can't update")
-                err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues error stopping duplicated network-socket: "+err.Error()); return err}
+                err = StopStapService(anode); if err != nil {logs.Error("ModifyNodeOptionValues error stopping duplicated network-socket: "+err.Error()); return err}
                 return errors.New("This network-socket has been deployed yet. Can't update")
             }
         }        
         if allPlugins[anode["service"]]["pid"] != "none" && allPlugins[anode["service"]]["tcpdump"] != "none"{
             logs.Notice("Updating "+allPlugins[anode["service"]]["name"]+" service...")
-            err = StopStapService(anode); if err != nil {logs.Error("ModifyStapValues network-socket stopping error: "+err.Error()); return err}
-            err = DeployStapService(anode); if err != nil {logs.Error("ModifyStapValues network-socket deploying error: "+err.Error()); return err}
+            err = StopStapService(anode); if err != nil {logs.Error("ModifyNodeOptionValues network-socket stopping error: "+err.Error()); return err}
+            err = DeployStapService(anode); if err != nil {logs.Error("ModifyNodeOptionValues network-socket deploying error: "+err.Error()); return err}
             logs.Notice(allPlugins[anode["service"]]["name"]+" service updated!!!")
         }
     }
