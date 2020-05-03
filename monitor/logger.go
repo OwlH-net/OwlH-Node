@@ -9,6 +9,7 @@ import (
     "path/filepath"
     "strconv"
     "strings"
+    "syscall"
     "time"
     // "io/ioutil"
 )
@@ -110,9 +111,9 @@ func FileRotation() {
                 if err != nil {
                     logs.Error("FileRotation ERROR Checking file modification date: " + err.Error())
                 }
-                modifiedtime := fileDateModified.ModTime()
-
-                //delete files older than maxDays
+                // modifiedtime := fileDateModified.ModTime()
+                stat := fileDateModified.Sys().(*syscall.Stat_t)
+                ctime := time.Unix(stat.Ctim.Sec, stat.Ctim.Nsec)
                 err = filepath.Walk(filepath.Dir(rotate[x]["path"]),
                     func(fileSearch string, info os.FileInfo, err error) error {
                         if err != nil {
@@ -180,7 +181,8 @@ func FileRotation() {
                     if err != nil {
                         logs.Error("FileRotation ERROR2: " + err.Error())
                     }
-                } else if currentTime.Format("2006-01-02") > modifiedtime.Format("2006-01-02") {
+                    // } else if currentTime.Format("2006-01-02") > modifiedtime.Format("2006-01-02") {
+                } else if currentTime.Format("2006-01-02") > ctime.Format("2006-01-02") {
                     //CHECK FILE MODIFICATION DATE
                     err = utils.BackupFullPath(rotate[x]["path"])
                     if err != nil {

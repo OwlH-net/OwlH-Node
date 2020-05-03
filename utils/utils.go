@@ -305,9 +305,11 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
         cmd.Stderr = os.Stderr
         cmd.Run()
     } else {
+        logs.Info("file to open -> %s", tarGzFile)
         file, err := os.Open(tarGzFile)
         defer file.Close()
         if err != nil {
+            logs.Error("something went wrong opening file %s", tarGzFile)
             return err
         }
 
@@ -381,34 +383,43 @@ func untar(r io.Reader, dir string) (err error) {
     t0 := time.Now()
     nFiles := 0
     madeDir := map[string]bool{}
-    defer func() {
-        td := time.Since(t0)
-        if err == nil {
-            logs.Info("extracted tarball into %s: %d files, %d dirs (%v)", dir, nFiles, len(madeDir), td)
-        } else {
-            logs.Info("error extracting tarball into %s after %d files, %d dirs, %v: %v", dir, nFiles, len(madeDir), td, err)
-        }
-    }()
+    // defer func() {
+    //     td := time.Since(t0)
+    //     if err == nil {
+    //         logs.Info("extracted tarball into %s: %d files, %d dirs (%v)", dir, nFiles, len(madeDir), td)
+    //     } else {
+    //         logs.Info("error extracting tarball into %s after %d files, %d dirs, %v: %v", dir, nFiles, len(madeDir), td, err)
+    //     }
+    // }()
     zr, err := gzip.NewReader(r)
     if err != nil {
         return fmt.Errorf("requires gzip-compressed body: %v", err)
     }
+    logs.Debug(".- gz done, lets tar -.")
     tr := tar.NewReader(zr)
     loggedChtimesError := false
+    logs.Debug(".- taring -.")
+
     for {
+        logs.Debug(".- taring for -.")
         f, err := tr.Next()
         if err == io.EOF {
+            logs.Error(".- EOF -.")
             break
         }
         if err != nil {
-            logs.Info("tar reading error: %v", err)
+            logs.Error("tar reading error: %v", err)
             return fmt.Errorf("tar error: %v", err)
         }
-        if !validRelPath(f.Name) {
-            return fmt.Errorf("tar contained invalid name error %q", f.Name)
-        }
+        // if !validRelPath(f.Name) {
+        //     logs.Error(".- Error, not valid Path %s -.", f.Name)
+        //     return fmt.Errorf("tar contained invalid name error %q", f.Name)
+        // }
+        logs.Debug("let's write %s", f.Name)
         rel := filepath.FromSlash(f.Name)
+        logs.Debug("rel is -> %s", rel)
         abs := filepath.Join(dir, rel)
+        logs.Debug("abs is -> %s", abs)
 
         fi := f.FileInfo()
         mode := fi.Mode()
@@ -460,11 +471,14 @@ func untar(r io.Reader, dir string) (err error) {
             }
             nFiles++
         case mode.IsDir():
+            logs.Debug("let's create a folder -> %s", abs)
             if err := os.MkdirAll(abs, 0755); err != nil {
+                logs.Debug("error creting directory -> %s", abs)
                 return err
             }
             madeDir[abs] = true
         default:
+            logs.Debug("tar file entry %s contained unsupported file type %v", f.Name, mode)
             return fmt.Errorf("tar file entry %s contained unsupported file type %v", f.Name, mode)
         }
     }
