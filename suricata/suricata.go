@@ -54,7 +54,7 @@ func suriBin() (exists bool) {
 }
 
 //Check whether Suricata is running
-func suriRunning() (running bool) {
+func SuriRunning() (running bool) {
     var err error
     cmd, err := utils.GetKeyValueString("suriRunning", "cmd")
     if err != nil {
@@ -90,7 +90,7 @@ func Installed() (isIt map[string]bool, err error) {
     suricata := make(map[string]bool)
     suricata["path"] = suriPath()
     suricata["bin"] = suriBin()
-    suricata["running"] = suriRunning()
+    suricata["running"] = SuriRunning()
     if suricata["path"] || suricata["bin"] || suricata["running"] {
         logs.Info("Suricata installed and running")
         return suricata, nil
@@ -211,7 +211,7 @@ func SyncRulesetFromMaster(file map[string][]byte) (err error) {
     }
     // /usr/local/bin/suricatasc -c reload-rules /var/run/suricata/suricata-command.socket
     //SuricataRulesetReload
-    if suriRunning() {
+    if SuriRunning() {
         suricatasc, err := utils.GetKeyValueString("SuricataRulesetReload", "suricatasc")
         if err != nil {
             logs.Error("suriRunning Error getting data from main.conf: " + err.Error())

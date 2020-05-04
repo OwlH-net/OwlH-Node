@@ -3,7 +3,10 @@ package group
 import (
     "github.com/astaxie/beego/logs"
     "os/exec"
+    "errors"
+    "strings"
     "owlhnode/database"
+    "owlhnode/suricata"
     "owlhnode/utils"
 )
 
@@ -75,6 +78,72 @@ func SuricataGroupService(data map[string]string) (err error) {
         }
     } else {
         //stop suricata
+    }
+
+    return nil
+}
+
+func SyncGroupRulesetToNode(file map[string][]byte) (err error) {
+    if file["data"] == nil || len(file["data"]) <= 0 {
+        return errors.New("SyncGroupRulesetToNode error: Can't Synchronize empty ruleset")
+    }
+
+    path, err := utils.GetKeyValueString("suricataRuleset", "path")
+    if err != nil {
+        logs.Error("SyncGroupRulesetToNode Error getting data from main.conf: " + err.Error())
+        return err
+    }
+    fileToEdit, err := utils.GetKeyValueString("suricataRuleset", "file")
+    if err != nil {
+        logs.Error("SyncGroupRulesetToNode Error getting data from main.conf: " + err.Error())
+        return err
+    }
+
+    //replace file by name
+    plug := strings.Replace(fileToEdit, "<NAME>", string(file["name"]), -1)
+
+    //create owlh.rules backup
+    err = utils.BackupFile(path, plug)
+    if err != nil {
+        logs.Error("Error creating owlh.rules backup: " + err.Error())
+        return err
+    }
+
+    //write new data into owlh.rules file
+    err = utils.WriteNewDataOnFile(path+plug, file["data"])
+    if err != nil {
+        logs.Error("Error writting data into owlh.rules file: " + err.Error())
+        return err
+    }
+    // /usr/local/bin/suricatasc -c reload-rules /var/run/suricata/suricata-command.socket
+    //SuricataRulesetReload
+    if suricata.SuriRunning() {
+        suricatasc, err := utils.GetKeyValueString("SuricataRulesetReload", "suricatasc")
+        if err != nil {
+            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
+            return err
+        }
+        param, err := utils.GetKeyValueString("SuricataRulesetReload", "param")
+        if err != nil {
+            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
+            return err
+        }
+        reloads, err := utils.GetKeyValueString("SuricataRulesetReload", "reload")
+        if err != nil {
+            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
+            return err
+        }
+        socket, err := utils.GetKeyValueString("SuricataRulesetReload", "socket")
+        if err != nil {
+            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
+            return err
+        }
+
+        _, err = exec.Command(suricatasc, param, reloads, socket).Output()
+        if err != nil {
+            logs.Error("Error executing command in SyncRulesetFromMaster function: " + err.Error())
+            return err
+        }
     }
 
     return nil
