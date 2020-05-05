@@ -1,13 +1,13 @@
 package group
 
 import (
+    "errors"
     "github.com/astaxie/beego/logs"
     "os/exec"
-    "errors"
-    "strings"
     "owlhnode/database"
     "owlhnode/suricata"
     "owlhnode/utils"
+    "strings"
 )
 
 func SyncSuricataGroupValues(data map[string]string) (err error) {
@@ -100,6 +100,7 @@ func SyncGroupRulesetToNode(file map[string][]byte) (err error) {
     }
 
     //replace file by name
+    pluginName = strings.Replace(pluginName, " ", "_", -1)
     plug := strings.Replace(fileToEdit, "<NAME>", string(file["name"]), -1)
 
     //create owlh.rules backup
