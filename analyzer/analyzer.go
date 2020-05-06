@@ -773,7 +773,7 @@ func InitAnalizer() {
     StartPostFilter(100)
 
     LoadSources()
-    go CHcontrol()
+    // go CHcontrol()
 
     t,err := utils.GetKeyValueString("loop", "InitAnalizer")
     if err != nil {logs.Error("Search Error: Cannot load node information.")}

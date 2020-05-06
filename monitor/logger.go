@@ -138,10 +138,10 @@ func FileRotation() {
                 }
 
                 file, err := os.OpenFile(rotate[x]["path"], os.O_RDWR, 0644)
+                defer file.Close()
                 if err != nil {
                     logs.Error("FileRotation ERROR readding file: " + err.Error())
                 }
-                defer file.Close()
                 fileInfo, err := file.Stat()
 
                 //get number of lines for check maxLines

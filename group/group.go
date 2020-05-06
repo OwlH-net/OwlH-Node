@@ -100,8 +100,8 @@ func SyncGroupRulesetToNode(file map[string][]byte) (err error) {
     }
 
     //replace file by name
-    pluginName = strings.Replace(pluginName, " ", "_", -1)
-    plug := strings.Replace(fileToEdit, "<NAME>", string(file["name"]), -1)
+    pluginName := strings.Replace(string(file["name"]), " ", "_", -1)
+    plug := strings.Replace(fileToEdit, "<NAME>", pluginName, -1)
 
     //create owlh.rules backup
     err = utils.BackupFile(path, plug)
