@@ -1,5 +1,5 @@
 package monitor
-
+ 
 import (
     "bufio"
     "github.com/astaxie/beego/logs"
@@ -9,11 +9,17 @@ import (
     "path/filepath"
     "strconv"
     "strings"
-    "syscall"
+    // "syscall"
     "time"
     // "io/ioutil"
 )
-
+ 
+type Targetfile struct {
+    lastrotated time.Time
+}
+ 
+var Targets = map[string]Targetfile{}
+ 
 func Logger() {
     var err error
     //get logger parameters
@@ -45,13 +51,13 @@ func Logger() {
     if err != nil {
         logs.Error("Error getting data from main.conf for load Logger data: " + err.Error())
     }
-
+ 
     // //get monitor files
     // jsonPath, err := ioutil.ReadFile("conf/main.conf")
     // if err != nil {logs.Error("Main Error oppening Logger file: "+err.Error())}
     // logFiles := map[string]map[string]string{}
     // json.Unmarshal(jsonPath, &logFiles)
-
+ 
     // exists := false
     // for x,y := range logFiles{
     //     if x == "monitorfile"{
@@ -82,7 +88,7 @@ func Logger() {
     //         }
     //     }
     // }
-
+ 
     // data,err = ndb.LoadMonitorFiles()
     // if err != nil {logs.Error("Error getting monitor files for logger: "+err.Error())}
     // for id,path := range data {
@@ -93,7 +99,7 @@ func Logger() {
     //     }
     // }
 }
-
+ 
 func FileRotation() {
     for {
         var err error
@@ -101,19 +107,24 @@ func FileRotation() {
         if err != nil {
             logs.Error("FileRotation ERROR readding rotation files from DB: " + err.Error())
         }
-
+ 
         for x := range rotate {
             //Check if file exists.
             _, err := os.Stat(rotate[x]["path"])
             if err == nil && rotate[x]["rotate"] == "Enabled" {
                 currentTime := time.Now()
-                fileDateModified, err := os.Stat(rotate[x]["path"])
+                if _, ok := Targets[rotate[x]["path"]]; !ok {
+                    targetLast := Targets[rotate[x]["path"]]
+                    targetLast.lastrotated = currentTime
+                    Targets[rotate[x]["path"]] = targetLast
+                }
+                // fileDateModified, err := os.Stat(rotate[x]["path"])
                 if err != nil {
                     logs.Error("FileRotation ERROR Checking file modification date: " + err.Error())
                 }
                 // modifiedtime := fileDateModified.ModTime()
-                stat := fileDateModified.Sys().(*syscall.Stat_t)
-                ctime := time.Unix(stat.Ctim.Sec, stat.Ctim.Nsec)
+                // stat := fileDateModified.Sys().(*syscall.Stat_t)
+                // ctime := time.Unix(stat.Ctim.Sec, stat.Ctim.Nsec)
                 err = filepath.Walk(filepath.Dir(rotate[x]["path"]),
                     func(fileSearch string, info os.FileInfo, err error) error {
                         if err != nil {
@@ -136,21 +147,21 @@ func FileRotation() {
                 if err != nil {
                     logs.Error("FileRotation Error filepath walk finish: " + err.Error())
                 }
-
+ 
                 file, err := os.OpenFile(rotate[x]["path"], os.O_RDWR, 0644)
-                defer file.Close()
                 if err != nil {
                     logs.Error("FileRotation ERROR readding file: " + err.Error())
                 }
+                defer file.Close()
                 fileInfo, err := file.Stat()
-
+ 
                 //get number of lines for check maxLines
                 lines := 0
                 scanner := bufio.NewScanner(file)
                 for scanner.Scan() {
                     lines++
                 }
-
+ 
                 fileLines, _ := strconv.Atoi(rotate[x]["maxLines"])
                 fileSize, _ := strconv.ParseInt(rotate[x]["maxSize"], 10, 64)
                 if lines > fileLines {
@@ -182,7 +193,7 @@ func FileRotation() {
                         logs.Error("FileRotation ERROR2: " + err.Error())
                     }
                     // } else if currentTime.Format("2006-01-02") > modifiedtime.Format("2006-01-02") {
-                } else if currentTime.Format("2006-01-02") > ctime.Format("2006-01-02") {
+                } else if Targets[rotate[x]["path"]].lastrotated.Format("2006-01-02") > currentTime.Format("2006-01-02") {
                     //CHECK FILE MODIFICATION DATE
                     err = utils.BackupFullPath(rotate[x]["path"])
                     if err != nil {
@@ -196,6 +207,9 @@ func FileRotation() {
                     if err != nil {
                         logs.Error("FileRotation ERROR2: " + err.Error())
                     }
+                    targetlast := Targets[rotate[x]["path"]]
+                    targetlast.lastrotated = currentTime
+                    Targets[rotate[x]["path"]] = targetlast
                 }
             }
         }
@@ -208,7 +222,7 @@ func FileRotation() {
         time.Sleep(time.Minute * time.Duration(tDuration))
     }
 }
-
+ 
 func EditRotation(anode map[string]string) (err error) {
     err = ndb.UpdateMonitorFileValue(anode["file"], "path", anode["path"])
     if err != nil {
