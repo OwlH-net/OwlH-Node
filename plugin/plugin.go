@@ -413,11 +413,12 @@ func LaunchSuricataService(uuid string, iface string)(err error){
 
     err = cmd.Run()
     if err != nil {
+        //error launching suricata
         logs.Error(stdBuffer.String())
-        logs.Error("plugin/LaunchSuricataService error launching Suricata: "+err.Error());
+        logs.Error("plugin/LaunchSuricataService error launching Suricata: "+err.Error()); return errors.New("Error Launching suricata - "+err.Error())
         //delete pid file
         err = os.Remove(suricataBackup+uuid+"-"+pidFile)
-        if err != nil {logs.Error("plugin/LaunchSuricataService error deleting a pid file: "+err.Error())}
+        if err != nil {logs.Error("plugin/LaunchSuricataService error deleting a pid file: "+err.Error()); return err}
     }else{
         time.Sleep(time.Second * 1)
         //read file

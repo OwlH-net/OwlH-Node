@@ -218,6 +218,20 @@ func InsertUserData(uuid string, param string, value string)(err error){
     return nil
 }
 
+func GetUserID(user string)(id string, err error){
+    var uniqid string
+    if Nodedb == nil { logs.Error("no access to database"); return "", err}
+    
+    sql := "select user_uniqueid from users where user_param='user' and user_value='"+user+"';"
+    rows, err := Nodedb.Query(sql)
+    if err != nil { logs.Error("GetUserID Mdb.Query Error : %s", err.Error()); return "", err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid); err != nil { logs.Error("GetUserID rows.Scan: %s", err.Error()); return "", err}
+    } 
+    return uniqid, nil
+}
+
 func GetNodeData()(path map[string]map[string]string, err error){
     var configValues = map[string]map[string]string{}
     var uniqid string

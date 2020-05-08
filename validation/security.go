@@ -10,22 +10,18 @@ import (
 	// "owlhmaster/utils"
 )
 
-func UserPermissionsValidation(uuidUser string, permissionRequest string) (val bool, err error) {
+func UserPermissionsValidation(user string, permissionRequest string) (val bool, err error) {
+	uuidUser,err := ndb.GetUserID(user)
+	if err != nil {logs.Error("UserPermissionsValidation error getting user id: %s", err); return false, err}
+
 	allRelations, err := ndb.GetUserGroupRoles()
-	if err != nil {
-		logs.Error("UserPermissionsValidation error getting permissions: %s", err)
-		return false, err
-	}
+	if err != nil {logs.Error("UserPermissionsValidation error getting permissions: %s", err); return false, err}
+
 	rolePerm, err := ndb.GetRolePermissions()
-	if err != nil {
-		logs.Error("UserPermissionsValidation error getting user rolePermissions: %s", err)
-		return false, err
-	}
+	if err != nil {logs.Error("UserPermissionsValidation error getting user rolePermissions: %s", err); return false, err}
+
 	allPerm, err := ndb.GetPermissions()
-	if err != nil {
-		logs.Error("UserPermissionsValidation error getting user GetPermissions: %s", err)
-		return false, err
-	}
+	if err != nil {logs.Error("UserPermissionsValidation error getting user GetPermissions: %s", err); return false, err}
 
 	//check if permission exists
 	permExists := false

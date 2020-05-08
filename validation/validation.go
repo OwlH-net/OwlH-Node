@@ -39,7 +39,7 @@ func Encode(secret string) (val string, err error) {
 	return tokenString, err
 }
 
-func VerifyToken(token string, userUuid string) (err error) {
+func VerifyToken(token string, user string) (err error) {
 	masters, err := ndb.GetMasters()
 	if err != nil {
 		logs.Error("CheckToken error getting master data: %s", err)
@@ -52,22 +52,16 @@ func VerifyToken(token string, userUuid string) (err error) {
 			return err
 		} else {
 			if token == tkn {
-				//     if userUuid == "none"{
 				return nil
-				//     }else{
-				//         return errors.New("This user has not enough privileges level")
-				//     }
-				// }else{
-				//     return errors.New("The token retrieved is false")
 			}
 		}
 	}
 	return errors.New("VerifyToken - Incorrect Token")
 }
 
-func VerifyPermissions(uuidUser string, object string, permissions []string) (hasPermissions bool, err error) {
+func VerifyPermissions(user string, object string, permissions []string) (hasPermissions bool, err error) {
 	for x := range permissions {
-		status, err := UserPermissionsValidation(uuidUser, permissions[x])
+		status, err := UserPermissionsValidation(user, permissions[x])
 		if err != nil {
 			logs.Error("VerifyPermissions error - requestType error: %s", err)
 			return false, err
