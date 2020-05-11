@@ -73,7 +73,7 @@ func SyncRulesetFromMaster(n map[string][]byte) (err error) {
     return err
 }
 
-func SaveConfigFile(files map[string]map[string][]byte) (err error) {
+func SaveConfigFile(files map[string][]byte) (err error) {
     cc := files
     logs.Info("============")
     logs.Info("SURICATA - SaveConfigFile")
@@ -123,4 +123,10 @@ func ReloadSuricataMainConf(anode map[string]string) (err error) {
     err = suricata.ReloadSuricataMainConf(anode)
     changecontrol.ChangeControlInsertData(err, "ReloadSuricataMainConf")    
     return err
+}
+
+func GetMD5files(files map[string]map[string]string) (data map[string]map[string]string, err error) {
+    data,err = suricata.GetMD5files(files)
+    // changecontrol.ChangeControlInsertData(err, "GetMD5files")    
+    return data,err
 }

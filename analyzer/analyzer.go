@@ -2,7 +2,9 @@ package analyzer
 
 import (
     "encoding/json"
+    "errors"
     "os"
+    "net"
     "syscall"
     "io/ioutil"
     "strings"
@@ -84,16 +86,21 @@ type Event struct {
     Line            string
 }
 
-var monitorfiles            = map[string]bool{}
+type monitfile struct {
+    File            string
+    Status          bool
+}
 
-var CHstartpipeline         = make (chan string, 10000)
-var CHprefilter             = make (chan string, 10000)
-var CHmapper                = make (chan string, 10000)
-var CHtag                   = make (chan string, 10000)
-var CHfeed                  = make (chan string, 10000)
-var CHpostfilter            = make (chan string, 10000)
-var CHwriter                = make (chan string, 10000)
-var CHdispatcher            = make (chan Event, 10000)
+var monitorfiles            = map[string]monitfile{}
+
+var CHstartpipeline         = make (chan string, 1000000)
+var CHprefilter             = make (chan string, 1000000)
+var CHmapper                = make (chan string, 1000000)
+var CHtag                   = make (chan string, 1000000)
+var CHfeed                  = make (chan string, 1000000)
+var CHpostfilter            = make (chan string, 1000000)
+var CHwriter                = make (chan string, 1000000)
+var CHdispatcher            = make (chan Event, 1000000)
 
 
 var config Analyzer
@@ -101,11 +108,12 @@ var tags Tags
 var postfilters Filters
 var prefilters Filters
 var IoCs = map[string][]string{}
-var counters chcounter
+var counters, previous chcounter
+
 
 func readconf()(err error) {
     analyzerCFG, err := utils.GetKeyValueString("analyzer", "analyzerconf")
-    if err != nil {logs.Error("AlertLog Error getting data from main.conf: "+err.Error()); return}
+    if err != nil {logs.Error("AlertLog Error getting data from main.conf: "+err.Error()); return err}
 
     confFile, err := os.Open(analyzerCFG)
     if err != nil {logs.Error("Error openning analyzer CFG: "+err.Error()); return err}
@@ -280,7 +288,7 @@ func fieldExists(vjson map[string]interface{}, srcfield string)(exists bool){
 }
 
 func DoPreFilter(wkr int){
-    logs.Info("Prefilter -> %d -> Started",wkr)
+    //logs.Info("Prefilter -> %d -> Started",wkr)
     for {
         line := <- CHprefilter 
         jsoninterface := make(map[string]interface{})
@@ -321,7 +329,7 @@ func DoPreFilter(wkr int){
 }
 
 func DoTag(wkr int){
-    logs.Info("Tag -> %d -> Started",wkr)
+    //logs.Info("Tag -> %d -> Started",wkr)
     for {
         line := <- CHtag
         jsoninterface := make(map[string]interface{})
@@ -369,7 +377,7 @@ func DoTag(wkr int){
 }
 
 func DoPostFilter(wkr int){
-    logs.Info("Postfilter -> %d -> Started",wkr)
+    //logs.Info("Postfilter -> %d -> Started",wkr)
     for {
         line := <- CHpostfilter 
         jsoninterface := make(map[string]interface{})
@@ -416,11 +424,11 @@ func DoWriter(wkrid int) {
     outputfile, err := utils.GetKeyValueString("node", "alertLog")
     if err != nil {
         logs.Error("AlertLog Error getting data from main.conf: " + err.Error())
-        return
+        outputfile = "/var/log/owlh/alerts.log"
     }
     ofile, err := os.OpenFile(outputfile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
     if err != nil {
-        logs.Error("Analyzer Writer: can't open output file: " + outputfile + " -> " + err.Error())
+        logs.Error("Analyzer Writer: can't open or create output file: " + outputfile + " -> " + err.Error())
         return
     }
     logs.Info("WRITER -> Started -> " + outputfile)
@@ -525,27 +533,34 @@ func StartWriter(wkr int) {
 }
 
 func ControlSource(file, uuid string) {
+
     logs.Info("start file %s control", file)
     filedet, err := os.Stat(file) 
     if os.IsNotExist(err) {
+        logs.Error("file %s doesn't exists. we don't control files like this.")
         return
     }
+
     stat, _ := filedet.Sys().(*syscall.Stat_t)
+
     var previousinode uint64
     previousinode = stat.Ino
     logs.Info("file %s inode %d ", file, int(previousinode))
 
     t,err := utils.GetKeyValueString("loop", "ControlSource")
-    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    if err != nil {logs.Error("Search Error: Cannot load controlsource - loop time from main.conf.")}
     tDuration, err := strconv.Atoi(t)
+
     for {
         time.Sleep(time.Second * time.Duration(tDuration)) 
         if fileinfo, err := os.Stat(file); !os.IsNotExist(err) {
             stat, _ := fileinfo.Sys().(*syscall.Stat_t)
-            logs.Info("current inode %d vs %d", stat.Ino, previousinode) 
+            logs.Info("%s, current inode %d vs %d", file, stat.Ino, previousinode) 
             if previousinode != stat.Ino {
                 logs.Warn("file %s inode changed, restarting tail with new inode", file)
-                monitorfiles[uuid] = false
+                mfile := monitorfiles[uuid]
+                mfile.Status = false
+                monitorfiles[uuid] = mfile
                 go StartSource(file)
                 return
             }
@@ -553,34 +568,71 @@ func ControlSource(file, uuid string) {
     }
 }
 
+
+func IsFileMonitored(file string)(monitored bool){
+    for uuid := range monitorfiles {
+        mfile := monitorfiles[uuid]
+        if mfile.File == file && mfile.Status {
+            return true
+        }
+    }
+    return false
+}
+
 func StartSource(file string) {
+
     logs.Info("Starting tail of source file: "+file)
     var seekv tail.SeekInfo
+    
+    if IsFileMonitored(file) {
+        logs.Info("file %s if being monitored, won't duplicate tailing", file)
+        return
+    }
+
     seekv.Offset = 0
     seekv.Whence = os.SEEK_END
+
     uuid := utils.Generate()
-    monitorfiles[uuid] = true
+    var mfile monitfile
+    mfile.Status = true
+    mfile.File = file
+    monitorfiles[uuid] = mfile
+
     t,err := utils.GetKeyValueString("loop", "StartSource")
-    if err != nil {logs.Error("Search Error: Cannot load node information.")}
+    if err != nil {
+        logs.Error("Search Error: Cannot load StartSource-loop param from main.conf, defaulting to 5")
+        t = "5"
+    }
     tDuration, err := strconv.Atoi(t)
+
     for {
         logs.Info("tailing - %s", file)
         if _, err := os.Stat(file); os.IsNotExist(err) {
             time.Sleep(time.Second * time.Duration(tDuration)) 
             continue
         }
-        t, err := tail.TailFile(file, tail.Config{Follow: true, Location: &seekv})
+        t, err := tail.TailFile(file, tail.Config{Follow: true, Poll: true, Location: &seekv})
         if err != nil {
             logs.Error(">>>>>> Tail over file %s error: %s", file, err.Error())
+            return
         }
+
+
         go ControlSource(file, uuid)
+        
         for line := range t.Lines {
-            if !monitorfiles[uuid] {
+            if ! monitorfiles[uuid].Status {
+                //delete(monitorfiles, uuid)
+                //go StartSource(file)
+                logs.Info("file %s is not ready anymore, closing tail for uuid %s", file, uuid)
+                t.Stop()
+                t.Cleanup()
                 return
             }
             counters.lines += 1
             ToDispatcher("start",line.Text)
         }
+
         logs.Info("End tailing - %s", file)
     }
 }
@@ -610,6 +662,37 @@ func CHstats(){
     logs.Info("CHpostfilter %d items",len(CHpostfilter))
     logs.Info("CHwriter %d items",len(CHwriter))
     logs.Info("***************")
+}
+
+func CHEPS(t int){
+
+    EPSPrefilter := (counters.CHprefilter - previous.CHprefilter) / t
+    previous.CHprefilter = counters.CHprefilter
+
+    EPSMapper := (counters.CHmapper - previous.CHmapper) / t
+    previous.CHmapper = counters.CHmapper
+
+    EPSTag := (counters.CHtag - previous.CHtag) / t
+    previous.CHtag = counters.CHtag
+
+    EPSFeed := (counters.CHfeed - previous.CHfeed) / t
+    previous.CHfeed = counters.CHfeed
+
+    EPSPostfilter := (counters.CHpostfilter - previous.CHpostfilter) / t
+    previous.CHpostfilter = counters.CHpostfilter
+
+    EPSWriter := (counters.CHwriter - previous.CHwriter) / t
+    previous.CHwriter = counters.CHwriter
+
+    logs.Info("Channels EPS")
+    logs.Info("***************")
+    logs.Info("CHprefilter %d eps",EPSPrefilter)
+    logs.Info("CHmapper %d eps",EPSMapper)
+    logs.Info("CHtag %d eps",EPSTag)
+    logs.Info("CHfeed %d eps",EPSFeed)
+    logs.Info("CHpostfilter %d eps",EPSPostfilter)
+    logs.Info("CHwriter %d epss",EPSWriter)
+    logs.Info("***************")    
 }
 
 func CHcounter(){
@@ -646,6 +729,17 @@ func MonitorFile(file string, size int, ofile *os.File) {
     }
 }
 
+func FilesControl() {
+    logs.Warn("monitorfiles size is %d", len(monitorfiles))
+    for uuid := range monitorfiles {
+        if ! monitorfiles[uuid].Status {
+            delete (monitorfiles, uuid)
+        }
+    }
+    logs.Warn("monitorfiles size after cleaning is %d", len(monitorfiles))
+
+}
+
 func CHcontrol(){
     t,err := utils.GetKeyValueString("loop", "CHcontrol")
     if err != nil {logs.Error("Search Error: Cannot load node information.")}
@@ -654,7 +748,8 @@ func CHcontrol(){
         time.Sleep(time.Second * time.Duration(tDuration)) 
         CHstats()
         CHcounter()
-        logs.Warn("monitorfiles size is %d", len(monitorfiles))
+        CHEPS(tDuration)
+        FilesControl()
     }
 }
 
@@ -670,15 +765,15 @@ func InitAnalizer() {
     readpostexcludes()
     readpreexcludes()
     StartWriter(1)
-    StartMapper(4)
-    StartFeed(4)
-    StartTag(4)
-    StartDispatcher(4)
-    StartPreFilter(4)
-    StartPostFilter(4)
+    StartMapper(100)
+    StartFeed(100)
+    StartTag(100)
+    StartDispatcher(100)
+    StartPreFilter(100)
+    StartPostFilter(100)
 
     LoadSources()
-    go CHcontrol()
+    // go CHcontrol()
 
     t,err := utils.GetKeyValueString("loop", "InitAnalizer")
     if err != nil {logs.Error("Search Error: Cannot load node information.")}
@@ -694,6 +789,7 @@ func InitAnalizer() {
 
 func Init(){
     go InitAnalizer()
+    go dgram()
 }
 
 func PingAnalyzer()(data map[string]string ,err error) {
@@ -724,11 +820,16 @@ func PingAnalyzer()(data map[string]string ,err error) {
 }
 
 func ChangeAnalyzerStatus(anode map[string]string) (err error) {
-    logs.Emergency("ANALYZER STATUS - NEW STATUS - "+anode["status"])
-    err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
-    if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
-    
-    return nil
+    logs.Debug(anode)
+    if anode["status"] == "Enabled" || anode["status"] == "Disabled" { 
+        err = ndb.UpdateAnalyzer("analyzer", "status", anode["status"])
+        if err != nil { logs.Error("Error updating Analyzer status: "+err.Error()); return err}
+        return nil
+    }else{
+        logs.Error("ChangeAnalyzerStatus bad analyzer value spected for status")
+        return errors.New("ChangeAnalyzerStatus bad analyzer value spected for status")
+    }
+
 }
 
 func SyncAnalyzer(file map[string][]byte) (err error) { 
@@ -738,4 +839,35 @@ func SyncAnalyzer(file map[string][]byte) (err error) {
     err = utils.WriteNewDataOnFile(alertFile, file["data"])
     if err != nil { logs.Error("Analyzer/SyncAnalyzer Error updating Analyzer file: "+err.Error()); return err}
     return err
+}
+
+
+func dgram() {
+    socketPath := "/var/log/suricata/eve_json.socket"
+
+    // unlink it before doing anything
+    syscall.Unlink(socketPath)
+
+    // resolve unix address
+    laddr, err := net.ResolveUnixAddr("unixgram", socketPath)
+    if err != nil {
+        println("Could not resolve unix socket: " + err.Error())
+        return
+    }
+
+    // listen on the socket
+    conn, err := net.ListenUnixgram("unixgram", laddr)
+    if err != nil {
+        println("Could not listen on unix socket datagram: " + err.Error())
+        return
+    }
+    // close socket when we finish
+    defer conn.Close()
+
+    // scan text
+    scanner := bufio.NewScanner(conn)
+    for scanner.Scan(){
+        //logs.Info("line is - %s", string(scanner.Bytes()))
+        ToDispatcher("start",string(scanner.Bytes()))
+    }
 }

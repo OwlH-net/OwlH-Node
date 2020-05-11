@@ -158,7 +158,7 @@ func GetMainconfParam(uniqid string, param string) (value string, err error) {
 
 }
 
-func GetMainconfData()(path map[string]map[string]string, err error){
+func GetMainconfData()(values map[string]map[string]string, err error){
     var mainconfValues = map[string]map[string]string{}
     var uniqid string
     var param string
@@ -415,4 +415,46 @@ func DeleteAllPorts() (err error) {
     }
 
     return nil
+}
+
+func InsertPluginCommand(uuid string, param string, value string)(err error){
+    insertPlugin, err := Pdb.Prepare("insert into commands(cmd_uniqueid, cmd_param, cmd_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertPluginCommand INSERT prepare error: "+err.Error()); return err}
+
+    _, err = insertPlugin.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertPluginCommand INSERT exec error: "+err.Error()); return err}
+
+    defer insertPlugin.Close()
+    
+    return nil
+}
+
+func GetPluginCommands()(data map[string]map[string]string, err error){
+    var uniqueid string
+    var param string
+    var value string
+    var allCommands = map[string]map[string]string{}
+
+    //database connection
+    if Pdb == nil {
+        logs.Error("GetPluginCommands -- Can't access to database")
+        return nil, errors.New("GetPluginCommands -- Can't access to database")
+    } 
+    //query and make map[]map[]
+    sql := "select cmd_uniqueid, cmd_param, cmd_value from commands;"
+    rows, err := Pdb.Query(sql)
+    defer rows.Close()
+    if err != nil {
+        logs.Error("GetPluginCommands Error executing query: %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqueid, &param, &value); err != nil {
+            logs.Error("GetPluginCommands -- Can't read query result: %s", err.Error())
+            return nil, err
+        }
+        if allCommands[uniqueid] == nil { allCommands[uniqueid] = map[string]string{}}
+        allCommands[uniqueid][param]=value
+    } 
+    return allCommands, nil
 }

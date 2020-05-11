@@ -49,17 +49,17 @@ func SyncAnalyzer(file map[string][]byte) (err error) {
     logs.Info("ANALYZER - SyncAnalyzer")
     logs.Info("file - conf/analyzer.json")
     //TODO action
-    // err = analyzer.ChangeAnalyzerStatus(anode)
+    err = analyzer.SyncAnalyzer(file)
     
-    // if err!=nil { 
-    //     cc["actionStatus"] = "error"
-    //     cc["errorDescription"] = err.Error()
-    // }else{
-    //     cc["actionStatus"] = "success"
-    // }
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
 
-    // cc["actionDescription"] = "sync Analyzer configuration"
+    cc["actionDescription"] = "sync Analyzer configuration"
 
-    // changecontrol.ChangeControlInsertData(cc, "SyncAnalyzer")    
+    changecontrol.InsertChangeControl(cc)    
     return nil
 }
