@@ -6,6 +6,7 @@ import (
     "encoding/json"
     "errors"
     // "log"
+    // "reflect"
     "net"
     "owlhnode/utils"
     "owlhnode/analyzer"
@@ -17,8 +18,6 @@ import (
     "github.com/google/gopacket/pcap"
     "time"
 )
-
-
 
 type EventAlert struct {
     Timestamp       time.Time               `json:"timestamp"`
@@ -43,7 +42,7 @@ type Alert struct {
 
 type MAC struct {
     Mac         net.HardwareAddr `json:"mac"`
-    IPs         IPs              `json:"ips"`
+    IPs         TIPs              `json:"ips"`
     White       bool             `json:"white"`
     Onnewip     bool             `json:"onnewip"`
     Alerted     bool             `json:"alerted"`
@@ -61,7 +60,7 @@ type IP struct {
     Alerted bool      `json:"alerted"`
 }
 
-type IPs map[string]IP
+type TIPs map[string]IP
  
 type ARPConfig struct {
     Onnewmac            bool
@@ -123,7 +122,6 @@ func isknownMac(arp *layers.ARP) (is bool) {
 }
  
 func isKnownIPByMac(mac MAC, ip IP) (itis bool) {
- 
     if _, ok := Knownmacs[mac.Mac.String()]; ok {
         if _, exists := Knownmacs[mac.Mac.String()].IPs[ip.Ip]; exists {
             return true
@@ -144,7 +142,7 @@ func isKnownIPAnyMac(ip IP) (itis bool) {
     return false
 }
  
-func addKnownIP(IPs IPs, newIP IP) (modips IPs) {
+func addKnownIP(IPs TIPs, newIP IP) (modips TIPs) {
     if arpmain.Verbose {
         logs.Info("add ip %s", newIP.Ip)
     }
@@ -157,6 +155,26 @@ func addKnownIP(IPs IPs, newIP IP) (modips IPs) {
     return modips
 }
  
+func addCurrentMacIp(arp *layers.ARP) {
+    var srcHw net.HardwareAddr
+    srcHw = arp.SourceHwAddress
+ 
+    logs.Info("CM adding mac %s ", srcHw.String())
+ 
+    // Manage MAC
+    var newip IP
+    var cMac MAC
+    cMac = Currentmacs[srcHw.String()]
+
+    newip.First = time.Now()
+    newip.Last = time.Now()
+    newip.Ip = net.IP(arp.SourceProtAddress).String()
+    cMac.IPs[newip.Ip] = newip
+ 
+    Currentmacs[srcHw.String()] = cMac
+}
+ 
+
 func addCurrentMac(arp *layers.ARP) {
     var srcHw net.HardwareAddr
     srcHw = arp.SourceHwAddress
@@ -181,7 +199,7 @@ func addCurrentMac(arp *layers.ARP) {
     newip.First = cMac.First
     newip.Last = cMac.First
  
-    allips := make(IPs)
+    allips := make(TIPs)
     allips[newip.Ip] = newip
     cMac.IPs = allips
  
@@ -212,7 +230,7 @@ func addKnownMac(arp *layers.ARP) {
     newip.First = cMac.First
     newip.Last = cMac.First
  
-    allips := make(IPs)
+    allips := make(TIPs)
     allips[newip.Ip] = newip
     cMac.IPs = allips
  
@@ -336,31 +354,56 @@ func alertNewARP(arp *layers.ARP, alertabout int) {
     switch alertabout {
     case anIP:
         logs.Info("is IP - injecting ip alert")
+        if !isCurrentMacIp(arp) {
+            addCurrentMac(arp)            
+        }
     case aMAC:
         logs.Info("is MAC - injecting mac alert")
         if !isCurrentMac(arp) {
             addCurrentMac(arp)            
         }
-        alertIfAlert(arp)
-        WriteMacFileContent(Current)
     default:
         logs.Error("have no idea what we try to alert about %v", alertabout)
     }
+    
+    alertIfAlert(arp)
+    WriteMacFileContent(Current)
     return
 }
  
-func isknowMACIP(arp *layers.ARP) (isknown bool) {
-    logs.Info("isknowMACIP")
-    return true
+func isKnowMACIP(arp *layers.ARP) (isknown bool) {
+    logs.Info("isKnowMACIP")
+    var srcHw net.HardwareAddr
+    srcHw = arp.SourceHwAddress
+
+    cMac := Knownmacs[srcHw.String()]
+    if _,ok := cMac.IPs[net.IP(arp.SourceProtAddress).String()]; ok {
+        return true
+    }
+
+    return false
+}
+ 
+func isCurrentMacIp(arp *layers.ARP) (isknown bool) {
+    logs.Info("isKnowMACIP")
+    var srcHw net.HardwareAddr
+    srcHw = arp.SourceHwAddress
+
+    cMac := Currentmacs[srcHw.String()]
+    if _,ok := cMac.IPs[net.IP(arp.SourceProtAddress).String()]; ok {
+        return true
+    }
+
+    return false
 }
  
 func checkarp(arp *layers.ARP) {
- 
     if !isknownMac(arp) {
         if arpmain.Onnewmac {
             alertNewARP(arp, aMAC)
         }
-    } else if !isknowMACIP(arp) {
+    } else if !isKnowMACIP(arp) {
+        logs.Notice("NEW IP ADDRESS!!!")
         if arpmain.Onnewip {
             alertNewARP(arp, anIP)
         }
@@ -411,6 +454,71 @@ func readARP(iface string) (err error) {
     return nil
 }
  
+func addMac(mac string){
+    if _,ok := Knownmacs[mac]; !ok {
+        macObj,_ := net.ParseMAC(mac)
+        var newMAC MAC
+
+        newMAC.Mac = macObj      
+        newMAC.First = time.Now()
+        newMAC.Last = time.Now()
+        
+        // //init IP map
+        // logs.Info("init IP map")
+        // ipArray := make(IPs)
+        // newMAC.IPs = ipArray
+
+        
+        Knownmacs[mac] = newMAC
+        WriteMacFileContent(Known)
+    }
+}
+ 
+func addIp(ip string, mac string){
+    logs.Info("addIP function -> %s, %s",ip, mac)
+    if _,ok := Knownmacs[mac]; ok {
+        logs.Info("MAC EXISTS!! addIP function -> %s, %s",ip, mac)
+        if _,ok := Knownmacs[mac].IPs[ip]; !ok {
+            // logs.Info("IP DOESN'T EXISTS!! addIP function -> %s, %s",ip, mac)
+            // var newip IP
+            // newip.Ip = ip
+            // newip.First = time.Now()
+            // newip.Last = time.Now()
+            
+            // w := reflect.ValueOf(Knownmacs[mac].IPs[ip]); 
+            // logs.Debug(w.Kind())
+
+            // var newMac TIPs
+            // newMac = Knownmacs[mac].IPs
+
+            // var testIP IP
+            // testIP = Knownmacs[mac].IPs[ip]
+            // testIP.Ip = ip
+
+            // Knownmacs[mac].IPs[ip] = testIP
+
+            // logs.Notice("%+v\n",Knownmacs[mac].IPs[ip])
+            
+            // // if newMac == nil {
+            // //     newMac[ip] = ip
+            // // }
+            // // Knownmacs[mac].IPs = newMac
+            // logs.Notice(newMac)
+            // WriteMacFileContent(Known)
+        }
+    }
+}
+
+func AddMacIp(anode map[string]string) error{
+    if _,ok := anode["mac"]; ok {
+        addMac(anode["mac"])
+        if _,okIP := anode["ip"]; okIP {
+            addIp(anode["ip"], anode["mac"])
+        }
+    }
+    return nil
+}
+
 func Init() {
     // ifaces, err := net.Interfaces()
     // if err != nil {
