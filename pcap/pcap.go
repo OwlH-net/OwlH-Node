@@ -8,6 +8,7 @@ import (
     // "log"
     "net"
     "owlhnode/utils"
+    "owlhnode/analyzer"
     "io/ioutil"
     // "sync"
     "github.com/astaxie/beego/logs"
@@ -36,18 +37,21 @@ type Alert struct {
     Signature       string      `json:"signature"`
     Category        string      `json:"category"`
     Severity        int         `json:"severity"`
+    Times           int         `json:"times"`
 }
 
 
 type MAC struct {
-    Mac     net.HardwareAddr `json:"mac"`
-    IPs     IPs              `json:"ips"`
-    White   bool             `json:"white"`
-    Onnewip bool             `json:"onnewip"`
-    Alerted bool             `json:"alerted"`
-    First   time.Time        `json:"first"`
-    Last    time.Time        `json:"last"`
-}
+    Mac         net.HardwareAddr `json:"mac"`
+    IPs         IPs              `json:"ips"`
+    White       bool             `json:"white"`
+    Onnewip     bool             `json:"onnewip"`
+    Alerted     bool             `json:"alerted"`
+    LastAlert   time.Time        `json:"lastalert"`
+    Times       int              `json:"times"`
+    First       time.Time        `json:"first"`
+    Last        time.Time        `json:"last"`
+}   
  
 type IP struct {
     Ip      string    `json:"ip"`
@@ -57,18 +61,18 @@ type IP struct {
     Alerted bool      `json:"alerted"`
 }
 
- 
 type IPs map[string]IP
  
 type ARPConfig struct {
-    Onnewmac    bool
-    Onnewip     bool
-    Enabled     bool
-    Learning    bool
-    Verbose     bool
-    Interface   string
-    KnownFile   string
-    CurrentFile string
+    Onnewmac            bool
+    Onnewip             bool
+    Enabled             bool
+    Learning            bool
+    Verbose             bool        
+    Interface           string         
+    Timebetweenalerts   int         
+    KnownFile           string
+    CurrentFile         string
 }
  
 const (
@@ -88,6 +92,20 @@ func saveKnownMacs() {
 func saveCurrentMacs() {
     WriteMacFileContent(Current)
     return
+}
+ 
+func isCurrentMac(arp *layers.ARP) (is bool) {
+    var srcHw net.HardwareAddr
+    srcHw = arp.SourceHwAddress
+ 
+    if _, ok := Currentmacs[srcHw.String()]; ok {
+        logs.Info("mac %s exists", srcHw.String())
+        return true
+    } else {
+        logs.Info("mac %s does not exist.", srcHw.String())
+        return false
+    }
+    return false
 }
  
 func isknownMac(arp *layers.ARP) (is bool) {
@@ -139,6 +157,37 @@ func addKnownIP(IPs IPs, newIP IP) (modips IPs) {
     return modips
 }
  
+func addCurrentMac(arp *layers.ARP) {
+    var srcHw net.HardwareAddr
+    srcHw = arp.SourceHwAddress
+ 
+    logs.Info("CM adding mac %s ", srcHw.String())
+ 
+    // Manage MAC
+    var cMac MAC
+    cMac.Mac = arp.SourceHwAddress
+    cMac.First = time.Now()
+    cMac.Last = time.Now()
+    if arpmain.Verbose {
+        logs.Info("CM added at %v", cMac.First)
+    }
+ 
+    // Manage new IP
+    var newip IP
+    newip.Ip = net.IP(arp.SourceProtAddress).String()
+    if arpmain.Verbose {
+        logs.Info("CM lets add %s", newip.Ip)
+    }
+    newip.First = cMac.First
+    newip.Last = cMac.First
+ 
+    allips := make(IPs)
+    allips[newip.Ip] = newip
+    cMac.IPs = allips
+ 
+    Currentmacs[srcHw.String()] = cMac
+}
+
 func addKnownMac(arp *layers.ARP) {
     var srcHw net.HardwareAddr
     srcHw = arp.SourceHwAddress
@@ -228,16 +277,58 @@ func alertMac(arp *layers.ARP){
     al.Rev = 1              
     al.Signature = "new mac detected - "+ev.Mac_address        
     al.Category = "Potentially Bad Traffic"          
-    al.Severity = 2        
-    
-    // ev.Alert = make(map[string]Alert)
+    al.Severity = 2 
+    al.Times = Currentmacs[srcHw.String()].Times
+
     ev.Alert = al    
     
     values, _ := json.Marshal(ev)
-
-    logs.Notice("%+v\n",ev)
+    
+    analyzer.ToDispatcher("start",string(values))
     logs.Error(string(values))
+}
 
+func timeToAlert(lastTime time.Time) bool {
+    logs.Info("Check time to alert")
+    logs.Info(arpmain.Timebetweenalerts)
+
+    seconds := time.Second * time.Duration(arpmain.Timebetweenalerts)
+    diff := time.Now().Sub(lastTime)
+
+    logs.Notice(seconds)
+    logs.Warn(diff)
+
+    if diff >= seconds {
+        return true
+    }
+
+    return false
+}
+
+func alertIfAlert(arp *layers.ARP) {
+    var srcHw net.HardwareAddr
+    srcHw = arp.SourceHwAddress
+
+    if macAlert,ok := Currentmacs[srcHw.String()]; ok  {
+        logs.Info("Alert new mac in current macs!")  
+        if macAlert.Alerted {
+            if timeToAlert(macAlert.LastAlert) {
+                logs.Info("Time to alert again -- %d",macAlert.Times)
+                alertMac(arp)     
+                macAlert.Times = 0
+                macAlert.LastAlert = time.Now()
+            }else{
+                macAlert.Times += 1
+            }
+        }else{
+            logs.Info("First time alert")
+            alertMac(arp)     
+            macAlert.Times = 0
+            macAlert.LastAlert = time.Now()
+            macAlert.Alerted = true
+        }
+        Currentmacs[srcHw.String()] = macAlert
+    }
 }
 
 func alertNewARP(arp *layers.ARP, alertabout int) {
@@ -247,7 +338,11 @@ func alertNewARP(arp *layers.ARP, alertabout int) {
         logs.Info("is IP - injecting ip alert")
     case aMAC:
         logs.Info("is MAC - injecting mac alert")
-        alertMac(arp)
+        if !isCurrentMac(arp) {
+            addCurrentMac(arp)            
+        }
+        alertIfAlert(arp)
+        WriteMacFileContent(Current)
     default:
         logs.Error("have no idea what we try to alert about %v", alertabout)
     }
@@ -325,56 +420,63 @@ func Init() {
     // logs.Info(ifaces)
 //  macmanagement
 
-    isEnabled, err := utils.GetKeyValueBool("macmanagement", "Enabled") 
+    isEnabled, err := utils.GetKeyValueBool("macmanagement", "enabled") 
     if err != nil {
         logs.Error("AddPluginService Error getting data from main.conf: "+err.Error())
         arpmain.Enabled = true
     }else{
         arpmain.Enabled = isEnabled
     }
-    iface, err := utils.GetKeyValueString("macmanagement", "Interface") 
+    iface, err := utils.GetKeyValueString("macmanagement", "interface") 
     if err != nil {
         logs.Error("AddPluginService Error getting data from main.conf: "+err.Error())
         arpmain.Interface = "eth0"
     }else{
         arpmain.Interface = iface
     }
-    isLearning, err := utils.GetKeyValueBool("macmanagement", "Learning") 
+    isLearning, err := utils.GetKeyValueBool("macmanagement", "learning") 
     if err != nil {
         logs.Error("AddPluginService Error getting data from main.conf: "+err.Error())
         arpmain.Learning = true
     }else{
         arpmain.Learning = isLearning
     }
-    isOnneip, err := utils.GetKeyValueBool("macmanagement", "Onnewip") 
+    isOnneip, err := utils.GetKeyValueBool("macmanagement", "onnewip") 
     if err != nil {
         logs.Error("AddPluginService Error getting data from main.conf: "+err.Error())
         arpmain.Onnewip = true
     }else{
         arpmain.Enabled = isOnneip
     }
-    isOnnewmac, err := utils.GetKeyValueBool("macmanagement", "Onnewmac") 
+    isOnnewmac, err := utils.GetKeyValueBool("macmanagement", "onnewmac") 
     if err != nil {
         logs.Error("AddPluginService Error getting data from main.conf: "+err.Error())
         arpmain.Onnewmac = true
     }else{
         arpmain.Onnewmac = isOnnewmac
     }
-    isVerbose, err := utils.GetKeyValueBool("macmanagement", "Verbose") 
+    isVerbose, err := utils.GetKeyValueBool("macmanagement", "verbose") 
     if err != nil {
         logs.Error("AddPluginService Error getting data from main.conf: "+err.Error())
         arpmain.Verbose = true
     }else{
         arpmain.Verbose = isVerbose
     }
-    dataKnownFile, err := utils.GetKeyValueString("macmanagement", "KnownFile") 
+    timeBetweenAlerts, err := utils.GetKeyValueInt("macmanagement", "timebetweenalerts") 
+    if err != nil {
+        logs.Error("AddPluginService Error getting data from main.conf: "+err.Error())
+        arpmain.Timebetweenalerts = 86400
+    }else{
+        arpmain.Timebetweenalerts = timeBetweenAlerts
+    }
+    dataKnownFile, err := utils.GetKeyValueString("macmanagement", "knownFile") 
     if err != nil {
         logs.Error("AddPluginService Error getting data from main.conf: "+err.Error())
         arpmain.KnownFile = "conf/known.db"
     }else{
         arpmain.KnownFile = dataKnownFile
     }
-    dataCurrentFile, err := utils.GetKeyValueString("macmanagement", "CurrentFile") 
+    dataCurrentFile, err := utils.GetKeyValueString("macmanagement", "currentFile") 
     if err != nil {
         logs.Error("AddPluginService Error getting data from main.conf: "+err.Error())
         arpmain.CurrentFile = "conf/current.db"
@@ -392,6 +494,7 @@ func Init() {
     // arpmain.CurrentFile = "current.db"
  
     ReadMacFileContent(Known)
+    ReadMacFileContent(Current)
     go readARP("")
  
     // readARP("")

@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/astaxie/beego/logs"
 	"io/ioutil"
 	"reflect"
@@ -56,6 +57,22 @@ func GetKeyValueBool(key, sub string) (result bool, err error) {
 		return keyValue.(bool), nil
 	default:
 		return false, errors.New("GetKeyValueSlice This value is not a Slice")
+	}
+}
+func GetKeyValueInt(key, sub string) (result int, err error) {
+	keyValue, err := GetKeyValue(key, sub)
+	if err != nil {
+		logs.Error(err.Error())
+		return -1, err
+	}
+	switch w := reflect.ValueOf(keyValue); w.Kind() {
+	case reflect.Int:
+		return keyValue.(int), nil
+	case reflect.Float64:
+		return int(keyValue.(float64)), nil
+	default:
+		nerr := fmt.Sprintf("GetKeyValueInt This value is not a Integer --> %v",w.Kind())
+		return -1, errors.New(nerr)
 	}
 }
 
