@@ -8,7 +8,7 @@ import (
     "strings"
     "owlhnode/utils"
     "owlhnode/plugin"
-    "owlhnode/zeek"
+    // "owlhnode/zeek"
     "owlhnode/database"
 )
 
@@ -170,27 +170,27 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
             }
         }
         //check if process is running even though database status is disabled
-        if allPlugins[x]["type"] == "zeek" && allPlugins[x]["pid"] != "none"{     
-            //check zeek
-            if !zeek.ZeekPath() || !zeek.ZeekBin() {
-                allPlugins[x]["running"] = "false"                
-            }else{
-                zk,err := zeek.GetZeek()
-                if err != nil {return nil, err}
+        // if allPlugins[x]["type"] == "zeek" && allPlugins[x]["pid"] != "none"{     
+        //     //check zeek
+        //     if !zeek.ZeekPath() || !zeek.ZeekBin() {
+        //         allPlugins[x]["running"] = "false"                
+        //     }else{
+        //         zk,err := zeek.GetZeek()
+        //         if err != nil {return nil, err}
     
-                if zk.Nodes == nil || len(zk.Nodes) <= 0 {
-                    allPlugins[x]["running"] = "false"                
-                }else{
-                    for node := range zk.Nodes {
-                        if zk.Nodes[node].Status != "running"{
-                            allPlugins[x]["running"] = "false"
-                        }else{
-                            allPlugins[x]["running"] = "true"
-                        }
-                    }
-                }
-            }
-        }
+        //         if zk.Nodes == nil || len(zk.Nodes) <= 0 {
+        //             allPlugins[x]["running"] = "false"                
+        //         }else{
+        //             for node := range zk.Nodes {
+        //                 if zk.Nodes[node].Status != "running"{
+        //                     allPlugins[x]["running"] = "false"
+        //                 }else{
+        //                     allPlugins[x]["running"] = "true"
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         //check if process is running even though database status is enabled
         if (allPlugins[x]["type"] == "socket-pcap" || allPlugins[x]["type"] == "socket-network") && allPlugins[x]["pid"] != "none"{
@@ -254,6 +254,8 @@ func PingPluginsNode() (data map[string]map[string]string ,err error) {
             }
         }
     }
+
+logs.Notice(allPlugins)
 
     return allPlugins,err
 }
