@@ -32,3 +32,54 @@ func AddMacIp(data map[string]string) (err error) {
     changecontrol.InsertChangeControl(cc)
     return err
 }
+
+func LoadConfig(anode map[string]string) () {
+    cc := anode
+    logs.Info("============")
+    logs.Info("hwaddmng - LoadConfig")
+    for key :=range cc {
+        logs.Info(key +" -> "+ cc[key])
+    }
+
+    logs.Info("MODELS -> Load default config")
+    pcap.LoadConfig()
+
+    cc["actionStatus"] = "success"
+    cc["actionDescription"] = "Load default config"
+
+    changecontrol.InsertChangeControl(cc)
+}
+
+func Config(anodeIface map[string]interface{}, anode map[string]string) () {
+    cc := anode
+    logs.Info("============")
+    logs.Info("hwaddmng - Config")
+    for key :=range cc {
+        logs.Info(key +" -> "+ cc[key])
+    }
+
+    logs.Info("MODELS -> Load default config")
+    pcap.Config(anodeIface)
+
+    cc["actionStatus"] = "success"
+    cc["actionDescription"] = "Load default config"
+
+    changecontrol.InsertChangeControl(cc)
+}
+
+func Db(anodeIface map[string]string, anode map[string]string) () {
+    cc := anode
+    logs.Info("============")
+    logs.Info("hwaddmng - Config")
+    for key :=range cc {
+        logs.Info(key +" -> "+ cc[key])
+    }
+
+    logs.Info("MODELS -> Db management")
+    pcap.Db(anodeIface)
+
+    cc["actionStatus"] = "success"
+    cc["actionDescription"] = "Db management"
+
+    changecontrol.InsertChangeControl(cc)
+}

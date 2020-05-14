@@ -6,11 +6,14 @@ import (
     "encoding/json"
     "errors"
     // "log"
-    // "reflect"
+    "reflect"
+    "bufio"
     "io/ioutil"
     "net"
+    "os"
     "owlhnode/analyzer"
     "owlhnode/utils"
+    "regexp"
     // "sync"
     "github.com/astaxie/beego/logs"
     "github.com/google/gopacket"
@@ -18,6 +21,19 @@ import (
     "github.com/google/gopacket/pcap"
     "time"
 )
+
+type Oui struct {
+    Oui                 string `json:"oui"`
+    Isprivate           bool   `json:"isPrivate"`
+    Companyname         string `json:"companyName"`
+    Companyaddress      string `json:"companyAddress"`
+    Countrycode         string `json:"countryCode"`
+    Assignmentblocksize string `json:"assignmentBlockSize"`
+    Datecreated         string `json:"dateCreated"`
+    Dateupdated         string `json:"dateUpdated"`
+}
+
+var Ouis = map[string]Oui{}
 
 type EventAlert struct {
     Timestamp   time.Time `json:"timestamp"`
@@ -38,6 +54,14 @@ type Alert struct {
     Severity     int      `json:"severity"`
     Times        int      `json:"times"`
     MultipleIP   []string `json:"multipleip"`
+}
+
+type Rule struct {
+    Sid      int    `json:"sid"`
+    Msg      string `json:"msg"`
+    Severity int    `json:"severity"`
+    Rev      int    `json:"int"`
+    Category string `json:"category"`
 }
 
 type MAC struct {
@@ -74,6 +98,9 @@ type ARPConfig struct {
     Timebetweenalerts int
     KnownFile         string
     CurrentFile       string
+    Morethan          int
+    OuiFile           string
+    Ack               bool
 }
 
 const (
@@ -81,6 +108,7 @@ const (
     anIP
 )
 
+var ArpmainReturn ARPConfig
 var arpmain ARPConfig
 var Knownmacs = map[string]MAC{}
 var Currentmacs = map[string]MAC{}
@@ -100,10 +128,10 @@ func isCurrentMac(arp *layers.ARP) (is bool) {
     srcHw = arp.SourceHwAddress
 
     if _, ok := Currentmacs[srcHw.String()]; ok {
-        logs.Info("mac %s exists", srcHw.String())
+        logs.Info("CURRENT -> mac %s exists", srcHw.String())
         return true
     } else {
-        logs.Info("mac %s does not exist.", srcHw.String())
+        logs.Info("CURRENT -> mac %s does not exist.", srcHw.String())
         return false
     }
     return false
@@ -114,10 +142,10 @@ func isknownMac(arp *layers.ARP) (is bool) {
     srcHw = arp.SourceHwAddress
 
     if _, ok := Knownmacs[srcHw.String()]; ok {
-        logs.Info("mac %s exists", srcHw.String())
+        logs.Info("KNOWN -> mac %s exists", srcHw.String())
         return true
     } else {
-        logs.Info("mac %s does not exist.", srcHw.String())
+        logs.Info("KNOWN -> mac %s does not exist.", srcHw.String())
         return false
     }
     return false
@@ -183,27 +211,36 @@ func addCurrentMac(arp *layers.ARP) {
 
     // Manage MAC
     var cMac MAC
+    isnow := time.Now()
     cMac.Mac = arp.SourceHwAddress
-    cMac.First = time.Now()
-    cMac.Last = time.Now()
+    cMac.First = isnow
+    cMac.Last = isnow
+    cMac.IPs = map[string]IP{}
+
     if arpmain.Verbose {
-        logs.Info("CM added at %v", cMac.First)
+        logs.Info("CM mac added at %v", cMac.First)
     }
 
     // Manage new IP
     var newip IP
+
     newip.Ip = net.IP(arp.SourceProtAddress).String()
+    newip.First = isnow
+    newip.Last = isnow
+
     if arpmain.Verbose {
         logs.Info("CM lets add %s", newip.Ip)
+        logs.Info("CM lets add  time %v", newip.First)
     }
-    newip.First = cMac.First
-    newip.Last = cMac.First
 
-    allips := make(TIPs)
-    allips[newip.Ip] = newip
-    cMac.IPs = allips
+    // allips := make(TIPs)
+    // allips[newip.Ip] = newip
+    cMac.IPs[newip.Ip] = newip
 
+    logs.Info("CM - new mac details")
+    logs.Warn("%+v", cMac)
     Currentmacs[srcHw.String()] = cMac
+    logs.Warn("%+v", Currentmacs[srcHw.String()])
 }
 
 func addKnownMac(arp *layers.ARP) {
@@ -287,6 +324,7 @@ func updateLastIp(arp *layers.ARP, known bool) {
     newIP.Ip = net.IP(arp.SourceProtAddress).String()
 
     var oldIP IP
+    var isnow = time.Now()
 
     if known {
         cmac := Knownmacs[srcHw.String()]
@@ -300,13 +338,15 @@ func updateLastIp(arp *layers.ARP, known bool) {
         Knownmacs[srcHw.String()] = cmac
     } else {
         cmac := Currentmacs[srcHw.String()]
+        logs.Debug("update last ip current -> cmac -> %v", cmac)
         if oldIP, ok := cmac.IPs[newIP.Ip]; ok {
-            oldIP.Last = time.Now()
+            oldIP.Last = isnow
+            cmac.IPs[newIP.Ip] = oldIP
         } else {
-            newIP.First = time.Now()
-            newIP.Last = time.Now()
+            newIP.First = isnow
+            newIP.Last = isnow
+            cmac.IPs[newIP.Ip] = newIP
         }
-        cmac.IPs[newIP.Ip] = oldIP
         Currentmacs[srcHw.String()] = cmac
     }
 }
@@ -325,6 +365,24 @@ func learnarp(arp *layers.ARP) (err error) {
 
 }
 
+func logVendor(arp *layers.ARP) (oui Oui, err error) {
+    var loui Oui
+    var srcHw net.HardwareAddr
+    srcHw = arp.SourceHwAddress
+
+    re := regexp.MustCompile(`^([^:]+:[^:]+:[^:]+:[^:]+:\w)`)
+    hmac := re.FindStringSubmatch(srcHw.String())
+    if len(hmac) > 0 {
+        if foui, ok := Ouis[hmac[1]]; ok {
+            logs.Debug("Vendor -> %s", foui.Companyname)
+            logs.Debug("Countrycode -> %s", foui.Countrycode)
+        } else {
+            logs.Debug("No mac vendor found")
+        }
+    }
+    return loui, nil
+}
+
 func alertMac(arp *layers.ARP) {
     var ev EventAlert
     var al Alert
@@ -337,6 +395,9 @@ func alertMac(arp *layers.ARP) {
     ev.Event_type = "alert"
     ev.Src_ip = net.IP(arp.SourceProtAddress).String()
     ev.Mac_address = srcHw.String()
+
+    logVendor(arp)
+
     ev.Proto = "ARP"
 
     al.Action = "allowed"
@@ -367,6 +428,9 @@ func alertIp(arp *layers.ARP) {
     ev.Event_type = "alert"
     ev.Src_ip = net.IP(arp.SourceProtAddress).String()
     ev.Mac_address = srcHw.String()
+
+    logVendor(arp)
+
     ev.Proto = "ARP"
 
     al.Action = "allowed"
@@ -377,10 +441,12 @@ func alertIp(arp *layers.ARP) {
     al.Severity = 2
     al.Times = Currentmacs[srcHw.String()].Times
 
-    if len(Currentmacs[srcHw.String()].IPs) > 1 {
+    if len(Currentmacs[srcHw.String()].IPs) > arpmain.Morethan {
         for ip := range Currentmacs[srcHw.String()].IPs {
             al.MultipleIP = append(al.MultipleIP, ip)
         }
+    } else {
+        return
     }
 
     ev.Alert = al
@@ -532,41 +598,60 @@ func isCurrentMacIp(arp *layers.ARP) (isknown bool) {
 }
 
 func checkarp(arp *layers.ARP) {
+    logVendor(arp)
+
     if !isknownMac(arp) {
+        logs.Debug("MAC is not known")
         if !isCurrentMac(arp) {
+            logs.Debug("MAC is not known and is not current - add mac to current")
+
             addCurrentMac(arp)
             if arpmain.Onnewmac {
+                logs.Debug("MAC is not known and is not current - alert new mac ")
                 alertNewARP(arp, aMAC)
             }
         } else {
+            logs.Debug("MAC is not known but is current - update last mac known")
             updateLastMac(arp, false)
             if isCurrentMacIp(arp) {
+                logs.Debug("IP is current - update last ip current ")
                 updateLastIp(arp, false)
             } else {
+                logs.Debug("IP is not current current - add ip current ")
                 addCurrentMacIp(arp)
             }
             if arpmain.Onnewip {
+                logs.Debug("IP - alert new ip")
                 alertNewARP(arp, anIP)
             }
         }
     } else {
+        logs.Debug("MAC is known")
         if !isCurrentMac(arp) {
+            logs.Debug("MAC is known but is not Current - add mac to current")
             addCurrentMac(arp)
         } else {
+            logs.Debug("MAC is known and is Current - udpate last mac Current")
             updateLastMac(arp, false)
         }
+        logs.Debug("MAC is known - udpate last mac known ")
         updateLastMac(arp, true)
         if !isKnowMACIP(arp) {
+            logs.Debug("IP is known but is not Current - add ip to current ")
             addCurrentMacIp(arp)
             if arpmain.Onnewip {
+                logs.Debug("IP is known but is not Current - alert on new ip ")
                 alertNewARP(arp, anIP)
             }
         } else {
+            logs.Debug("IP is known and is Current - update last ip knwon and current ")
             updateLastIp(arp, false)
             updateLastIp(arp, true)
         }
+        logs.Debug("wirte konwn")
         WriteMacFileContent(Known)
     }
+    logs.Debug("wirte konwn")
     WriteMacFileContent(Current)
 }
 
@@ -670,18 +755,41 @@ func AddMacIp(anode map[string]string) error {
     return nil
 }
 
-func Init() {
+func Db(data map[string]string){
+    for x := range data{
+        if data[x] == "reload" {
+            if x == "Known" {
+                ReadMacFileContent(Known)
+            }else if x == "Current" {
+                ReadMacFileContent(Current)
+            }
+        }else if data[x] == "reset"{               
+            if x == "Known" {
+                Knownmacs = map[string]MAC{}
+                WriteMacFileContent(Known)
+            }else if x == "Current" {
+                Currentmacs = map[string]MAC{}
+                WriteMacFileContent(Current)
+            }
+        }        
+    }
+}
 
-    arpmain.Enabled = true
-    arpmain.Interface = "eth0"
-    arpmain.Learning = true
-    arpmain.Onnewip = true
-    arpmain.Onnewmac = true
-    arpmain.Verbose = true
-    arpmain.Timebetweenalerts = 86400
-    arpmain.KnownFile = "conf/known.db"
-    arpmain.CurrentFile = "conf/current.db"
+func Config(config map[string]interface{}){
+    v := reflect.ValueOf(&arpmain).Elem()
 
+    for i:=0; i<v.NumField();i++ {      
+        name := v.Type().Field(i).Name        
+        if _, ok := config[name]; ok {
+            f1 := v.Field(i)
+            f1.Set(reflect.ValueOf(config[name]))
+        }
+    }
+
+    ArpmainReturn = arpmain 
+}
+
+func LoadConfig(){
     isEnabled, err := utils.GetKeyValueBool("macmanagement", "enabled")
     if err != nil {
         logs.Error("AddPluginService Error getting data from main.conf: " + err.Error())
@@ -736,6 +844,38 @@ func Init() {
     } else {
         arpmain.CurrentFile = dataCurrentFile
     }
+    moreThan, err := utils.GetKeyValueInt("macmanagement", "morethan")
+    if err != nil {
+        logs.Error("AddPluginService Error getting data from main.conf: " + err.Error())
+    } else {
+        arpmain.Morethan = moreThan
+    }
+    dataOui, err := utils.GetKeyValueString("macmanagement", "ouifile")
+    if err != nil {
+        logs.Error("AddPluginService Error getting data from main.conf: " + err.Error())
+    } else {
+        arpmain.OuiFile = dataOui
+    }
+    arpmain.Ack = true
+
+    ArpmainReturn = arpmain
+}
+
+func Init() {
+
+    arpmain.Enabled = true
+    arpmain.Interface = "eth0"
+    arpmain.Learning = true
+    arpmain.Onnewip = true
+    arpmain.Onnewmac = true
+    arpmain.Verbose = true
+    arpmain.Timebetweenalerts = 86400
+    arpmain.KnownFile = "conf/known.db"
+    arpmain.CurrentFile = "conf/current.db"
+    arpmain.OuiFile = "conf/ouis.db"
+    arpmain.Morethan = 1
+
+    LoadConfig()
 
     // arpmain.Enabled = true
     // arpmain.Interface = "eth0"
@@ -749,6 +889,7 @@ func Init() {
         return
     }
 
+    ReadOUI()
     ReadMacFileContent(Known)
     ReadMacFileContent(Current)
     go readARP("")
@@ -795,6 +936,7 @@ func WriteMacFileContent(alertabout int) (err error) {
         }
     case Current:
         values, _ := json.Marshal(Currentmacs)
+        logs.Warn("current -> %+v", string(values))
         err = ioutil.WriteFile(arpmain.CurrentFile, values, 0644)
         if err != nil {
             logs.Error("ReadFileContent - error writing file content -> %s" + err.Error())
@@ -803,6 +945,29 @@ func WriteMacFileContent(alertabout int) (err error) {
     default:
         return errors.New("ReadMacFileContent Invalid unmarshal variable")
     }
+
+    return nil
+}
+
+func ReadOUI() (err error) {
+    file, err := os.Open(arpmain.OuiFile)
+    if err != nil {
+        return err
+    }
+    defer file.Close()
+
+    var newoui Oui
+    scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        json.Unmarshal([]byte(scanner.Text()), &newoui)
+        Ouis[newoui.Oui] = newoui
+    }
+
+    if err := scanner.Err(); err != nil {
+        return err
+    }
+
+    logs.Warn("imported %d OUIs", len(Ouis))
 
     return nil
 }
