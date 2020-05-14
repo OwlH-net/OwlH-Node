@@ -29,7 +29,7 @@ func (n *WazuhController) Get() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         logs.Info ("Wazuh controller -> GET")
-        mstatus, err := models.GetWazuh()
+        mstatus, err := models.GetWazuh(n.Ctx.Input.Header("user"))
         n.Data["json"] = mstatus
         if err != nil {
             logs.Info("GetWazuh OUT -- ERROR : %s", err.Error())
@@ -66,7 +66,7 @@ func (n *WazuhController) RunWazuh() {
         for key :=range anode {
             logs.Info(key +" -> "+anode[key])
         }
-        data,err := models.RunWazuh()
+        data,err := models.RunWazuh(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("RunWazuh OUT -- ERROR : %s", err.Error())
@@ -104,7 +104,7 @@ func (n *WazuhController) StopWazuh() {
         for key :=range anode {
             logs.Info(key +" -> "+anode[key])
         }
-        data,err := models.StopWazuh()
+        data,err := models.StopWazuh(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("StopWazuh OUT -- ERROR : %s", err.Error())
@@ -135,7 +135,7 @@ func (n *WazuhController) PingWazuhFiles() {
         errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none", "error": "Not enough permissions"}
         n.Data["json"] = errorResponse
     }else{       
-        files, err := models.PingWazuhFiles()
+        files, err := models.PingWazuhFiles(n.Ctx.Input.Header("user"))
         n.Data["json"] = files
         if err != nil {
             var errorResponse = map[string]map[string]string{}
@@ -168,7 +168,7 @@ func (n *WazuhController) DeleteWazuhFile() {
         anode["action"] = "PUT"
         anode["controller"] = "SURICATA"
         anode["router"] = "@router /StopSuricata [put]"
-        err := models.DeleteWazuhFile(anode)
+        err := models.DeleteWazuhFile(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         
         if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
@@ -198,7 +198,7 @@ func (n *WazuhController) AddWazuhFile() {
         anode["action"] = "PUT"
         anode["controller"] = "SURICATA"
         anode["router"] = "@router /StopSuricata [put]"
-        err := models.AddWazuhFile(anode)
+        err := models.AddWazuhFile(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         
         if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
@@ -228,7 +228,7 @@ func (n *WazuhController) LoadFileLastLines() {
         anode["action"] = "PUT"
         anode["controller"] = "SURICATA"
         anode["router"] = "@router /StopSuricata [put]"
-        data,err := models.LoadFileLastLines(anode)
+        data,err := models.LoadFileLastLines(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         
         if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
@@ -259,7 +259,7 @@ func (n *WazuhController) SaveFileContentWazuh() {
         anode["controller"] = "SURICATA"
         anode["router"] = "@router /StopSuricata [put]"
     
-        err := models.SaveFileContentWazuh(anode)
+        err := models.SaveFileContentWazuh(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         
         if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}

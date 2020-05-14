@@ -18,7 +18,7 @@ type AutenticationController struct {
 func (n *AutenticationController) CreateMasterToken() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    token, err := models.CreateMasterToken(anode)
+    token, err := models.CreateMasterToken(anode, n.Ctx.Input.Header("user"))
     n.Data["json"] = map[string]string{"ack": "true", "token": token}
     if err != nil {
         logs.Error(err.Error())
@@ -44,7 +44,7 @@ func (n *AutenticationController) AddUserFromMaster() {
     } else {
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.AddUserFromMaster(anode)
+        err := models.AddUserFromMaster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -70,7 +70,7 @@ func (n *AutenticationController) AddRolesFromMaster() {
     } else {
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.AddRolesFromMaster(anode)
+        err := models.AddRolesFromMaster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -96,7 +96,7 @@ func (n *AutenticationController) AddGroupFromMaster() {
     } else {
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.AddGroupFromMaster(anode)
+        err := models.AddGroupFromMaster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -122,7 +122,7 @@ func (n *AutenticationController) AddUserGroupRolesFromMaster() {
     } else {
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.AddUserGroupRolesFromMaster(anode)
+        err := models.AddUserGroupRolesFromMaster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -148,7 +148,7 @@ func (n *AutenticationController) SyncRolePermissions() {
     } else {
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SyncRolePermissions(anode)
+        err := models.SyncRolePermissions(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -174,7 +174,7 @@ func (n *AutenticationController) SyncPermissions() {
     } else {
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SyncPermissions(anode)
+        err := models.SyncPermissions(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -200,7 +200,7 @@ func (n *AutenticationController) SyncRoleGroups() {
     } else {
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SyncRoleGroups(anode)
+        err := models.SyncRoleGroups(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

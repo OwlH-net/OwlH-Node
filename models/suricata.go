@@ -18,7 +18,7 @@ func GetSuricata() (status map[string]bool, err error) {
     // return bpf,err
 // }
 
-func SetBPF(anode map[string]string) (err error) {
+func SetBPF(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("============")
     logs.Info("SURICATA - SetBPF")
@@ -37,7 +37,7 @@ func SetBPF(anode map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Set BPF Filter"
 
     changecontrol.InsertChangeControl(cc)
@@ -46,7 +46,7 @@ func SetBPF(anode map[string]string) (err error) {
     return err
 }
 
-func SyncRulesetFromMaster(n map[string][]byte) (err error) {
+func SyncRulesetFromMaster(n map[string][]byte, username string) (err error) {
     cc := n
     logs.Info("============")
     logs.Info("SURICATA - SyncRulesetFromMaster")
@@ -67,13 +67,13 @@ func SyncRulesetFromMaster(n map[string][]byte) (err error) {
     // }
 
     // cc["actionDescription"] = "Save new ruleset from master"
-
+    // cc["username"] = username
     // changecontrol.InsertChangeControlByte(cc)
     // changecontrol.ChangeControlInsertData(err, "SyncRulesetFromMaster")    
     return err
 }
 
-func SaveConfigFile(files map[string][]byte) (err error) {
+func SaveConfigFile(files map[string][]byte, username string) (err error) {
     cc := files
     logs.Info("============")
     logs.Info("SURICATA - SaveConfigFile")
@@ -86,46 +86,46 @@ func SaveConfigFile(files map[string][]byte) (err error) {
     return err
 }
 
-func RunSuricata() (data string, err error) {
+func RunSuricata(username string) (data string, err error) {
     data,err = suricata.RunSuricata()
     // changecontrol.ChangeControlInsertData(err, "RunSuricata")    
     return data,err
 }
 
-func StopSuricata() (data string, err error) {
+func StopSuricata(username string) (data string, err error) {
     data,err = suricata.StopSuricata()
     // changecontrol.ChangeControlInsertData(err, "StopSuricata")    
     return data,err
 }
 
-func GetSuricataServices() (data map[string]map[string]string, err error) {
+func GetSuricataServices(username string) (data map[string]map[string]string, err error) {
     data,err = suricata.GetSuricataServices()
     // changecontrol.ChangeControlInsertData(err, "GetSuricataServices")    
     return data,err
 }
 
-func StartSuricataMainConf(anode map[string]string) (err error) {
+func StartSuricataMainConf(anode map[string]string, username string) (err error) {
     err = suricata.StartSuricataMainConf(anode)
     changecontrol.ChangeControlInsertData(err, "StartSuricataMainConf")    
     return err
 }
-func StopSuricataMainConf(anode map[string]string) (err error) {
+func StopSuricataMainConf(anode map[string]string, username string) (err error) {
     err = suricata.StopSuricataMainConf(anode)
     changecontrol.ChangeControlInsertData(err, "StopSuricataMainConf")    
     return err
 }
-func KillSuricataMainConf(anode map[string]string) (err error) {
+func KillSuricataMainConf(anode map[string]string, username string) (err error) {
     err = suricata.KillSuricataMainConf(anode)
     changecontrol.ChangeControlInsertData(err, "KillSuricataMainConf")    
     return err
 }
-func ReloadSuricataMainConf(anode map[string]string) (err error) {
+func ReloadSuricataMainConf(anode map[string]string, username string) (err error) {
     err = suricata.ReloadSuricataMainConf(anode)
     changecontrol.ChangeControlInsertData(err, "ReloadSuricataMainConf")    
     return err
 }
 
-func GetMD5files(files map[string]map[string]string) (data map[string]map[string]string, err error) {
+func GetMD5files(files map[string]map[string]string, username string) (data map[string]map[string]string, err error) {
     data,err = suricata.GetMD5files(files)
     // changecontrol.ChangeControlInsertData(err, "GetMD5files")    
     return data,err

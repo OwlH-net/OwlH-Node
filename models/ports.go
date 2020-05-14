@@ -5,13 +5,13 @@ import (
     "owlhnode/changeControl"
     "github.com/astaxie/beego/logs")
 
-func ShowPorts() (data map[string]map[string]string, err error) {
+func ShowPorts(username string) (data map[string]map[string]string, err error) {
     data,err = knownports.ShowPorts()
     //changecontrol.ChangeControlInsertData(err, "ShowPorts")    
     return data,err
 }
 
-func ChangeMode(anode map[string]string) (err error) {
+func ChangeMode(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PORTS - ChangeMode")
@@ -30,7 +30,7 @@ func ChangeMode(anode map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "ChangeMode knownports Mode"
 
     changecontrol.InsertChangeControl(cc)
@@ -38,7 +38,7 @@ func ChangeMode(anode map[string]string) (err error) {
     return err
 }
 
-func ChangeStatus(anode map[string]string) (err error) {
+func ChangeStatus(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PORTS - ChangeStatus")
@@ -58,7 +58,7 @@ func ChangeStatus(anode map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Start/stop knownports plugin"
 
     changecontrol.InsertChangeControl(cc)
@@ -66,7 +66,7 @@ func ChangeStatus(anode map[string]string) (err error) {
     return err
 }
 
-func DeletePorts(anode map[string]string) (err error) {
+func DeletePorts(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PORTS - DeletePorts")
@@ -85,7 +85,7 @@ func DeletePorts(anode map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Clean Knownports data base"
 
     changecontrol.InsertChangeControl(cc)
@@ -94,7 +94,7 @@ func DeletePorts(anode map[string]string) (err error) {
     return err
 }
 
-func DeleteAllPorts(anode map[string]string) (err error) {
+func DeleteAllPorts(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PORTS - DeleteAllPorts")
@@ -113,7 +113,7 @@ func DeleteAllPorts(anode map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Clean all known ports"
 
     changecontrol.InsertChangeControl(cc)
@@ -122,7 +122,7 @@ func DeleteAllPorts(anode map[string]string) (err error) {
     return err
 }
 
-func PingPorts() (data map[string]map[string]string ,err error) {
+func PingPorts(username string) (data map[string]map[string]string ,err error) {
     data, err = knownports.PingPorts()
     // changecontrol.ChangeControlInsertData(err, "PingPorts")    
     return data, err

@@ -6,7 +6,7 @@ import (
     "github.com/astaxie/beego/logs"
 )
 
-func ChangeServiceStatus(anode map[string]string)(err error) {
+func ChangeServiceStatus(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - ChangeServiceStatus")
@@ -25,7 +25,7 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Change " + cc["service"] + " status"
 
     changecontrol.InsertChangeControl(cc)
@@ -41,7 +41,7 @@ func ChangeServiceStatus(anode map[string]string)(err error) {
 //     "param": "status",
 //     "value": "enabled"
 // }
-func ChangeMainServiceStatus(anode map[string]string)(err error) {
+func ChangeMainServiceStatus(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - ChangeMainServiceStatus")
@@ -60,7 +60,7 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "change " + cc["service"] + " status to " + cc["value"]
 
     changecontrol.InsertChangeControl(cc)
@@ -68,7 +68,7 @@ func ChangeMainServiceStatus(anode map[string]string)(err error) {
     return err
 }
 
-func DeleteService(anode map[string]string)(err error) {
+func DeleteService(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - DeleteService")
@@ -87,7 +87,7 @@ func DeleteService(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Delete Service"
 
     changecontrol.InsertChangeControl(cc)
@@ -95,7 +95,7 @@ func DeleteService(anode map[string]string)(err error) {
     return err
 }
 
-func AddPluginService(anode map[string]string) (err error) {
+func AddPluginService(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - AddPluginService")
@@ -114,7 +114,7 @@ func AddPluginService(anode map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Add Service"
 
     changecontrol.InsertChangeControl(cc)
@@ -122,7 +122,7 @@ func AddPluginService(anode map[string]string) (err error) {
     return err
 }
 
-func UpdateSuricataValue(anode map[string]string)(err error) {
+func UpdateSuricataValue(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - UpdateSuricataValue")
@@ -140,7 +140,7 @@ func UpdateSuricataValue(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Update Suricata Interface"
 
     changecontrol.InsertChangeControl(cc)
@@ -148,7 +148,7 @@ func UpdateSuricataValue(anode map[string]string)(err error) {
     return err
 }
 
-func DeployStapService(anode map[string]string)(err error) {
+func DeployStapService(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - DeployStapService")
@@ -167,7 +167,7 @@ func DeployStapService(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Start Software TAP service"
 
     changecontrol.InsertChangeControl(cc)
@@ -175,7 +175,7 @@ func DeployStapService(anode map[string]string)(err error) {
     return err
 }
 
-func StopStapService(anode map[string]string)(err error) {
+func StopStapService(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - StopStapService")
@@ -194,7 +194,7 @@ func StopStapService(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Stop Software TAP Service"
 
     changecontrol.InsertChangeControl(cc)
@@ -202,7 +202,7 @@ func StopStapService(anode map[string]string)(err error) {
     return err
 }
 
-func ModifyNodeOptionValues(anode map[string]string)(err error) {
+func ModifyNodeOptionValues(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - ModifyNodeOptionValues")
@@ -221,7 +221,7 @@ func ModifyNodeOptionValues(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Modify Software TAP configuration"
 
     changecontrol.InsertChangeControl(cc)
@@ -236,7 +236,7 @@ func ModifyNodeOptionValues(anode map[string]string)(err error) {
 //     "uuid": "suricata",
 //     "status": "none"
 // }
-func ChangeSuricataTable(anode map[string]string)(err error) {
+func ChangeSuricataTable(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - ChangeSuricataTable")
@@ -255,7 +255,7 @@ func ChangeSuricataTable(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Change Suricata Table"
 
     changecontrol.InsertChangeControl(cc)
@@ -270,7 +270,7 @@ func ChangeSuricataTable(anode map[string]string)(err error) {
 //     "uuid": "suricata",
 //     "service": "service"
 // }
-func GetServiceCommands(anode map[string]string)(data map[string]map[string]string, err error) {
+func GetServiceCommands(anode map[string]string, username string)(data map[string]map[string]string, err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - GetServiceCommands")
@@ -289,7 +289,7 @@ func GetServiceCommands(anode map[string]string)(data map[string]map[string]stri
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Change Suricata Table"
 
     changecontrol.InsertChangeControl(cc)
@@ -304,7 +304,7 @@ func GetServiceCommands(anode map[string]string)(data map[string]map[string]stri
 //     "uuid": "suricata",
 //     "service": "service"
 // }
-func SaveSurictaRulesetSelected(anode map[string]string)(err error) {
+func SaveSurictaRulesetSelected(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PLUGIN - SaveSurictaRulesetSelected")
@@ -323,7 +323,7 @@ func SaveSurictaRulesetSelected(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Change Suricata Table"
 
     changecontrol.InsertChangeControl(cc)

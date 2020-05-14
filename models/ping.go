@@ -5,13 +5,13 @@ import (
     // "owlhnode/changeControl"
     "github.com/astaxie/beego/logs")
 
-func PingService()(err error) {
+func PingService(username string)(err error) {
     err = ping.PingService()
     //changecontrol.ChangeControlInsertData(err, "PingService")    
     return err
 }
 
-func DeployService(anode map[string]map[string]string)(err error) {
+func DeployService(anode map[string]map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("PING - DeployService")
@@ -29,7 +29,7 @@ func DeployService(anode map[string]map[string]string)(err error) {
     // }else{
     //     cc["actionStatus"] = "success"
     // }
-
+    // cc["username"] = username
     // cc["actionDescription"] = "Deploy Service"
 
     // changecontrol.InsertChangeControlExtra(cc)
@@ -37,19 +37,19 @@ func DeployService(anode map[string]map[string]string)(err error) {
     return err
 }
 
-func GetMainconfData()(data map[string]map[string]string, err error) {
+func GetMainconfData(username string)(data map[string]map[string]string, err error) {
     data,err = ping.GetMainconfData()
     //changecontrol.ChangeControlInsertData(err, "GetMainconfData")    
     return data,err
 }
 
-func PingPluginsNode()(data map[string]map[string]string ,err error) {
+func PingPluginsNode(username string)(data map[string]map[string]string ,err error) {
     data, err = ping.PingPluginsNode()
     //changecontrol.ChangeControlInsertData(err, "PingPluginsNode")    
     return data, err
 }
 
-func UpdateNodeData(data map[string]map[string]string)(err error) {
+func UpdateNodeData(data map[string]map[string]string, username string)(err error) {
     cc := data
     logs.Info("============")
     logs.Info("PING - UpdateNodeData")
@@ -68,7 +68,7 @@ func UpdateNodeData(data map[string]map[string]string)(err error) {
     // }else{
     //     cc["actionStatus"] = "success"
     // }
-
+    // cc["username"] = username
     // cc["actionDescription"] = "update node info"
 
     // //complex map
@@ -77,13 +77,13 @@ func UpdateNodeData(data map[string]map[string]string)(err error) {
     return err
 }
 
-func SaveNodeInformation(anode map[string]map[string]string)(err error) {
+func SaveNodeInformation(anode map[string]map[string]string, username string)(err error) {
     err = ping.SaveNodeInformation(anode)
     //changecontrol.ChangeControlInsertData(err, "SaveNodeInformation")    
     return err
 }
 
-func DeleteNode(masterID string)(err error) {
+func DeleteNode(masterID string, username string)(err error) {
     err = ping.DeleteNode(masterID)
     //changecontrol.ChangeControlInsertData(err, "DeleteNode")    
     return err

@@ -6,13 +6,13 @@ import (
     "github.com/astaxie/beego/logs"
 )
 
-func PingAnalyzer()(data map[string]string, err error) {
+func PingAnalyzer(username string)(data map[string]string, err error) {
     data, err = analyzer.PingAnalyzer()
-    //changecontrol.ChangeControlInsertData(err, "PingAnalyzer")    
+    //changecontrol.ChangeControlInsertData(err, "PingAnalyzer", username)    
     return data, err
 }
 
-func ChangeAnalyzerStatus(anode map[string]string) (err error) {
+func ChangeAnalyzerStatus(anode map[string]string, username string) (err error) {
     logs.Info("============")
     logs.Info("ANALYZER - ChangeAnalyzerStatus")
     cc := anode
@@ -33,6 +33,7 @@ func ChangeAnalyzerStatus(anode map[string]string) (err error) {
         cc["actionStatus"] = "success"
     }
 
+    cc["username"] = username
     cc["actionDescription"] = "Change Analyzer Status"
 
 
@@ -40,7 +41,7 @@ func ChangeAnalyzerStatus(anode map[string]string) (err error) {
     return err
 }
 
-func SyncAnalyzer(file map[string][]byte) (err error) {
+func SyncAnalyzer(file map[string][]byte, username string) (err error) {
     cc := make(map[string]string)
     cc["action"] = "PUT"
     cc["controller"] = "ANALYZER"
@@ -57,7 +58,7 @@ func SyncAnalyzer(file map[string][]byte) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "sync Analyzer configuration"
 
     changecontrol.InsertChangeControl(cc)    

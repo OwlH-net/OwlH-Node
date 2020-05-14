@@ -27,7 +27,7 @@ func (n *IncidentslController) GetIncidentsNode() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        data, err := models.GetIncidentsNode()
+        data, err := models.GetIncidentsNode(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -57,7 +57,7 @@ func (n *MonitorController) PutIncidentNode() {
         anode["action"] = "POST"
         anode["controller"] = "INCIDENTS"
         anode["router"] = "@router / [post]"
-        err := models.PutIncidentNode(anode)
+        err := models.PutIncidentNode(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

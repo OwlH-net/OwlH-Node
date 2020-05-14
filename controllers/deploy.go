@@ -33,7 +33,7 @@ func (n *DeployController) DeployNode() {
         anode["action"] = "PUT"
         anode["controller"] = "DEPLOY"
         anode["router"] = "@router / [put]"
-        err := models.DeployNode(anode)
+        err := models.DeployNode(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -59,7 +59,7 @@ func (n *DeployController) CheckDeployFiles() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        anode := models.CheckDeployFiles()
+        anode := models.CheckDeployFiles(n.Ctx.Input.Header("user"))
         n.Data["json"] = anode
     }
     n.ServeJSON()

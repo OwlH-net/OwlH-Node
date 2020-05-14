@@ -27,7 +27,7 @@ func InsertChangeControl(cc map[string]string){
     }
     ndb.InsertChangeControl(uuid, "nodeServerUuid", cc["uuid"])
     ndb.InsertChangeControl(uuid, "time", timeFormated)
-    ndb.InsertChangeControl(uuid, "user", "admin")
+    // ndb.InsertChangeControl(uuid, "user", "admin")
     for x := range cc {
         ndb.InsertChangeControl(uuid, x, cc[x])
     }

@@ -34,6 +34,7 @@ func (n *HwaddmngController) AddMacIp() {
         anode["controller"] = "hwaddmng"
         anode["router"] = "@router / [post]"
 
+        // err := models.AddMacIp(anode, n.Ctx.Input.Header("user"))
         err := models.AddMacIp(anode)
     
         n.Data["json"] = map[string]string{"ack": "true"}
@@ -54,7 +55,7 @@ func (n *HwaddmngController) LoadConfig() {
     //     n.ServeJSON()
     //     return
     // }    
-    // permissions := []string{"AddMacIp"}
+    // permissions := []string{"LoadConfig"}
     // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     // if permissionsErr != nil || hasPermission == false {
     //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
@@ -65,6 +66,7 @@ func (n *HwaddmngController) LoadConfig() {
         anode["controller"] = "hwaddmng"
         anode["router"] = "@router / [put]"
         
+        // models.LoadConfig(anode, n.Ctx.Input.Header("user"))
         models.LoadConfig(anode)
         
         n.Data["json"] = pcap.ArpmainReturn
@@ -82,7 +84,7 @@ func (n *HwaddmngController) Config() {
     //     n.ServeJSON()
     //     return
     // }    
-    // permissions := []string{"AddMacIp"}
+    // permissions := []string{"ConfigPost"}
     // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     // if permissionsErr != nil || hasPermission == false {
     //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
@@ -96,6 +98,7 @@ func (n *HwaddmngController) Config() {
         anode["controller"] = "hwaddmng"
         anode["router"] = "@router / [post]"
         
+        // models.Config(anodeIface,anode, n.Ctx.Input.Header("user"))
         models.Config(anodeIface,anode)
         
         
@@ -114,7 +117,7 @@ func (n *HwaddmngController) Db() {
     //     n.ServeJSON()
     //     return
     // }    
-    // permissions := []string{"AddMacIp"}
+    // permissions := []string{"Db"}
     // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     // if permissionsErr != nil || hasPermission == false {
     //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
@@ -128,6 +131,7 @@ func (n *HwaddmngController) Db() {
         anode["controller"] = "hwaddmng"
         anode["router"] = "@router / [post]"
         
+        // models.Db(anodeIface,anode, n.Ctx.Input.Header("user"))
         models.Db(anodeIface,anode)
 
     // }
@@ -156,6 +160,7 @@ func (n *HwaddmngController) GetConfig() {
         anode["controller"] = "hwaddmng"
         anode["router"] = "@router / [get]"
         
+        // models.Config(anodeIface,anode, n.Ctx.Input.Header("user"))
         models.Config(anodeIface,anode)
         
         

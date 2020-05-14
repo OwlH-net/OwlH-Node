@@ -29,7 +29,7 @@ func (n *PortsController) PingPorts() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{       
-        data, err := models.PingPorts()
+        data, err := models.PingPorts(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("PingPorts OUT -- ERROR : %s", err.Error())
@@ -56,7 +56,7 @@ func (n *PortsController) ShowPorts() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{      
         logs.Info ("ports controller -> GET")
-        data,err := models.ShowPorts()
+        data,err := models.ShowPorts(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("ShowPorts OUT -- ERROR : %s", err.Error())
@@ -88,7 +88,7 @@ func (n *PortsController) ChangeMode() {
         anode["controller"] = "PORTS"
         anode["router"] = "@router /mode [put]"
     
-        err := models.ChangeMode(anode)
+        err := models.ChangeMode(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Info("ChangeMode OUT -- ERROR : %s", err.Error())
@@ -121,7 +121,7 @@ func (n *PortsController) ChangeStatus() {
         anode["router"] = "@router /status [put]"    
         anode["plugin"] = "knownports"
         logs.Info ("ports controller -> GET")
-        err := models.ChangeStatus(anode)
+        err := models.ChangeStatus(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Info("ChangeStatus OUT -- ERROR : %s", err.Error())
@@ -155,7 +155,7 @@ func (n *PortsController) DeletePorts() {
         anode["action"] = "PUT"
         anode["controller"] = "PORTS"
         anode["router"] = "@router /delete [put]"
-        err := models.DeletePorts(anode)
+        err := models.DeletePorts(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Info("DeletePorts OUT -- ERROR : %s", err.Error())
@@ -186,7 +186,7 @@ func (n *PortsController) DeleteAllPorts() {
         anode["action"] = "PUT"
         anode["controller"] = "PORTS"
         anode["router"] = "@router /mode [put]"
-        err := models.DeleteAllPorts(anode)
+        err := models.DeleteAllPorts(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Info("DeletePorts OUT -- ERROR : %s", err.Error())

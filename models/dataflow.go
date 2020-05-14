@@ -5,7 +5,7 @@ import (
     "owlhnode/changeControl"
     "github.com/astaxie/beego/logs")
 
-func ChangeDataflowValues(anode map[string]string) (err error) {
+func ChangeDataflowValues(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - ChangeDataflowValues")
@@ -33,7 +33,7 @@ func ChangeDataflowValues(anode map[string]string) (err error) {
     return err
 }
 
-func SaveSocketToNetwork(anode map[string]string) (err error) {
+func SaveSocketToNetwork(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - ChangeDataflowValues")
@@ -61,13 +61,13 @@ func SaveSocketToNetwork(anode map[string]string) (err error) {
     return err
 }
 
-func LoadDataflowValues()(data map[string]map[string]string, err error) {
+func LoadDataflowValues(username string)(data map[string]map[string]string, err error) {
     data, err = dataflow.LoadDataflowValues()
     //changecontrol.ChangeControlInsertData(err, "LoadDataflowValues")    
     return data, err
 }
 
-func SaveNewLocal(anode map[string]string)(err error) {
+func SaveNewLocal(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - SaveNewLocal")
@@ -94,7 +94,7 @@ func SaveNewLocal(anode map[string]string)(err error) {
     return err
 }
 
-func SaveVxLAN(anode map[string]string)(err error) {
+func SaveVxLAN(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - SaveVxLAN")
@@ -120,7 +120,7 @@ func SaveVxLAN(anode map[string]string)(err error) {
     return err
 }
 
-func SaveSocketToNetworkSelected(anode map[string]string)(err error) {
+func SaveSocketToNetworkSelected(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - SaveSocketToNetworkSelected")
@@ -148,7 +148,7 @@ func SaveSocketToNetworkSelected(anode map[string]string)(err error) {
     return err
 }
 
-func DeleteDataFlowValueSelected(anode map[string]string)(err error) {
+func DeleteDataFlowValueSelected(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("DATAFLOW - DeleteDataFlowValueSelected")
@@ -166,7 +166,8 @@ func DeleteDataFlowValueSelected(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    
+    cc["username"] = username
     cc["actionDescription"] = "Delete Traffic Transport configuration"
 
     changecontrol.InsertChangeControl(cc)

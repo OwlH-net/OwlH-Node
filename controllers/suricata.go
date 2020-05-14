@@ -65,7 +65,7 @@ func (n *SuricataController) SetBPF() {
         anode["router"] = "@router /bpf [put]"
     
         
-        err := models.SetBPF(anode)
+        err := models.SetBPF(anode, n.Ctx.Input.Header("user"))
     
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -100,7 +100,7 @@ func (n *SuricataController) SyncRulesetFromMaster() {
             logs.Info("key -> "+key)
         }
     
-        err := models.SyncRulesetFromMaster(anode)
+        err := models.SyncRulesetFromMaster(anode, n.Ctx.Input.Header("user"))
         
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -138,7 +138,7 @@ func (n *SuricataController) SaveConfigFile() {
             logs.Info("key -> "+key)
         }
     
-        err := models.SaveConfigFile(anode)
+        err := models.SaveConfigFile(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Info("Save configuration files -- ERROR : %s", err.Error())
@@ -174,7 +174,7 @@ func (n *SuricataController) RunSuricata() {
         for key :=range anode {
             logs.Info(key +" -> "+anode[key])
         }
-        data,err := models.RunSuricata()
+        data,err := models.RunSuricata(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("RunSuricata OUT -- ERROR : %s", err.Error())
@@ -210,7 +210,7 @@ func (n *SuricataController) StopSuricata() {
         for key :=range anode {
             logs.Info(key +" -> "+anode[key])
         }
-        data,err := models.StopSuricata()
+        data,err := models.StopSuricata(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("StopSuricata OUT -- ERROR : %s", err.Error())
@@ -236,7 +236,7 @@ func (n *SuricataController) GetSuricataServices() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{          
-        servicesSuricata,err := models.GetSuricataServices()
+        servicesSuricata,err := models.GetSuricataServices(n.Ctx.Input.Header("user"))
         n.Data["json"] = servicesSuricata
     
         if err != nil {
@@ -274,7 +274,7 @@ func (n *SuricataController) StartSuricataMainConf() {
             logs.Info("key -> "+key)
         }
     
-        err := models.StartSuricataMainConf(anode)
+        err := models.StartSuricataMainConf(anode, n.Ctx.Input.Header("user"))
         if err != nil {
             logs.Info("StartSuricataMainConf OUT -- ERROR : %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -310,7 +310,7 @@ func (n *SuricataController) StopSuricataMainConf() {
             logs.Info("key -> "+key)
         }
     
-        err := models.StopSuricataMainConf(anode)
+        err := models.StopSuricataMainConf(anode, n.Ctx.Input.Header("user"))
         if err != nil {
             logs.Info("StopSuricataMainConf OUT -- ERROR : %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -346,7 +346,7 @@ func (n *SuricataController) KillSuricataMainConf() {
             logs.Info("key -> "+key)
         }
     
-        err := models.KillSuricataMainConf(anode)
+        err := models.KillSuricataMainConf(anode, n.Ctx.Input.Header("user"))
         if err != nil {
             logs.Info("KillSuricataMainConf OUT -- ERROR : %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -382,7 +382,7 @@ func (n *SuricataController) ReloadSuricataMainConf() {
             logs.Info("key -> "+key)
         }
     
-        err := models.ReloadSuricataMainConf(anode) 
+        err := models.ReloadSuricataMainConf(anode, n.Ctx.Input.Header("user")) 
         if err != nil {
             logs.Info("ReloadSuricataMainConf OUT -- ERROR : %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -422,7 +422,7 @@ func (n *SuricataController) GetMD5files() {
             logs.Info("key -> "+key)
         }
     
-        data,err := models.GetMD5files(anode) 
+        data,err := models.GetMD5files(anode, n.Ctx.Input.Header("user")) 
         n.Data["json"] = data
         if err != nil {
             logs.Info("GetMD5files OUT -- ERROR : %s", err.Error())

@@ -6,6 +6,7 @@ import (
     "github.com/astaxie/beego/logs"
 )
 
+// func AddMacIp(data map[string]string, username string) (err error) {
 func AddMacIp(data map[string]string) (err error) {
     cc := data
     logs.Info("============")
@@ -26,13 +27,14 @@ func AddMacIp(data map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    // cc["username"] = username
     cc["actionDescription"] = "Add IP and MAC to Knownmacs"
 
     changecontrol.InsertChangeControl(cc)
     return err
 }
 
+// func LoadConfig(anode map[string]string, username string) () {
 func LoadConfig(anode map[string]string) () {
     cc := anode
     logs.Info("============")
@@ -43,13 +45,14 @@ func LoadConfig(anode map[string]string) () {
 
     logs.Info("MODELS -> Load default config")
     pcap.LoadConfig()
-
+    // cc["username"] = username
     cc["actionStatus"] = "success"
     cc["actionDescription"] = "Load default config"
 
     changecontrol.InsertChangeControl(cc)
 }
 
+// func Config(anodeIface map[string]interface{}, anode map[string]string, username string) () {
 func Config(anodeIface map[string]interface{}, anode map[string]string) () {
     cc := anode
     logs.Info("============")
@@ -60,13 +63,14 @@ func Config(anodeIface map[string]interface{}, anode map[string]string) () {
 
     logs.Info("MODELS -> Load default config")
     pcap.Config(anodeIface)
-
+    // cc["username"] = username
     cc["actionStatus"] = "success"
     cc["actionDescription"] = "Load default config"
 
     changecontrol.InsertChangeControl(cc)
 }
 
+// func Db(anodeIface map[string]string, anode map[string]string, username string) () {
 func Db(anodeIface map[string]string, anode map[string]string) () {
     cc := anode
     logs.Info("============")
@@ -77,7 +81,7 @@ func Db(anodeIface map[string]string, anode map[string]string) () {
 
     logs.Info("MODELS -> Db management")
     pcap.Db(anodeIface)
-
+    // cc["username"] = username
     cc["actionStatus"] = "success"
     cc["actionDescription"] = "Db management"
 

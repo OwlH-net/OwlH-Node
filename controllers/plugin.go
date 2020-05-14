@@ -31,7 +31,7 @@ func (n *PluginController) ChangeServiceStatus() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /ChangeServiceStatus [put]"
-        err := models.ChangeServiceStatus(anode)
+        err := models.ChangeServiceStatus(anode, n.Ctx.Input.Header("user"))
         // n.Data["json"] = err
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -61,7 +61,7 @@ func (n *PluginController) ChangeMainServiceStatus() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /ChangeMainServiceStatus [put]"
-        err := models.ChangeMainServiceStatus(anode)
+        err := models.ChangeMainServiceStatus(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -90,7 +90,7 @@ func (n *PluginController) DeleteService() {
         anode["action"] = "DELETE"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /deleteService [delete]"
-        err := models.DeleteService(anode)
+        err := models.DeleteService(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -120,7 +120,7 @@ func (n *PluginController) AddPluginService() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /addService [put]"
-        err := models.AddPluginService(anode)
+        err := models.AddPluginService(anode, n.Ctx.Input.Header("user"))
     
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -150,7 +150,7 @@ func (n *PluginController) UpdateSuricataValue() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /SaveSuricataInterface [put]"
-        err := models.UpdateSuricataValue(anode)
+        err := models.UpdateSuricataValue(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -179,7 +179,7 @@ func (n *PluginController) DeployStapService() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /deployStapService [put]"
-        err := models.DeployStapService(anode)
+        err := models.DeployStapService(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -208,7 +208,7 @@ func (n *PluginController) StopStapService() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /stopStapService [put]"
-        err := models.StopStapService(anode)
+        err := models.StopStapService(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -237,7 +237,7 @@ func (n *PluginController) ModifyNodeOptionValues() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /modifyNodeOptionValues [put]"
-        err := models.ModifyNodeOptionValues(anode)
+        err := models.ModifyNodeOptionValues(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -266,7 +266,7 @@ func (n *PluginController) ChangeSuricataTable() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /changeSuricataTable [put]"
-        err := models.ChangeSuricataTable(anode)
+        err := models.ChangeSuricataTable(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -295,7 +295,7 @@ func (n *PluginController) GetServiceCommands() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /GetServiceCommands [put]"
-        data, err := models.GetServiceCommands(anode)
+        data, err := models.GetServiceCommands(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -324,7 +324,7 @@ func (n *PluginController) SaveSurictaRulesetSelected() {
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /SaveSurictaRulesetSelected [put]"
-        err := models.SaveSurictaRulesetSelected(anode)
+        err := models.SaveSurictaRulesetSelected(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

@@ -6,7 +6,7 @@ import (
     "github.com/astaxie/beego/logs"
 )
 
-func CreateMasterToken(login map[string]string) (token string, err error) {
+func CreateMasterToken(login map[string]string, username string) (token string, err error) {
     logs.Info("============")
     logs.Info("AUTENTICATION - CreateMasterToken")
     cc := make(map[string]string)
@@ -18,14 +18,14 @@ func CreateMasterToken(login map[string]string) (token string, err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Create master token"
 
     changecontrol.InsertChangeControl(cc)
     return token, err
 }
 
-func AddUserFromMaster(user map[string]map[string]string) (err error) {
+func AddUserFromMaster(user map[string]map[string]string, username string) (err error) {
     logs.Info("============")
     logs.Info("AUTENTICATION - AddUserFromMaster")
     cc := make(map[string]string)
@@ -37,14 +37,14 @@ func AddUserFromMaster(user map[string]map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Add users from Master"
 
     changecontrol.InsertChangeControl(cc)
     return err
 }
 
-func AddRolesFromMaster(roles map[string]map[string]string) (err error) {
+func AddRolesFromMaster(roles map[string]map[string]string, username string) (err error) {
     logs.Info("============")
     logs.Info("AUTENTICATION - AddRolesFromMaster")
     cc := make(map[string]string)
@@ -56,14 +56,14 @@ func AddRolesFromMaster(roles map[string]map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Add roles from Master"
 
     changecontrol.InsertChangeControl(cc)
     return err
 }
 
-func AddGroupFromMaster(groups map[string]map[string]string) (err error) {
+func AddGroupFromMaster(groups map[string]map[string]string, username string) (err error) {
     logs.Info("============")
     logs.Info("AUTENTICATION - AddGroupFromMaster")
     cc := make(map[string]string)
@@ -75,14 +75,14 @@ func AddGroupFromMaster(groups map[string]map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Add groups from Master"
 
     changecontrol.InsertChangeControl(cc)
     return err
 }
 
-func AddUserGroupRolesFromMaster(ugr map[string]map[string]string) (err error) {
+func AddUserGroupRolesFromMaster(ugr map[string]map[string]string, username string) (err error) {
     logs.Info("============")
     logs.Info("AUTENTICATION - AddUserGroupRolesFromMaster")
     cc := make(map[string]string)
@@ -94,14 +94,14 @@ func AddUserGroupRolesFromMaster(ugr map[string]map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Add userGroupRoles from Master"
 
     changecontrol.InsertChangeControl(cc)
     return err
 }
 
-func SyncRolePermissions(rolePerm map[string]map[string]string) (err error) {
+func SyncRolePermissions(rolePerm map[string]map[string]string, username string) (err error) {
     logs.Info("============")
     logs.Info("AUTENTICATION - SyncRolePermissions")
     cc := make(map[string]string)
@@ -113,14 +113,14 @@ func SyncRolePermissions(rolePerm map[string]map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Add role permissions relation table from Master"
 
     changecontrol.InsertChangeControl(cc)
     return err
 }
 
-func SyncPermissions(perms map[string]map[string]string) (err error) {
+func SyncPermissions(perms map[string]map[string]string, username string) (err error) {
     logs.Info("============")
     logs.Info("AUTENTICATION - SyncPermissions")
     cc := make(map[string]string)
@@ -132,14 +132,14 @@ func SyncPermissions(perms map[string]map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Add permissions from Master"
 
     changecontrol.InsertChangeControl(cc)
     return err
 }
 
-func SyncRoleGroups(perms map[string]map[string]string) (err error) {
+func SyncRoleGroups(perms map[string]map[string]string, username string) (err error) {
     logs.Info("============")
     logs.Info("AUTENTICATION - SyncRoleGroups")
     cc := make(map[string]string)
@@ -151,7 +151,7 @@ func SyncRoleGroups(perms map[string]map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Add role groups from Master"
 
     changecontrol.InsertChangeControl(cc)

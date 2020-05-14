@@ -30,7 +30,7 @@ func (n *FileController) SendFile() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
         fileName := n.GetString(":fileName")
-        data, err := models.SendFile(fileName)
+        data, err := models.SendFile(fileName, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Error("send OUT -- ERROR : %s", err.Error())
@@ -59,7 +59,7 @@ func (n *FileController) SaveFile() {
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SaveFile(anode)
+        err := models.SaveFile(anode, n.Ctx.Input.Header("user"))
         anode["action"] = "PUT"
         anode["controller"] = "FILE"
         anode["router"] = "@router / [put]"
@@ -91,7 +91,7 @@ func (n *FileController) GetAllFiles() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        data,err := models.GetAllFiles()
+        data,err := models.GetAllFiles(n.Ctx.Input.Header("user"))
     
         n.Data["json"] = data
         if err != nil {
@@ -120,7 +120,7 @@ func (n *FileController) ReloadFilesData() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        data,err := models.ReloadFilesData()
+        data,err := models.ReloadFilesData(n.Ctx.Input.Header("user"))
     
         n.Data["json"] = data
         if err != nil {

@@ -6,14 +6,14 @@ import (
     "github.com/astaxie/beego/logs")
 
 
-func GetZeek() (status zeek.Zeek, err error) {
+func GetZeek(username string) (status zeek.Zeek, err error) {
     logs.Info("Zeek Status!!")
     status,err = zeek.GetZeek()
     // changecontrol.ChangeControlInsertData(err, "GetZeek")    
     return status,err
 }
 
-func SetZeek(zeekdata zeek.Zeek) (status zeek.Zeek, err error) {
+func SetZeek(zeekdata zeek.Zeek, username string) (status zeek.Zeek, err error) {
     logs.Info("ZEEK - Set and manage Zeek")
     
     cc := map[string]string{}
@@ -29,7 +29,7 @@ func SetZeek(zeekdata zeek.Zeek) (status zeek.Zeek, err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Set Zeek values and manage service status"
     
     changecontrol.InsertChangeControl(cc)
@@ -39,14 +39,14 @@ func SetZeek(zeekdata zeek.Zeek) (status zeek.Zeek, err error) {
 
 }
 
-func RunZeek() (data string, err error) {
+func RunZeek(username string) (data string, err error) {
     logs.Info("Run RunZeek system into node server")
     data,err = zeek.StartZeek("")
     // changecontrol.ChangeControlInsertData(err, "RunZeek")    
     return data,err
 }
 
-func StartZeek(action string) (data string, err error) {
+func StartZeek(action string, username string) (data string, err error) {
     logs.Info("ZEEK - Start Zeek with action " + action)
     
     cc := map[string]string{}
@@ -61,28 +61,28 @@ func StartZeek(action string) (data string, err error) {
         cc["actionStatus"] = "success"
     }
     cc["actionDescription"] = "Start Zeek with action " + action
-    
+    cc["username"] = username
     changecontrol.InsertChangeControl(cc)
     
     // changecontrol.ChangeControlInsertData(err, "StartZeek")    
     return data,err
 }
 
-func StopZeek() (data string, err error) {
+func StopZeek(username string) (data string, err error) {
     logs.Info("Stops StopZeek system into node server")
     data,err = zeek.StopZeek()
     // changecontrol.ChangeControlInsertData(err, "StopZeek")    
     return data,err
 }
 
-func DeployZeek() ( err error) {
+func DeployZeek(username string) ( err error) {
     logs.Info("DeployZeek system into node server")
     err = zeek.DeployZeek()
     // changecontrol.ChangeControlInsertData(err, "DeployZeek")    
     return err
 }
 
-func ChangeZeekMode(anode map[string]string) (err error) {
+func ChangeZeekMode(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("ZEEK - ChangeZeekMode")
     for key :=range cc {
@@ -96,7 +96,7 @@ func ChangeZeekMode(anode map[string]string) (err error) {
     return err
 }
 
-func AddClusterValue(anode map[string]string) (err error) {
+func AddClusterValue(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("ZEEK - AddClusterValue")
     for key :=range cc {
@@ -111,14 +111,14 @@ func AddClusterValue(anode map[string]string) (err error) {
     return err
 }
 
-func PingCluster()(data map[string]map[string]string, err error) {
+func PingCluster(username string)(data map[string]map[string]string, err error) {
     logs.Info("Ping Zeek cluster values")
     data, err = zeek.PingCluster()
     // changecontrol.ChangeControlInsertData(err, "PingCluster")    
     return data, err
 }
 
-func EditClusterValue(anode map[string]string) (err error) {
+func EditClusterValue(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("ZEEK - EditClusterValue")
     for key :=range cc {
@@ -133,7 +133,7 @@ func EditClusterValue(anode map[string]string) (err error) {
     return err
 }
 
-func DeleteClusterValue(anode map[string]string) (err error) {
+func DeleteClusterValue(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("ZEEK - DeleteClusterValue")
     for key :=range cc {
@@ -148,7 +148,7 @@ func DeleteClusterValue(anode map[string]string) (err error) {
     return err
 }
 
-func SyncCluster(anode map[string]string) (err error) {
+func SyncCluster(anode map[string]string, username string) (err error) {
     cc := anode
     logs.Info("ZEEK - SyncCluster")
     for key :=range cc {
@@ -163,7 +163,7 @@ func SyncCluster(anode map[string]string) (err error) {
     return err
 }
 
-func SavePolicyFiles(files map[string]map[string][]byte) (err error) {
+func SavePolicyFiles(files map[string]map[string][]byte, username string) (err error) {
     cc := files
     logs.Info("Zeek - SavePolicyFiles")
     for key :=range cc {
@@ -175,7 +175,7 @@ func SavePolicyFiles(files map[string]map[string][]byte) (err error) {
     return err
 }
 
-func SyncClusterFile(anode map[string][]byte) (err error) {
+func SyncClusterFile(anode map[string][]byte, username string) (err error) {
     logs.Info("ZEEK - SyncClusterFile")
     // for key :=range cc {
     //     logs.Info(key +" -> " + cc[key])
@@ -189,7 +189,7 @@ func SyncClusterFile(anode map[string][]byte) (err error) {
     return err
 }
 
-func LaunchZeekMainConf(anode map[string]string) (err error) {
+func LaunchZeekMainConf(anode map[string]string, username string) (err error) {
     logs.Info("ZEEK - LaunchZeekMainConf")
     // for key :=range cc {
     //     logs.Info(key +" -> " + cc[key])
@@ -232,7 +232,7 @@ func LaunchZeekMainConf(anode map[string]string) (err error) {
 //     return err
 // }
 
-func SyncZeekValues(anode map[string]string) (err error) {
+func SyncZeekValues(anode map[string]string, username string) (err error) {
     logs.Info("ZEEK - SyncZeekValues")
     // for key :=range cc {
     //     logs.Info(key +" -> " + cc[key])

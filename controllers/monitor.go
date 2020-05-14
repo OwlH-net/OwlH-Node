@@ -45,7 +45,7 @@ func (n *MonitorController) AddMonitorFile() {
         anode["controller"] = "MONITOR"
         anode["router"] = "@router /addFile [post]"
     
-        err := models.AddMonitorFile(anode)
+        err := models.AddMonitorFile(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -71,7 +71,7 @@ func (n *MonitorController) PingMonitorFiles() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        data,err := models.PingMonitorFiles()
+        data,err := models.PingMonitorFiles(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
     }        
@@ -100,7 +100,7 @@ func (n *MonitorController) DeleteMonitorFile() {
         anode["controller"] = "MONITOR"
         anode["router"] = "@router /deleteFile [delete]"
         
-        err := models.DeleteMonitorFile(anode)
+        err := models.DeleteMonitorFile(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -132,7 +132,7 @@ func (n *MonitorController) ChangeRotationStatus() {
         anode["controller"] = "MONITOR"
         anode["router"] = "@router /changeRotationStatus [put]"
         
-        err := models.ChangeRotationStatus(anode)
+        err := models.ChangeRotationStatus(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -164,7 +164,7 @@ func (n *MonitorController) EditRotation() {
         anode["controller"] = "MONITOR"
         anode["router"] = "@router /editRotation [put]"
         
-        err := models.EditRotation(anode)
+        err := models.EditRotation(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

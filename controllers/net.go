@@ -26,7 +26,7 @@ func (n *NetController) GetNetworkData() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        values,err := models.GetNetworkData()
+        values,err := models.GetNetworkData(n.Ctx.Input.Header("user"))
         
         n.Data["json"] = values
         if err != nil {
@@ -51,7 +51,7 @@ func (n *NetController) LoadNetworkValuesSelected() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        values,err := models.LoadNetworkValuesSelected()
+        values,err := models.LoadNetworkValuesSelected(n.Ctx.Input.Header("user"))
         
         n.Data["json"] = values
         if err != nil {
@@ -83,7 +83,7 @@ func (n *NetController) UpdateNetworkInterface() {
         anode["action"] = "PUT"
         anode["controller"] = "NET"
         anode["router"] = "@router / [put]"
-        err := models.UpdateNetworkInterface(anode)
+        err := models.UpdateNetworkInterface(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

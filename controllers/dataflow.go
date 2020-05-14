@@ -30,7 +30,7 @@ func (n *DataflowController) ChangeDataflowValues() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
-        err := models.ChangeDataflowValues(anode)
+        err := models.ChangeDataflowValues(anode, n.Ctx.Input.Header("user"))
         anode["action"] = "PUT"
         anode["controller"] = "DATAFLOW"
         anode["router"] = "@router /changeDataflowValues [put]"
@@ -60,7 +60,7 @@ func (n *DataflowController) LoadDataflowValues() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        data,err := models.LoadDataflowValues()
+        data,err := models.LoadDataflowValues(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -91,7 +91,7 @@ func (n *DataflowController) SaveSocketToNetwork() {
         anode["action"] = "PUT"
         anode["controller"] = "DATAFLOW"
         anode["router"] = "@router /saveSocketToNetwork [put]"    
-        err := models.SaveSocketToNetwork(anode)
+        err := models.SaveSocketToNetwork(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -122,7 +122,7 @@ func (n *DataflowController) SaveNewLocal() {
         anode["action"] = "PUT"
         anode["controller"] = "DATAFLOW"
         anode["router"] = "@router /saveNewLocal [put]"    
-        err := models.SaveNewLocal(anode)
+        err := models.SaveNewLocal(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -153,7 +153,7 @@ func (n *DataflowController) SaveVxLAN() {
         anode["action"] = "PUT"
         anode["controller"] = "DATAFLOW"
         anode["router"] = "@router /saveVxLAN [put]"    
-        err := models.SaveVxLAN(anode)
+        err := models.SaveVxLAN(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -184,7 +184,7 @@ func (n *DataflowController) SaveSocketToNetworkSelected() {
         anode["action"] = "PUT"
         anode["controller"] = "DATAFLOW"
         anode["router"] = "@router /saveSocketToNetworkSelected [put]"    
-        err := models.SaveSocketToNetworkSelected(anode)
+        err := models.SaveSocketToNetworkSelected(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -215,7 +215,7 @@ func (n *DataflowController) DeleteDataFlowValueSelected() {
         anode["action"] = "DELETE"
         anode["controller"] = "DATAFLOW"
         anode["router"] = "@router /deleteDataFlowValueSelected [delete]"    
-        err := models.DeleteDataFlowValueSelected(anode)
+        err := models.DeleteDataFlowValueSelected(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

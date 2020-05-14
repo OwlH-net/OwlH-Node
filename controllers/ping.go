@@ -49,7 +49,7 @@ func (n *PingController) UpdateNodeData() {
         for key := range anode {
             logs.Info("key -> "+key)
         }
-        err := models.UpdateNodeData(anode)
+        err := models.UpdateNodeData(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -73,7 +73,7 @@ func (n *PingController) PingService() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        err := models.PingService()
+        err := models.PingService(n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -102,7 +102,7 @@ func (n *PingController) DeployService() {
         logs.Info("ACTION -> PUT")
         logs.Info("CONTROLLER -> PING")
         logs.Info("ROUTER -> @router /deployservice [put]")
-        err := models.DeployService(anode)
+        err := models.DeployService(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -126,7 +126,7 @@ func (n *PingController) GetMainconfData() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        data,err := models.GetMainconfData()
+        data,err := models.GetMainconfData(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -155,7 +155,7 @@ func (n *PingController) PingPluginsNode() {
         errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none", "error": "Not enough permissions"}
         n.Data["json"] = errorResponse
     }else{         
-        data, err := models.PingPluginsNode()
+        data, err := models.PingPluginsNode(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             var errorResponse = map[string]map[string]string{}
@@ -187,7 +187,7 @@ func (n *PingController) SaveNodeInformation() {
         logs.Info("ACTION -> PUT")
         logs.Info("CONTROLLER -> PING")
         logs.Info("ROUTER -> @router /SaveNodeInformation [put]")
-        err := models.SaveNodeInformation(anode)
+        err := models.SaveNodeInformation(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -215,7 +215,7 @@ func (n *PingController) DeleteNode() {
         logs.Info("ACTION -> PUT")
         logs.Info("CONTROLLER -> PING")
         logs.Info("ROUTER -> @router /DeleteNode [put]")
-        err := models.DeleteNode(n.Ctx.Input.Header("uuid"))
+        err := models.DeleteNode(n.Ctx.Input.Header("uuid"), n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

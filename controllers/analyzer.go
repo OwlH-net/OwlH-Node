@@ -29,7 +29,7 @@ func (n *AnalyzerController) PingAnalyzer() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
-        data, err := models.PingAnalyzer()
+        data, err := models.PingAnalyzer(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Error("PingAnalyzer OUT -- ERROR : %s", err.Error())
@@ -60,7 +60,7 @@ func (n *AnalyzerController) ChangeAnalyzerStatus() {
         anode["action"] = "PUT"
         anode["controller"] = "ANALYZER"
         anode["router"] = "@router /changeAnalyzerStatus [put]"
-        err := models.ChangeAnalyzerStatus(anode)
+        err := models.ChangeAnalyzerStatus(anode, n.Ctx.Input.Header("user"))
     
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -92,7 +92,7 @@ func (n *AnalyzerController) SyncAnalyzer() {
     }else{    
         var anode map[string][]byte
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SyncAnalyzer(anode)
+        err := models.SyncAnalyzer(anode, n.Ctx.Input.Header("user"))
     
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {

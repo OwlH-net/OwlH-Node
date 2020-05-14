@@ -35,7 +35,7 @@ func (n *StapController) AddServer() {
         newServer["action"] = "POST"
         newServer["controller"] = "STAP"
         newServer["router"] = "@router / [post]"
-        err := models.AddServer(newServer)
+        err := models.AddServer(newServer, n.Ctx.Input.Header("user"))
     
         n.Data["json"] = map[string]string{"ack": "true"}
     
@@ -65,7 +65,7 @@ func (n *StapController) GetAllServers() {
     }else{       
         logs.Info ("stap controller -> GetAllServers")
     
-        servers, err := models.GetAllServers()
+        servers, err := models.GetAllServers(n.Ctx.Input.Header("user"))
     
         n.Data["json"] = servers
     
@@ -95,7 +95,7 @@ func (n *StapController) GetServer() {
     }else{       
         logs.Info ("stap controller -> GetServer")
         uuid := n.GetString(":uuid") 
-        server, err := models.GetServer(uuid)
+        server, err := models.GetServer(uuid, n.Ctx.Input.Header("user"))
     
         n.Data["json"] = server
     
@@ -126,7 +126,7 @@ func (n *StapController) PingStap() {
         logs.Info ("Stap controller -> PingStap")
         uuid := n.GetString(":uuid")
         logs.Info("Ping Stap uuid = "+uuid)
-        server,err := models.PingStap(uuid)
+        server,err := models.PingStap(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = server
         if err != nil {
             logs.Info("PingStap ERROR: %s", err.Error())
@@ -166,7 +166,7 @@ func (n *StapController) RunStap() {
             logs.Info(key +" -> "+anode[key])
         }
     
-        data,err := models.RunStap(uuid)
+        data,err := models.RunStap(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("RunStap OUT -- ERROR : %s", err.Error())
@@ -206,7 +206,7 @@ func (n *StapController) StopStap() {
         for key :=range anode {
             logs.Info(key +" -> "+anode[key])
         }
-        data,err := models.StopStap(uuid)
+        data,err := models.StopStap(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("StopStap OUT -- ERROR : %s", err.Error())
@@ -246,7 +246,7 @@ func (n *StapController) RunStapServer() {
         for key :=range anode {
             logs.Info(key +" -> "+anode[key])
         }
-        data,err := models.RunStapServer(serveruuid)
+        data,err := models.RunStapServer(serveruuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         //logs.Warn("data RunStapServer -->"+data)
         if err != nil {
@@ -287,7 +287,7 @@ func (n *StapController) StopStapServer() {
         for key :=range anode {
             logs.Info(key +" -> "+anode[key])
         }
-        data,err := models.StopStapServer(serveruuid)
+        data,err := models.StopStapServer(serveruuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("StopStapServer OUT -- ERROR : %s", err.Error())
@@ -318,7 +318,7 @@ func (n *StapController) PingServerStap() {
         server := n.GetString(":server")
         logs.Info("Ping Stap server = "+server)
     
-        data, err := models.PingServerStap(server)
+        data, err := models.PingServerStap(server, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("PingServerStap OUT -- ERROR : %s", err.Error())
@@ -358,7 +358,7 @@ func (n *StapController) DeleteStapServer() {
             logs.Info(key +" -> "+anode[key])
         }
         
-        data,err := models.DeleteStapServer(serveruuid)
+        data,err := models.DeleteStapServer(serveruuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("DeleteStapServer OUT -- ERROR : %s", err.Error())
@@ -392,7 +392,7 @@ func (n *StapController) EditStapServer() {
         anode["controller"] = "STAP"
         anode["router"] = "@router /EditStapServer [put]"
     
-        err := models.EditStapServer(anode)
+        err := models.EditStapServer(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Info("EditStapServer OUT -- ERROR : %s", err.Error())

@@ -30,7 +30,7 @@ func (n *GroupController) SyncSuricataGroupValues() {
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SyncSuricataGroupValues(anode)
+        err := models.SyncSuricataGroupValues(anode, n.Ctx.Input.Header("user"))
         
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -59,7 +59,7 @@ func (n *GroupController) SuricataGroupService() {
     }else{         
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SuricataGroupService(anode)
+        err := models.SuricataGroupService(anode, n.Ctx.Input.Header("user"))
     
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -97,7 +97,7 @@ func (n *GroupController) SyncGroupRulesetToNode() {
         //     logs.Info("key -> "+key)
         // }
     
-        err := models.SyncGroupRulesetToNode(anode)
+        err := models.SyncGroupRulesetToNode(anode, n.Ctx.Input.Header("user"))
         
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {

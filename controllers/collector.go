@@ -28,7 +28,7 @@ func (n *CollectorController) PlayCollector() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
-        err := models.PlayCollector()
+        err := models.PlayCollector(n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
@@ -55,7 +55,7 @@ func (n *CollectorController) StopCollector() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
-        err := models.StopCollector()
+        err := models.StopCollector(n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
@@ -82,7 +82,7 @@ func (n *CollectorController) ShowCollector() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{    
-        data, err := models.ShowCollector()
+        data, err := models.ShowCollector(n.Ctx.Input.Header("user"))
         n.Data["json"] =  map[string]string{"data": data}
     
         if err != nil {
