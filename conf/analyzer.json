@@ -1,5 +1,5 @@
 {
-    "enable":true,
+    "enable":false,
     "outputfile":"/var/log/owlh/alerts.json",
     "prefilterfile":"conf/prefilters.json",
     "postfilterfile":"conf/postfilters.json",

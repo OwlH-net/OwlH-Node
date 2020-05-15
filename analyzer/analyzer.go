@@ -545,7 +545,7 @@ func ControlSource(file, uuid string) {
     }
     filedet, err := os.Stat(file)
     if os.IsNotExist(err) {
-        logs.Error("file %s doesn't exists. we don't control files like this.")
+        logs.Error("file %s doesn't exists. we don't control files like this.", file)
         return
     }
 
