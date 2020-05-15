@@ -140,6 +140,7 @@ func (n *HwaddmngController) Db() {
 
 // @Title Config
 // @Description Config ARPConfig
+// @router / [get]
 // @router /config [get]
 func (n *HwaddmngController) GetConfig() {
 	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))

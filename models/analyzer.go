@@ -48,7 +48,7 @@ func SyncAnalyzer(file map[string][]byte, username string) (err error) {
     cc["router"] = "@router /SyncAnalyzer [put]"
     logs.Info("============")
     logs.Info("ANALYZER - SyncAnalyzer")
-    logs.Info("file - conf/analyzer.json")
+    logs.Info("file - analyzer.json")
     //TODO action
     err = analyzer.SyncAnalyzer(file)
     
