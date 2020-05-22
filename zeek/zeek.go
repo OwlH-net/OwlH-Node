@@ -126,6 +126,7 @@ func Loadconfig() {
             zeekConfig.Managed = false
         }
     }
+    ReadZeekNodeData()
 }
 
 func ReadZeekNodeData() {
@@ -353,6 +354,7 @@ func ZeekStatus() (zeekstatus []ZeekNode, err error) {
                 node.Status = line[3]
                 if len(line) > 4 {
                     node.Pid = line[4]
+                    node.Started = strings.Join(line[5:], " ")
                 }
                 nodes = append(nodes, node)
             }
@@ -373,16 +375,16 @@ func ZeekCurrentStatus() (status string, err error) {
 }
 
 func GetZeek() (zeek Zeek, err error) {
-
+    Loadconfig()
     if zeekConfig.Verbose {
         logs.Info("ZEEK - Getting zeek values")
     }
 
-    if !canIManage() {
-        str := fmt.Sprintf("ZEEK Management - This node belongs to a Cluster, but is not the manager, manager is at %s ", GlobalZeekCFG.Managerip)
-        logs.Warn(str)
-        return zeek, errors.New(str)
-    }
+    // if !canIManage() {
+    //     str := fmt.Sprintf("ZEEK Management - This node belongs to a Cluster, but is not the manager, manager is at %s ", GlobalZeekCFG.Managerip)
+    //     logs.Warn(str)
+    //     return zeek, errors.New(str)
+    // }
 
     zeek.Path = ZeekPath()
     zeek.Bin = ZeekBin()
@@ -419,6 +421,7 @@ func GetZeek() (zeek Zeek, err error) {
             zeek.Running = append(zeek.Running, newStatus)
         }
     }
+    logs.Debug("%+v", zeek)
     return zeek, nil
 }
 
@@ -1166,5 +1169,4 @@ func SyncZeekValues(anode map[string]string) (err error) {
 
 func Init() {
     Loadconfig()
-    ReadZeekNodeData()
 }
