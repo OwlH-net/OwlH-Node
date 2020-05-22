@@ -126,6 +126,7 @@ func Loadconfig() {
             zeekConfig.Managed = false
         }
     }
+    ReadZeekNodeData()
 }
 
 func ReadZeekNodeData() {
@@ -1166,5 +1167,5 @@ func SyncZeekValues(anode map[string]string) (err error) {
 
 func Init() {
     Loadconfig()
-    ReadZeekNodeData()
+    // ReadZeekNodeData()
 }
