@@ -2,6 +2,7 @@ package zeek
 
 import (
     "bufio"
+    "encoding/json"
     "errors"
     "fmt"
     "github.com/astaxie/beego/logs"
@@ -14,6 +15,11 @@ import (
     "strings"
     "time"
 )
+
+type Diag map[string]Diagnodes
+type Diagnodes map[string][]string
+
+var Diagnosis = make(Diag)
 
 type NKeys map[string]string
 type Nodes map[string]NKeys
@@ -231,24 +237,6 @@ func StartingZeekAtNodeInit() error {
 }
 
 func AmITheManager() (manager bool, ip string) {
-    // var ismanager bool
-    // var hostip string
-    // for node := range NodesConfig {
-    //     ismanager = false
-    //     hostip = ""
-    //     for key := range NodesConfig[node].Keys {
-    //         if NodesConfig[node].Keys[key].Key == "type" && NodesConfig[node].Keys[key].Value == "manager" {
-    //             ismanager = true
-    //         }
-    //         if NodesConfig[node].Keys[key].Key == "host" {
-    //             hostip = NodesConfig[node].Keys[key].Value
-    //         }
-    //     }
-    //     if ismanager {
-    //         return utils.IsLocalAddress(hostip), hostip
-    //     }
-    // }
-
     for node := range GlobalZeekCFG.Nodes {
         if GlobalZeekCFG.Nodes[node]["type"] == "manager" {
             hostip := GlobalZeekCFG.Nodes[node]["host"]
@@ -385,12 +373,6 @@ func GetZeek() (zeek Zeek, err error) {
         logs.Info("ZEEK - Getting zeek values")
     }
 
-    // if !canIManage() {
-    //     str := fmt.Sprintf("ZEEK Management - This node belongs to a Cluster, but is not the manager, manager is at %s ", GlobalZeekCFG.Managerip)
-    //     logs.Warn(str)
-    //     return zeek, errors.New(str)
-    // }
-
     zeek.Path = ZeekPath()
     zeek.Bin = ZeekBin()
     if !zeek.Path || !zeek.Bin {
@@ -471,21 +453,6 @@ func ZeekMode() (mode string) {
 func ZeekManaged() (ismanaged bool) {
     Loadconfig()
     return zeekConfig.Managed
-    // if zeekConfig.Verbose {
-    //     logs.Info("Zeek check managed status")
-    // }
-    // currentstatus, err := ndb.GetMainconfParam("zeek", "status")
-    // if err != nil {
-    //     logs.Error("Error Zeek Mode Get current Status: " + err.Error())
-    //     return false
-    // }
-    // if zeekConfig.Verbose {
-    //     logs.Info("ZEEK -> current Managed Mode: " + currentstatus)
-    // }
-    // if currentstatus == "enabled" {
-    //     return true
-    // }
-    // return false
 }
 
 //Run zeek
@@ -712,6 +679,7 @@ func StoppingZeek() (err error) {
 }
 
 func ChangeZeekPreviousStatus() (err error) {
+    logs.Debug("change zeek previous status called")
     return nil
     err = ndb.UpdateMainconfValue("zeek", "previousStatus", "stop")
     if err != nil {
@@ -1110,9 +1078,11 @@ func DiagZeek() (data map[string]string, err error) {
 
     output, err := exec.Command(zeekctl, diag).Output()
     linesResult := make(map[string]string)
-    linesResult["result"] = string(output)
+    linesResult["raw"] = string(output)
     linesResult["ack"] = "true"
-
+    parseDiag(string(output))
+    JsonDiag, _ := json.Marshal(Diagnosis)
+    linesResult["result"] = string(JsonDiag)
     if err != nil {
         logs.Error("ERROR - ZEEK - zeek diag: %s", err.Error())
         linesResult["ack"] = "false"
@@ -1123,6 +1093,48 @@ func DiagZeek() (data map[string]string, err error) {
     }
 
     return linesResult, err
+}
+
+func parseDiag(output string) (data Diag) {
+    Diagnosis = make(Diag)
+    lines := strings.Split(output, "\n")
+    currentnode := "warnings"
+    currentitem := ""
+    Diagnosis[currentnode] = make(Diagnodes)
+
+    for line := range lines {
+        if lines[line] == "" {
+            continue
+        }
+        logs.Debug("zeek - parse diag - parsing line - %s", lines[line])
+        var nodename = regexp.MustCompile(`^\[([^\]]+)]`)
+        if val := nodename.FindStringSubmatch(lines[line]); val != nil {
+            logs.Debug("zeek - parse diag - parsing node - %s", lines[line])
+            currentnode = val[1]
+            currentitem = "details"
+            if _, ok := Diagnosis[currentnode]; !ok {
+                Diagnosis[currentnode] = make(Diagnodes)
+                Diagnosis[currentnode][currentitem] = []string{}
+            }
+            continue
+        }
+
+        var nodeparam = regexp.MustCompile(`==== (.*)`)
+        if val := nodeparam.FindStringSubmatch(lines[line]); val != nil {
+            logs.Debug("zeek - parse diag - parsing item - %s", lines[line])
+
+            currentitem = val[1]
+            Diagnosis[currentnode][currentitem] = []string{}
+            continue
+        }
+        logs.Debug("zeek - parse diag - parsing content - %s", lines[line])
+
+        Diagnosis[currentnode][currentitem] = append(Diagnosis[currentnode][currentitem], lines[line])
+    }
+    logs.Debug(Diagnosis)
+    byteData, _ := json.Marshal(Diagnosis)
+    logs.Debug(string(byteData))
+    return Diagnosis
 }
 
 func Init() {

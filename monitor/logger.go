@@ -1,5 +1,5 @@
 package monitor
- 
+
 import (
     "bufio"
     "github.com/astaxie/beego/logs"
@@ -13,13 +13,13 @@ import (
     "time"
     // "io/ioutil"
 )
- 
+
 type Targetfile struct {
     lastrotated time.Time
 }
- 
+
 var Targets = map[string]Targetfile{}
- 
+
 func Logger() {
     var err error
     //get logger parameters
@@ -51,55 +51,14 @@ func Logger() {
     if err != nil {
         logs.Error("Error getting data from main.conf for load Logger data: " + err.Error())
     }
- 
-    // //get monitor files
-    // jsonPath, err := ioutil.ReadFile("conf/main.conf")
-    // if err != nil {logs.Error("Main Error oppening Logger file: "+err.Error())}
-    // logFiles := map[string]map[string]string{}
-    // json.Unmarshal(jsonPath, &logFiles)
- 
-    // exists := false
-    // for x,y := range logFiles{
-    //     if x == "monitorfile"{
-    //         for y,_ := range y{
-    //             for param,path := range data {
-    //                 for path,_ := range path {
-    //                     if data[param][path] == logFiles[x][y]{
-    //                         exists = true
-    //                     }
-    //                 }
-    //             }
-    //             if !exists {
-    //                 //check if file exists
-    //                 if _, err := os.Stat(logFiles[x][y]); os.IsNotExist(err) {
-    //                     logs.Info("Creating path: "+filepath.Dir(logFiles[x][y]))
-    //                     err = os.MkdirAll(filepath.Dir(logFiles[x][y]), os.ModePerm)
-    //                     if err != nil {logs.Error("Main Error creating logger file path: "+err.Error())}
-    //                     _, err := os.Create(logFiles[x][y])
-    //                     logs.Info("Creating file: "+logFiles[x][y])
-    //                     if err != nil {logs.Error("Main Error creating logger file: "+err.Error())}
-    //                 }
-    //                 //insert into db
-    //                 uuid := utils.Generate()
-    //                 err = ndb.InsertMonitorValue(uuid,"path", logFiles[x][y])
-    //                 if err != nil {logs.Error("Main Error inserting logger file into database: "+err.Error())}
-    //             }
-    //             exists = false
-    //         }
-    //     }
-    // }
- 
-    // data,err = ndb.LoadMonitorFiles()
-    // if err != nil {logs.Error("Error getting monitor files for logger: "+err.Error())}
-    // for id,path := range data {
-    //     for path,_ := range path {
+
     logs.NewLogger(10000)
     logs.SetLogger(logs.AdapterFile, `{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
     // logs.SetLogger(logs.AdapterFile,`{"filename":"`+data[id][path]+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
     //     }
     // }
 }
- 
+
 func FileRotation() {
     for {
         var err error
@@ -107,7 +66,7 @@ func FileRotation() {
         if err != nil {
             logs.Error("FileRotation ERROR readding rotation files from DB: " + err.Error())
         }
- 
+
         for x := range rotate {
             //Check if file exists.
             _, err := os.Stat(rotate[x]["path"])
@@ -147,21 +106,21 @@ func FileRotation() {
                 if err != nil {
                     logs.Error("FileRotation Error filepath walk finish: " + err.Error())
                 }
- 
+
                 file, err := os.OpenFile(rotate[x]["path"], os.O_RDWR, 0644)
                 if err != nil {
                     logs.Error("FileRotation ERROR readding file: " + err.Error())
                 }
                 defer file.Close()
                 fileInfo, err := file.Stat()
- 
+
                 //get number of lines for check maxLines
                 lines := 0
                 scanner := bufio.NewScanner(file)
                 for scanner.Scan() {
                     lines++
                 }
- 
+
                 fileLines, _ := strconv.Atoi(rotate[x]["maxLines"])
                 fileSize, _ := strconv.ParseInt(rotate[x]["maxSize"], 10, 64)
                 if lines > fileLines {
@@ -222,7 +181,7 @@ func FileRotation() {
         time.Sleep(time.Minute * time.Duration(tDuration))
     }
 }
- 
+
 func EditRotation(anode map[string]string) (err error) {
     err = ndb.UpdateMonitorFileValue(anode["file"], "path", anode["path"])
     if err != nil {

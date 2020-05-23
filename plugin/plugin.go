@@ -74,14 +74,21 @@ func ChangeServiceStatus(anode map[string]string) (err error) {
 }
 
 func ChangeMainServiceStatus(anode map[string]string) (err error) {
-    err = ndb.UpdateMainconfValue(anode["service"], anode["param"], anode["status"])
-    if err != nil {
-        logs.Error("plugin/ChangeMainServiceStatus error: " + err.Error())
-        return err
-    }
+    // err = ndb.UpdateMainconfValue(anode["service"], anode["param"], anode["status"])
+    // if err != nil {
+    //     logs.Error("plugin/ChangeMainServiceStatus error: " + err.Error())
+    //     return err
+    // }
+    maindonfdata, err := ndb.GetMainconfData()
 
     allPlugins, err := ndb.GetPlugins()
     if anode["service"] == "suricata" {
+        logs.Debug("Suricata Status Update to %s", anode["status"])
+        if anode["status"] == "enabled" || anode["status"] == "" {
+            err = ndb.UpdateMainconfValue("suricata", "status", "enabled")
+        } else {
+            err = ndb.UpdateMainconfValue("suricata", "status", "disabled")
+        }
         for x := range allPlugins {
             if anode["status"] == "disabled" {
                 if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata" {
@@ -102,12 +109,12 @@ func ChangeMainServiceStatus(anode map[string]string) (err error) {
             }
         }
     } else if anode["service"] == "zeek" {
-        if anode["status"] == "enabled" {
-            err = ndb.UpdateMainconfValue("zeek", "status", "enabled")
-
-        } else if anode["status"] == "disabled" {
+        logs.Debug("%+v", maindonfdata)
+        logs.Debug("zeek service change key %s to value %s from %s", anode["param"], anode["status"], maindonfdata["zeek"]["status"])
+        if maindonfdata["zeek"]["status"] == "enabled" || maindonfdata["zeek"]["status"] == "" {
             err = ndb.UpdateMainconfValue("zeek", "status", "disabled")
-
+        } else if maindonfdata["zeek"]["status"] == "disabled" {
+            err = ndb.UpdateMainconfValue("zeek", "status", "enabled")
         }
         if err != nil {
             logs.Error("ERROR - ChangeMainServiceStatus group 'zeek', key 'status' at mainconf database: %s", err.Error())
