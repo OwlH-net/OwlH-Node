@@ -2,6 +2,7 @@ package controllers
 
 import (
     "encoding/json"
+    "fmt"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
     "owlhnode/models"
@@ -27,10 +28,8 @@ func (n *ZeekController) Get() {
         n.ServeJSON()
         return
     }
-    logs.Info("Zeek - Get info - validate permissons")
     permissions := []string{"GetZeek"}
     hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
-    logs.Info("Zeek - Get info - check them permissons")
 
     if permissionsErr != nil || hasPermission == false {
         logs.Error("zeek - user %s doesn't has permissions for Zeek GET INFO ", n.Ctx.Input.Header("user"))
@@ -82,6 +81,71 @@ func (n *ZeekController) Set() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
+    n.ServeJSON()
+}
+
+// @Title Run Zeekctl command
+// @Description run zeekctl command stop - start - deploy - status -diag
+// @Success 200 {object} models.zeek
+// @router /:command [put]
+func (n *ZeekController) Command() {
+    // errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    // if errToken != nil {
+    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+    //     n.ServeJSON()
+    //     return
+    // }
+    // permissions := []string{"RunZeekCommand"}
+    // hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    // if  permissionsErr != nil || hasPermission == false {
+    if false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        cmd := n.GetString(":command")
+        var iserror error
+        switch cmd {
+        case "start":
+            data, err := models.StartZeek("start", n.Ctx.Input.Header("user"))
+            n.Data["json"] = data
+            if err != nil {
+                iserror = err
+            }
+        case "stop":
+            data, err := models.StopZeek(n.Ctx.Input.Header("user"))
+            n.Data["json"] = data
+            if err != nil {
+                iserror = err
+            }
+        case "deploy":
+            data, err := models.DeployZeek(n.Ctx.Input.Header("user"))
+            n.Data["json"] = data
+            if err != nil {
+                iserror = err
+            }
+        case "diag":
+            data, err := models.DiagZeek(n.Ctx.Input.Header("user"))
+            n.Data["json"] = data
+
+            if err != nil {
+                iserror = err
+            }
+        case "status":
+            data, err := models.GetZeek(n.Ctx.Input.Header("user"))
+            n.Data["json"] = data
+            if err != nil {
+                iserror = err
+            }
+        default:
+            str := fmt.Sprintf("ZEEK - Run command %s -- ERROR : Command Unknown", cmd)
+            logs.Error(str)
+            n.Data["json"] = map[string]string{"ack": "false", "error": str}
+        }
+        if iserror != nil {
+            logs.Error("ZEEK - Run command %s -- ERROR : %s", cmd, iserror.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": iserror.Error()}
+        }
+    }
+    logs.Info("Zeek - run command - return back ")
     n.ServeJSON()
 }
 

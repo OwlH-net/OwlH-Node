@@ -75,11 +75,11 @@ func StopZeek(username string) (data string, err error) {
     return data, err
 }
 
-func DeployZeek(username string) (err error) {
+func DeployZeek(username string) (data string, err error) {
     logs.Info("DeployZeek system into node server")
     err = zeek.DeployZeek()
     // changecontrol.ChangeControlInsertData(err, "DeployZeek")
-    return err
+    return "", err
 }
 
 func ChangeZeekMode(anode map[string]string, username string) (err error) {
@@ -114,6 +114,13 @@ func AddClusterValue(anode map[string]string, username string) (err error) {
 func PingCluster(username string) (data map[string]map[string]string, err error) {
     logs.Info("Ping Zeek cluster values")
     data, err = zeek.PingCluster()
+    // changecontrol.ChangeControlInsertData(err, "PingCluster")
+    return data, err
+}
+
+func DiagZeek(username string) (data map[string]string, err error) {
+    logs.Info("Zeek diagnosis command")
+    data, err = zeek.DiagZeek()
     // changecontrol.ChangeControlInsertData(err, "PingCluster")
     return data, err
 }
