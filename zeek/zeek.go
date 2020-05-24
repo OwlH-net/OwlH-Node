@@ -679,7 +679,6 @@ func StoppingZeek() (err error) {
 }
 
 func ChangeZeekPreviousStatus() (err error) {
-    logs.Debug("change zeek previous status called")
     return nil
     err = ndb.UpdateMainconfValue("zeek", "previousStatus", "stop")
     if err != nil {
@@ -1106,10 +1105,8 @@ func parseDiag(output string) (data Diag) {
         if lines[line] == "" {
             continue
         }
-        logs.Debug("zeek - parse diag - parsing line - %s", lines[line])
         var nodename = regexp.MustCompile(`^\[([^\]]+)]`)
         if val := nodename.FindStringSubmatch(lines[line]); val != nil {
-            logs.Debug("zeek - parse diag - parsing node - %s", lines[line])
             currentnode = val[1]
             currentitem = "details"
             if _, ok := Diagnosis[currentnode]; !ok {
@@ -1121,19 +1118,12 @@ func parseDiag(output string) (data Diag) {
 
         var nodeparam = regexp.MustCompile(`==== (.*)`)
         if val := nodeparam.FindStringSubmatch(lines[line]); val != nil {
-            logs.Debug("zeek - parse diag - parsing item - %s", lines[line])
-
             currentitem = val[1]
             Diagnosis[currentnode][currentitem] = []string{}
             continue
         }
-        logs.Debug("zeek - parse diag - parsing content - %s", lines[line])
-
         Diagnosis[currentnode][currentitem] = append(Diagnosis[currentnode][currentitem], lines[line])
     }
-    logs.Debug(Diagnosis)
-    byteData, _ := json.Marshal(Diagnosis)
-    logs.Debug(string(byteData))
     return Diagnosis
 }
 

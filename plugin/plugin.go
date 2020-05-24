@@ -1,6 +1,7 @@
 package plugin
 
 import (
+    "fmt"
     "github.com/astaxie/beego/logs"
     "owlhnode/database"
     "owlhnode/zeek"
@@ -18,6 +19,7 @@ import (
 
 func ChangeServiceStatus(anode map[string]string) (err error) {
     allPlugins, err := ndb.GetPlugins()
+    logs.Debug("service to change data -> %+v", anode)
     if anode["type"] == "suricata" {
         mainConfData, err := ndb.GetMainconfData()
         if mainConfData["suricata"]["status"] == "disabled" {
@@ -429,7 +431,6 @@ func UpdateSuricataValue(anode map[string]string) (err error) {
 }
 
 func SaveSurictaRulesetSelected(anode map[string]string) (err error) {
-    logs.Notice(anode)
     //update uuid
     err = ndb.UpdatePluginValue(anode["service"], "ruleset", anode["rulesetID"])
     if err != nil {
@@ -608,18 +609,6 @@ func CheckServicesStatus() {
 }
 
 func LaunchSuricataService(uuid string, iface string) (err error) {
-    suricataBackup, err := utils.GetKeyValueString("suricata", "backup")
-    if err != nil {
-        logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
-    }
-    filter, err := utils.GetKeyValueString("suricata", "filter")
-    if err != nil {
-        logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
-    }
-    pidFile, err := utils.GetKeyValueString("suricata", "pidfile")
-    if err != nil {
-        logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
-    }
     fullpidfile, err := utils.GetKeyValueString("suricata", "fullpidfile")
     if err != nil {
         logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
@@ -628,11 +617,7 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
     if err != nil {
         logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
     }
-    param, err := utils.GetKeyValueString("execute", "param")
-    if err != nil {
-        logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
-    }
-    suricata_config, err := utils.GetKeyValueString("files", "suricata_config")
+    suricata_config, err := utils.GetKeyValueString("suricata", "suricata_config")
     if err != nil {
         logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
     }
@@ -642,44 +627,90 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
         return nil
     }
 
-    _ = os.Remove(suricataBackup + uuid + "-" + pidFile)
-    cmd := exec.Command(suricata, "-D", param, suricata_config, "-i", iface, "-F", strings.Replace(filter, "<ID>", uuid, -1), "--pidfile", strings.Replace(fullpidfile, "<ID>", uuid, -1))
-    var stdBuffer bytes.Buffer
-    cmd.Stderr = &stdBuffer
+    allPlugins, err := ndb.GetPlugins()
 
-    err = cmd.Run()
+    if allPlugins[uuid]["configFile"] != "" {
+        suricata_config = allPlugins[uuid]["configFile"]
+    } else if suricata_config == "" {
+        str := fmt.Sprintf("SURICATA - Start Suricata - missing suricata configuration file, please review default value in main.conf, or configFile property of Suricata %s ", allPlugins[uuid]["name"])
+        logs.Error(str)
+        return errors.New(str)
+    }
+
+    bpfFilter := ""
+    suricata_iface := ""
+    if allPlugins[uuid]["interface"] != "" {
+        suricata_iface = allPlugins[uuid]["interface"]
+    } else if iface != "" {
+        suricata_iface = iface
+    } else {
+        str := "SURICATA - Start Suricata - no interface defined - aborting"
+        logs.Error(str)
+        return errors.New(str)
+    }
+
+    suricata_pidfile := ""
+    if fullpidfile != "" {
+        suricata_pidfile = strings.Replace(fullpidfile, "<ID>", uuid, -1)
+    } else {
+        suricata_pidfile = strings.Replace("/var/run/suricata/<ID>-pidfile.pid", "<ID>", uuid, -1)
+    }
+
+    args := []string{}
+    args = append(args, "-D")
+    args = append(args, "-i")
+    args = append(args, suricata_iface)
+    args = append(args, "-c")
+    args = append(args, suricata_config)
+    args = append(args, "--pidfile")
+    args = append(args, suricata_pidfile)
+
+    if allPlugins[uuid]["bpfFile"] != "" {
+        args = append(args, "-F")
+        args = append(args, allPlugins[uuid]["bpfFile"])
+    } else if allPlugins[uuid]["bpf"] != "" {
+        args = append(args, allPlugins[uuid]["bpf"])
+    }
+
+    err = os.Remove(suricata_pidfile)
+    if err != nil {
+        logs.Error("SURICATA - Cannot remove pid file %s -> %s", suricata_pidfile, err.Error())
+    }
+
+    cmd := exec.Command(suricata, args...)
+
+    stdoutStderr, err := cmd.CombinedOutput()
+    if err != nil {
+        logs.Error(err)
+    }
+    logs.Debug("out -> %v", string(stdoutStderr))
+    // err = cmd.Run()
     if err != nil {
         //error launching suricata
-        logs.Error(stdBuffer.String())
+        logs.Error(stdoutStderr.String())
         logs.Error("plugin/LaunchSuricataService error launching Suricata: " + err.Error())
         return errors.New("Error Launching suricata - " + err.Error())
-        //delete pid file
-        err = os.Remove(suricataBackup + uuid + "-" + pidFile)
-        if err != nil {
-            logs.Error("plugin/LaunchSuricataService error deleting a pid file: " + err.Error())
-            return err
-        }
     } else {
         time.Sleep(time.Second * 1)
         //read file
-        currentpid, err := os.Open(suricataBackup + uuid + "-" + pidFile)
+        currentpid, err := os.Open(suricata_pidfile)
         if err != nil {
             logs.Error("plugin/LaunchSuricataService error openning Suricata: " + err.Error())
             return err
         }
         defer currentpid.Close()
         pid, err := ioutil.ReadAll(currentpid)
-        dbValue := strings.Split(string(pid), "\n")
+        PidNumber := strings.Split(string(pid), "\n")
 
         //save pid to db
-        err = ndb.UpdatePluginValue(uuid, "pid", dbValue[0])
+        err = ndb.UpdatePluginValue(uuid, "pid", PidNumber[0])
         if err != nil {
             logs.Error("plugin/LaunchSuricataService error updating pid at DB: " + err.Error())
             return err
         }
 
         //change DB status
-        err = ndb.UpdatePluginValue(uuid, "previousStatus", "none")
+        err = ndb.UpdatePluginValue(uuid, "previousStatus", "enabled")
         if err != nil {
             logs.Error("plugin/LaunchSuricataService error: " + err.Error())
             return err
