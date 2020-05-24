@@ -564,6 +564,11 @@ func ControlSource(file, uuid string) {
     tDuration, err := strconv.Atoi(t)
 
     for {
+        analyzer, _ := PingAnalyzer()
+        if analyzer["status"] == "Disabled" {
+            logs.Info("Analyzer is Disabled - Nothing to do")
+            return
+        }
         time.Sleep(time.Second * time.Duration(tDuration))
         if fileinfo, err := os.Stat(file); !os.IsNotExist(err) {
             stat, _ := fileinfo.Sys().(*syscall.Stat_t)
@@ -657,7 +662,11 @@ func LoadSources() {
     }
     for {
         for file := range config.Srcfiles {
-
+            analyzer, _ := PingAnalyzer()
+            if analyzer["status"] == "Disabled" {
+                logs.Info("Analyzer is Disabled - Nothing to do")
+                return
+            }
             if IsFileMonitored(config.Srcfiles[file]) {
                 time.Sleep(time.Second * time.Duration(config.TimebetweenStatusCheck))
                 continue
@@ -804,6 +813,11 @@ func CHcontrol() {
     }
     tDuration, err := strconv.Atoi(t)
     for {
+        analyzer, _ := PingAnalyzer()
+        if analyzer["status"] == "Disabled" {
+            logs.Info("Stop channel Control")
+            return
+        }
         time.Sleep(time.Second * time.Duration(tDuration))
         CHstats()
         CHcounter()
