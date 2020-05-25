@@ -8,7 +8,7 @@ import (
     "errors"
     "regexp"
     "bufio"
-    "io/ioutil"
+    // "io/ioutil"
     "encoding/json"
     "strconv"
     // "bytes"
@@ -282,27 +282,33 @@ func ModifyWazuhFile(anode map[string]interface{})(err error) {
 }   
 
 func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
-    command, err := utils.GetKeyValueString("execute", "command")  
-    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
-    param, err := utils.GetKeyValueString("execute", "param")  
-    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    values, err := utils.LoadFileLastLines(file) 
+    if err != nil {logs.Error(err.Error()); return nil, err}
 
-    linesResult := make(map[string]string)
-
-    if file["number"] != "none"{
-        lines,err := exec.Command(command, param, "tail -"+file["number"]+" "+file["path"]).Output()
-        if err != nil{logs.Error("LoadFileLastLines Error retrieving last lines of the path "+file["path"]+": "+err.Error()); return nil,err}
-    
-        linesResult["result"] = string(lines)
-    }else{
-        fileReaded, err := ioutil.ReadFile(file["path"]) // just pass the file name
-        if err != nil {logs.Error("Error reading Wazuh file for path: "+file["path"]); return nil,err}
-
-        linesResult["result"] = string(fileReaded)
-    }
-
-    return linesResult, err
+    return values,nil
 }
+// func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
+//     command, err := utils.GetKeyValueString("execute", "command")  
+//     if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+//     param, err := utils.GetKeyValueString("execute", "param")  
+//     if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+
+//     linesResult := make(map[string]string)
+
+//     if file["number"] != "none"{
+//         lines,err := exec.Command(command, param, "tail -"+file["number"]+" "+file["path"]).Output()
+//         if err != nil{logs.Error("LoadFileLastLines Error retrieving last lines of the path "+file["path"]+": "+err.Error()); return nil,err}
+    
+//         linesResult["result"] = string(lines)
+//     }else{
+//         fileReaded, err := ioutil.ReadFile(file["path"]) // just pass the file name
+//         if err != nil {logs.Error("Error reading Wazuh file for path: "+file["path"]); return nil,err}
+
+//         linesResult["result"] = string(fileReaded)
+//     }
+
+//     return linesResult, err
+// }
 
 func SaveFileContentWazuh(file map[string]string)(err error) { 
     bytearray := []byte(file["content"])

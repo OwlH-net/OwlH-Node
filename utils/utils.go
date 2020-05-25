@@ -502,3 +502,26 @@ func validRelPath(p string) bool {
     }
     return true
 }
+
+func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
+    command, err := GetKeyValueString("execute", "command")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    param, err := GetKeyValueString("execute", "param")  
+    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+
+    linesResult := make(map[string]string)
+
+    if file["number"] != "none"{
+        lines,err := exec.Command(command, param, "tail -"+file["number"]+" "+file["path"]).Output()
+        if err != nil{logs.Error("LoadFileLastLines Error retrieving last lines of the path "+file["path"]+": "+err.Error()); return nil,err}
+    
+        linesResult["result"] = string(lines)
+    }else{
+        fileReaded, err := ioutil.ReadFile(file["path"]) // just pass the file name
+        if err != nil {logs.Error("Error reading Wazuh file for path: "+file["path"]); return nil,err}
+
+        linesResult["result"] = string(fileReaded)
+    }
+
+    return linesResult, err
+}

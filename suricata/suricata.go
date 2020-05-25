@@ -3,13 +3,16 @@ package suricata
 import (
     "github.com/astaxie/beego/logs"
     "os"
+    "fmt"
     "os/exec"
     "owlhnode/database"
     "owlhnode/utils"
     "regexp"
     "strings"
+    "time"
     // "encoding/json"
     "errors"
+    "strconv"
     "io/ioutil"
     // "encoding/base64"
     // "crypto/sha256"
@@ -434,4 +437,166 @@ func GetMD5files(files map[string]map[string]string) (data map[string]map[string
     }
 
     return MD5data, err
+}
+
+func LaunchSuricataService(uuid string, iface string) (err error) {
+    fullpidfile, err := utils.GetKeyValueString("suricata", "fullpidfile")
+    if err != nil {
+        logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
+    }
+    suricata, err := utils.GetKeyValueString("suricata", "suricata")
+    if err != nil {
+        logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
+    }
+    suricata_config, err := utils.GetKeyValueString("suricata", "suricata_config")
+    if err != nil {
+        logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
+    }
+
+    mainConfData, err := ndb.GetMainconfData()
+    if mainConfData["suricata"]["status"] == "disabled" {
+        return nil
+    }
+
+    allPlugins, err := ndb.GetPlugins()
+
+    if allPlugins[uuid]["configFile"] != "" {
+        suricata_config = allPlugins[uuid]["configFile"]
+    } else if suricata_config == "" {
+        str := fmt.Sprintf("SURICATA - Start Suricata - missing suricata configuration file, please review default value in main.conf, or configFile property of Suricata %s ", allPlugins[uuid]["name"])
+        logs.Error(str)
+        return errors.New(str)
+    }
+
+    // bpfFilter := ""
+    suricata_iface := ""
+    if allPlugins[uuid]["interface"] != "" {
+        suricata_iface = allPlugins[uuid]["interface"]
+    } else if iface != "" {
+        suricata_iface = iface
+    } else {
+        str := "SURICATA - Start Suricata - no interface defined - aborting"
+        logs.Error(str)
+        return errors.New(str)
+    }
+
+    suricata_pidfile := ""
+    if fullpidfile != "" {
+        suricata_pidfile = strings.Replace(fullpidfile, "<ID>", uuid, -1)
+    } else {
+        suricata_pidfile = strings.Replace("/var/run/suricata/<ID>-pidfile.pid", "<ID>", uuid, -1)
+    }
+
+    args := []string{}
+    args = append(args, "-D")
+    args = append(args, "-i")
+    args = append(args, suricata_iface)
+    args = append(args, "-c")
+    args = append(args, suricata_config)
+    args = append(args, "--pidfile")
+    args = append(args, suricata_pidfile)
+
+    if allPlugins[uuid]["bpfFile"] != "" {
+        args = append(args, "-F")
+        args = append(args, allPlugins[uuid]["bpfFile"])
+    } else if allPlugins[uuid]["bpf"] != "" {
+        args = append(args, allPlugins[uuid]["bpf"])
+    }
+
+    err = os.Remove(suricata_pidfile)
+    if err != nil {
+        logs.Error("SURICATA - Cannot remove pid file %s -> %s", suricata_pidfile, err.Error())
+    }
+
+    cmd := exec.Command(suricata, args...)
+
+    stdoutStderr, err := cmd.CombinedOutput()
+    if err != nil {
+        logs.Error(err)
+    }
+    logs.Debug("out -> %v", string(stdoutStderr))
+    // err = cmd.Run()
+    if err != nil {
+        //error launching suricata
+        // logs.Error(stdoutStderr.String())
+        logs.Error("plugin/LaunchSuricataService error launching Suricata: " + err.Error())
+        return errors.New("Error Launching suricata - " + err.Error())
+    } else {
+        time.Sleep(time.Second * 1)
+        //read file
+        currentpid, err := os.Open(suricata_pidfile)
+        if err != nil {
+            logs.Error("plugin/LaunchSuricataService error openning Suricata: " + err.Error())
+            return err
+        }
+        defer currentpid.Close()
+        pid, err := ioutil.ReadAll(currentpid)
+        PidNumber := strings.Split(string(pid), "\n")
+
+        //save pid to db
+        err = ndb.UpdatePluginValue(uuid, "pid", PidNumber[0])
+        if err != nil {
+            logs.Error("plugin/LaunchSuricataService error updating pid at DB: " + err.Error())
+            return err
+        }
+
+        //change DB status
+        err = ndb.UpdatePluginValue(uuid, "previousStatus", "enabled")
+        if err != nil {
+            logs.Error("plugin/LaunchSuricataService error: " + err.Error())
+            return err
+        }
+
+        //change DB status
+        err = ndb.UpdatePluginValue(uuid, "status", "enabled")
+        if err != nil {
+            logs.Error("plugin/LaunchSuricataService error: " + err.Error())
+            return err
+        }
+    }
+    return nil
+}
+
+func StopSuricataService(uuid string, status string) (err error) {
+    suricataBackup, err := utils.GetKeyValueString("suricata", "backup")
+    if err != nil {
+        logs.Error("StopSuricataService Error getting data from main.conf: " + err.Error())
+    }
+    suricataPidfile, err := utils.GetKeyValueString("suricata", "pidfile")
+    if err != nil {
+        logs.Error("StopSuricataService Error getting data from main.conf: " + err.Error())
+    }
+    //pid
+    allPlugins, err := ndb.GetPlugins()
+
+    //kill suricata process
+    PidInt, _ := strconv.Atoi(strings.Trim(string(allPlugins[uuid]["pid"]), "\n"))
+    process, _ := os.FindProcess(PidInt)
+    _ = process.Kill()
+
+    //delete pid file
+    _ = os.Remove(suricataBackup + uuid + "-" + suricataPidfile)
+
+    //change DB pid
+    err = ndb.UpdatePluginValue(uuid, "pid", "none")
+    if err != nil {
+        logs.Error("plugin/StopSuricataService error updating pid at DB: " + err.Error())
+        return err
+    }
+
+    //change DB status
+    err = ndb.UpdatePluginValue(uuid, "previousStatus", status)
+    if err != nil {
+        logs.Error("plugin/StopSuricataService error: " + err.Error())
+        return err
+    }
+
+    //change DB status
+    err = ndb.UpdatePluginValue(uuid, "status", "disabled")
+    if err != nil {
+        logs.Error("plugin/StopSuricataService error: " + err.Error())
+        return err
+    }
+
+    return nil
 }

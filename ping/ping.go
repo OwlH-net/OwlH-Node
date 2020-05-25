@@ -5,7 +5,7 @@ import (
     "github.com/astaxie/beego/logs"
     "os"
     "os/exec"
-    "owlhnode/plugin"
+    "owlhnode/suricata"
     "owlhnode/utils"
     "strings"
     // "owlhnode/zeek"
@@ -253,12 +253,12 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
         if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata" {
             // change pid file name
             if _, err := os.Stat(bck + x + "-pidfile.pid"); os.IsNotExist(err) {
-                err = plugin.StopSuricataService(x, allPlugins[x]["status"])
+                err = suricata.StopSuricataService(x, allPlugins[x]["status"])
                 if err != nil {
                     logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error stopping suricata for launch again: " + err.Error())
                     return nil, err
                 }
-                err = plugin.LaunchSuricataService(x, allPlugins[x]["interface"])
+                err = suricata.LaunchSuricataService(x, allPlugins[x]["interface"])
                 if err != nil {
                     logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error launching suricata again: " + err.Error())
                     return nil, err
