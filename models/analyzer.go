@@ -6,13 +6,13 @@ import (
     "github.com/astaxie/beego/logs"
 )
 
-func PingAnalyzer()(data map[string]string, err error) {
+func PingAnalyzer(username string)(data map[string]string, err error) {
     data, err = analyzer.PingAnalyzer()
-    //changecontrol.ChangeControlInsertData(err, "PingAnalyzer")    
+    //changecontrol.ChangeControlInsertData(err, "PingAnalyzer", username)    
     return data, err
 }
 
-func ChangeAnalyzerStatus(anode map[string]string) (err error) {
+func ChangeAnalyzerStatus(anode map[string]string, username string) (err error) {
     logs.Info("============")
     logs.Info("ANALYZER - ChangeAnalyzerStatus")
     cc := anode
@@ -33,6 +33,7 @@ func ChangeAnalyzerStatus(anode map[string]string) (err error) {
         cc["actionStatus"] = "success"
     }
 
+    cc["username"] = username
     cc["actionDescription"] = "Change Analyzer Status"
 
 
@@ -40,26 +41,26 @@ func ChangeAnalyzerStatus(anode map[string]string) (err error) {
     return err
 }
 
-func SyncAnalyzer(file map[string][]byte) (err error) {
+func SyncAnalyzer(file map[string][]byte, username string) (err error) {
     cc := make(map[string]string)
     cc["action"] = "PUT"
     cc["controller"] = "ANALYZER"
     cc["router"] = "@router /SyncAnalyzer [put]"
     logs.Info("============")
     logs.Info("ANALYZER - SyncAnalyzer")
-    logs.Info("file - conf/analyzer.json")
+    logs.Info("file - analyzer.json")
     //TODO action
-    // err = analyzer.ChangeAnalyzerStatus(anode)
+    err = analyzer.SyncAnalyzer(file)
     
-    // if err!=nil { 
-    //     cc["actionStatus"] = "error"
-    //     cc["errorDescription"] = err.Error()
-    // }else{
-    //     cc["actionStatus"] = "success"
-    // }
+    if err!=nil { 
+        cc["actionStatus"] = "error"
+        cc["errorDescription"] = err.Error()
+    }else{
+        cc["actionStatus"] = "success"
+    }
+    cc["username"] = username
+    cc["actionDescription"] = "sync Analyzer configuration"
 
-    // cc["actionDescription"] = "sync Analyzer configuration"
-
-    // changecontrol.ChangeControlInsertData(cc, "SyncAnalyzer")    
+    changecontrol.InsertChangeControl(cc)    
     return nil
 }

@@ -5,19 +5,19 @@ import (
     "owlhnode/changeControl"
     "github.com/astaxie/beego/logs")
 
-func GetNetworkData()(values map[string]string, err error) {
+func GetNetworkData(username string)(values map[string]string, err error) {
     values,err = net.GetNetworkData()
     //changecontrol.ChangeControlInsertData(err, "GetNetworkData")    
     return values,err
 }
 
-func LoadNetworkValuesSelected()(values map[string]map[string]string, err error) {
+func LoadNetworkValuesSelected(username string)(values map[string]map[string]string, err error) {
     values,err = net.LoadNetworkValuesSelected()
     //changecontrol.ChangeControlInsertData(err, "LoadNetworkValuesSelected")    
     return values,err
 }
 
-func UpdateNetworkInterface(data map[string]string) (err error) {
+func UpdateNetworkInterface(data map[string]string, username string) (err error) {
     cc := data
     logs.Info("============")
     logs.Info("NET - UpdateNetworkInterface")
@@ -36,7 +36,7 @@ func UpdateNetworkInterface(data map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Update default network Interface"
 
     changecontrol.InsertChangeControl(cc)

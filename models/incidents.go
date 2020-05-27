@@ -8,7 +8,7 @@ import (
 // curl -X GET \
 //   https://52.47.197.22:50002/node/incidents \
 // }
-func GetIncidentsNode()(data map[string]map[string]string ,err error) {
+func GetIncidentsNode(username string)(data map[string]map[string]string ,err error) {
     data, err = incidents.GetIncidentsNode()    
     //changecontrol.ChangeControlInsertData(err, "GetIncidentsNode")    
     return data, err
@@ -23,7 +23,7 @@ func GetIncidentsNode()(data map[string]map[string]string ,err error) {
 //     "param": "v",
 //     "value": "v",
 // }
-func PutIncidentNode(anode map[string]string)(err error){
+func PutIncidentNode(anode map[string]string, username string)(err error){
     cc := anode
     logs.Info("============")
     logs.Info("INCIDENT - PutIncidentNode")
@@ -41,7 +41,7 @@ func PutIncidentNode(anode map[string]string)(err error){
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Record Incident"
 
     changecontrol.InsertChangeControl(cc)

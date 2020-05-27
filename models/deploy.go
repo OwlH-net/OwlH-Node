@@ -5,7 +5,7 @@ import (
     "owlhnode/changeControl"
     "github.com/astaxie/beego/logs")
 
-func DeployNode(anode map[string]string)(err error) {
+func DeployNode(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("DEPLOY - DeployNode")
@@ -24,7 +24,7 @@ func DeployNode(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Deploy node"
 
     changecontrol.InsertChangeControl(cc)
@@ -33,9 +33,9 @@ func DeployNode(anode map[string]string)(err error) {
     return err
 }
 
-func CheckDeployFiles()(anode map[string]string) {
+func CheckDeployFiles(username string)(anode map[string]string) {
     anode = deploy.CheckDeployFiles()
     // if anode == nil { err = errors.New("No files") } else { err = nil }
-    //changecontrol.ChangeControlInsertData(err, "CheckDeployFiles")    
+    //changecontrol.ChangeControlInsertData(err, "CheckDeployFiles", username)    
     return anode
 }

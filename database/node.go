@@ -218,6 +218,20 @@ func InsertUserData(uuid string, param string, value string)(err error){
     return nil
 }
 
+func GetUserID(user string)(id string, err error){
+    var uniqid string
+    if Nodedb == nil { logs.Error("no access to database"); return "", err}
+    
+    sql := "select user_uniqueid from users where user_param='user' and user_value='"+user+"';"
+    rows, err := Nodedb.Query(sql)
+    if err != nil { logs.Error("GetUserID Mdb.Query Error : %s", err.Error()); return "", err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid); err != nil { logs.Error("GetUserID rows.Scan: %s", err.Error()); return "", err}
+    } 
+    return uniqid, nil
+}
+
 func GetNodeData()(path map[string]map[string]string, err error){
     var configValues = map[string]map[string]string{}
     var uniqid string
@@ -423,7 +437,6 @@ func GetUserGroup()(groups map[string]map[string]string, err error){
     return allgroups, nil
 }
 
-
 func GetUserRole()(groups map[string]map[string]string, err error){
     if Nodedb == nil { logs.Error("no access to database"); return nil, err}
     var allroles = map[string]map[string]string{}
@@ -507,5 +520,143 @@ func InsertUserGroupRole(uuid string, param string, value string)(err error){
 
     defer dataValues.Close()
     
+    return nil
+}
+
+func GetRolePermissions()(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select rp_uniqueid,rp_param,rp_value from rolePermissions";
+    rows, err := Nodedb.Query(sql)
+    if err != nil {
+        logs.Error("getRolePermissions Nodedb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("getRolePermissions -- Nodedb.Query return error: %s", err.Error())
+            return nil, err
+        }
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
+
+func GetPermissions()(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select per_uniqueid,per_param,per_value from permissions";
+    rows, err := Nodedb.Query(sql)
+    if err != nil {
+        logs.Error("GetPermissions Nodedb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetPermissions -- Nodedb.Query return error: %s", err.Error())
+            return nil, err
+        }
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
+
+func InsertRolePermissions(uuid string, param string, value string)(err error){
+    dataValues, err := Nodedb.Prepare("insert into rolePermissions(rp_uniqueid, rp_param, rp_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertRolePermissions prepare error: "+err.Error()); return err}
+
+    _, err = dataValues.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertRolePermissions exec error: "+err.Error()); return err}
+
+    defer dataValues.Close()
+    
+    return nil
+}
+
+func InsertPermissions(uuid string, param string, value string)(err error){
+    dataValues, err := Nodedb.Prepare("insert into permissions(per_uniqueid, per_param, per_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertPermissions prepare error: "+err.Error()); return err}
+
+    _, err = dataValues.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertPermissions exec error: "+err.Error()); return err}
+
+    defer dataValues.Close()
+    
+    return nil
+}
+
+func UpdateRolePermissions(uuid string, param string, value string) (err error) {
+    updateRolePermissions, err := Nodedb.Prepare("update rolePermissions set rp_value = ? where rp_uniqueid = ? and rp_param = ?;")
+    if (err != nil){logs.Error("UpdateRolePermissions UPDATE prepare error: "+err.Error()); return err}
+    
+    _, err = updateRolePermissions.Exec(&value, &uuid, &param)
+    defer updateRolePermissions.Close()
+    if (err != nil){logs.Error("UpdateRolePermissions UPDATE error: "+err.Error()); return err}
+    return nil
+}
+
+func UpdatePermissions(uuid string, param string, value string) (err error) {
+    updatePermissions, err := Nodedb.Prepare("update permissions set per_value = ? where per_uniqueid = ? and per_param = ?;")
+    if (err != nil){logs.Error("UpdatePermissions UPDATE prepare error: "+err.Error()); return err}
+    
+    _, err = updatePermissions.Exec(&value, &uuid, &param)
+    defer updatePermissions.Close()
+    if (err != nil){logs.Error("UpdatePermissions UPDATE error: "+err.Error()); return err}
+    return nil
+}
+
+
+func GetRoleGroups()(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select rg_uniqueid,rg_param,rg_value from roleGroups";
+    rows, err := Nodedb.Query(sql)
+    if err != nil {
+        logs.Error("GetRoleGroups Nodedb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetRoleGroups -- Nodedb.Query return error: %s", err.Error())
+            return nil, err
+        }
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
+
+
+func InsertRoleGroups(uuid string, param string, value string)(err error){
+    dataValues, err := Nodedb.Prepare("insert into roleGroups(rg_uniqueid,rg_param,rg_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertRoleGroups prepare error: "+err.Error()); return err}
+
+    _, err = dataValues.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertRoleGroups exec error: "+err.Error()); return err}
+
+    defer dataValues.Close()
+    
+    return nil
+}
+
+
+func UpdateRoleGroups(uuid string, param string, value string) (err error) {
+    dataValues, err := Nodedb.Prepare("update roleGroups set rg_value = ? where rg_uniqueid = ? and rg_param = ?;")
+    if (err != nil){logs.Error("UpdateRoleGroups UPDATE prepare error: "+err.Error()); return err}
+    
+    _, err = dataValues.Exec(&value, &uuid, &param)
+    defer dataValues.Close()
+    if (err != nil){logs.Error("UpdateRoleGroups UPDATE error: "+err.Error()); return err}
     return nil
 }

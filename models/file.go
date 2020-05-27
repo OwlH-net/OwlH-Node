@@ -6,14 +6,13 @@ import (
     "github.com/astaxie/beego/logs"
 )
 
-func SendFile(filename string) (data map[string]string, err error) {
-    logs.Info("SendFile into Node file: "+filename)
+func SendFile(filename string, username string) (data map[string]string, err error) {
     data,err = file.SendFile(filename)
-    //changecontrol.ChangeControlInsertData(err, "SendFile")    
+    //changecontrol.ChangeControlInsertData(err, "SendFile", username)    
     return data,err
 }
 
-func SaveFile(data map[string]string) (err error) {
+func SaveFile(data map[string]string, username string) (err error) {
     cc := data
     logs.Info("============")
     logs.Info("FILE - SaveFile")
@@ -33,7 +32,7 @@ func SaveFile(data map[string]string) (err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Save file"
 
     changecontrol.InsertChangeControl(cc)
@@ -42,14 +41,14 @@ func SaveFile(data map[string]string) (err error) {
     return err
 }
 
-func GetAllFiles() (data map[string]string, err error) {
+func GetAllFiles(username string) (data map[string]string, err error) {
     logs.Info("GetAllFiles into Node file")
     data,err = file.GetAllFiles()
     //changecontrol.ChangeControlInsertData(err, "GetAllFiles")    
     return data,err
 }
 
-func ReloadFilesData() (data map[string]map[string]string, err error) {
+func ReloadFilesData(username string) (data map[string]map[string]string, err error) {
     data,err = file.ReloadFilesData()
     //changecontrol.ChangeControlInsertData(err, "ReloadFilesData")    
     return data,err

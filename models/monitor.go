@@ -11,7 +11,7 @@ func GetNodeStats()(data monitor.Monitor) {
     return data
 }
 
-func AddMonitorFile(anode map[string]string)(err error) {
+func AddMonitorFile(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("MONITOR - AddMonitorFile")
@@ -30,7 +30,7 @@ func AddMonitorFile(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Start monitoring a file"
 
     changecontrol.InsertChangeControl(cc)
@@ -39,7 +39,7 @@ func AddMonitorFile(anode map[string]string)(err error) {
     return err
 }
 
-func DeleteMonitorFile(anode map[string]string)(err error) {
+func DeleteMonitorFile(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("MONITOR - DeleteMonitorFile")
@@ -58,7 +58,7 @@ func DeleteMonitorFile(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Delete traffic transport values"
 
     changecontrol.InsertChangeControl(cc)
@@ -67,13 +67,13 @@ func DeleteMonitorFile(anode map[string]string)(err error) {
     return err
 }
 
-func PingMonitorFiles()(data map[string]map[string]string, err error) {
+func PingMonitorFiles(username string)(data map[string]map[string]string, err error) {
     data,err = monitor.PingMonitorFiles()
     //changecontrol.ChangeControlInsertData(err, "PingMonitorFiles")    
     return data,err
 }
 
-func ChangeRotationStatus(anode map[string]string)(err error) {
+func ChangeRotationStatus(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("MONITOR - ChangeRotationStatus")
@@ -92,14 +92,14 @@ func ChangeRotationStatus(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Change rotation status"
 
     changecontrol.InsertChangeControl(cc)  
     return err
 }
 
-func EditRotation(anode map[string]string)(err error) {
+func EditRotation(anode map[string]string, username string)(err error) {
     cc := anode
     logs.Info("============")
     logs.Info("MONITOR - EditRotation")
@@ -118,7 +118,7 @@ func EditRotation(anode map[string]string)(err error) {
     }else{
         cc["actionStatus"] = "success"
     }
-
+    cc["username"] = username
     cc["actionDescription"] = "Change rotation status"
 
     changecontrol.InsertChangeControl(cc)  

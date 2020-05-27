@@ -8,13 +8,14 @@ import (
     "errors"
     "regexp"
     "bufio"
-    "io/ioutil"
+    // "io/ioutil"
     "encoding/json"
     "strconv"
     // "bytes"
     "time"
     "owlhnode/utils"
     "owlhnode/database"
+    "path/filepath"
 )
 
 func WazuhPath() (exists bool) {
@@ -105,7 +106,7 @@ func StopWazuh()(data string, err error){
     return "Wazuh stopped ",nil
 }
 
-func PingWazuhFiles() (files map[int]map[string]string, err error) {    
+func PingWazuhFiles() (files map[string]map[string]string, err error) {    
     file, err := os.Open("/var/ossec/etc/ossec.conf")
     if err != nil {logs.Error(err); return nil, err}
     defer file.Close()
@@ -113,7 +114,7 @@ func PingWazuhFiles() (files map[int]map[string]string, err error) {
     scanner := bufio.NewScanner(file)
     isInit := false
     isEnd := false
-    filesPath := make(map[int]map[string]string)
+    filesPath := make(map[string]map[string]string)
     count := 0;
     var size int64
     for scanner.Scan() {
@@ -134,9 +135,9 @@ func PingWazuhFiles() (files map[int]map[string]string, err error) {
                     size = fi.Size()
                 }
                 
-                if filesPath[count] == nil { filesPath[count] = map[string]string{}}
-                filesPath[count]["path"] = locationFound[1]
-                filesPath[count]["size"] = strconv.FormatInt(size, 10)
+                if filesPath[strconv.Itoa(count)] == nil { filesPath[strconv.Itoa(count)] = map[string]string{}}
+                filesPath[strconv.Itoa(count)]["path"] = locationFound[1]
+                filesPath[strconv.Itoa(count)]["size"] = strconv.FormatInt(size, 10)
 
                 //Add new Incident
                 //Add incident to database
@@ -176,11 +177,24 @@ type AllFiles struct {
 func ModifyWazuhFile(anode map[string]interface{})(err error) {
     ossec, err := utils.GetKeyValueString("loadDataWazuhPath", "ossec")  
     if err != nil {logs.Error("ModifyWazuhFile Error getting data from main.conf"); return err}
+    ossecFile, err := utils.GetKeyValueString("loadDataWazuhPath", "file")  
+    if err != nil {logs.Error("ModifyWazuhFile Error getting data from main.conf"); return err}
+    ossecFileFullPath, err := utils.GetKeyValueString("loadDataWazuhPath", "fullPath")  
+    if err != nil {logs.Error("ModifyWazuhFile Error getting data from main.conf"); return err}
 
     receivedWazuhFiles := AllFiles{}
     byteData, _ := json.Marshal(anode)
     json.Unmarshal(byteData, &receivedWazuhFiles)
 
+    //check fgor empty array
+    if receivedWazuhFiles.Paths == nil || len(receivedWazuhFiles.Paths) <= 0 {
+        return errors.New("ModifyWazuhFile error - New content is empty")
+    }
+    //backup file
+    err = utils.BackupFile(ossecFileFullPath, ossecFile)
+    if err != nil {logs.Error("ModifyWazuhFile error: "+err.Error()); return errors.New("ModifyWazuhFile error - Backup failed")}
+
+    //modify ossec file
     file, err := os.Open(ossec)
     if err != nil {logs.Error("Error ModifyWazuhFile readding file: "+err.Error()); return err}
     defer file.Close()
@@ -251,8 +265,11 @@ func ModifyWazuhFile(anode map[string]interface{})(err error) {
 
     if err := scanner.Err(); err != nil {logs.Error("ModifyWazuhFile. Scanner file error: "+err.Error()); return err}
 
-    saveIntoFile, err := os.OpenFile(ossec, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+    saveIntoFile, err := os.OpenFile(ossec, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
     if err != nil {logs.Error("Error ModifyWazuhFile readding file: "+err.Error()); return err}
+
+    //move backup for check error .bck
+
     defer saveIntoFile.Close()
     saveIntoFile.Truncate(0)
     saveIntoFile.Seek(0,0)
@@ -265,41 +282,54 @@ func ModifyWazuhFile(anode map[string]interface{})(err error) {
 }   
 
 func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
-    command, err := utils.GetKeyValueString("execute", "command")  
-    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
-    param, err := utils.GetKeyValueString("execute", "param")  
-    if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+    values, err := utils.LoadFileLastLines(file) 
+    if err != nil {logs.Error(err.Error()); return nil, err}
 
-    linesResult := make(map[string]string)
-
-    if file["number"] != "none"{
-        lines,err := exec.Command(command, param, "tail -"+file["number"]+" "+file["path"]).Output()
-        if err != nil{logs.Error("LoadFileLastLines Error retrieving last lines of the path "+file["path"]+": "+err.Error()); return nil,err}
-    
-        linesResult["result"] = string(lines)
-    }else{
-        fileReaded, err := ioutil.ReadFile(file["path"]) // just pass the file name
-        if err != nil {logs.Error("Error reading Wazuh file for path: "+file["path"]); return nil,err}
-
-        linesResult["result"] = string(fileReaded)
-    }
-
-    return linesResult, err
+    return values,nil
 }
+// func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
+//     command, err := utils.GetKeyValueString("execute", "command")  
+//     if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
+//     param, err := utils.GetKeyValueString("execute", "param")  
+//     if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
 
-func SaveFileContentWazuh(file map[string]string)(err error) {
-    err = utils.BackupFullPath(file["path"])
-    if err != nil {
-        logs.Info("SaveFileContentWazuh. Error doing backup with function BackupFullPath: "+err.Error())
-        return err
-    }
+//     linesResult := make(map[string]string)
+
+//     if file["number"] != "none"{
+//         lines,err := exec.Command(command, param, "tail -"+file["number"]+" "+file["path"]).Output()
+//         if err != nil{logs.Error("LoadFileLastLines Error retrieving last lines of the path "+file["path"]+": "+err.Error()); return nil,err}
+    
+//         linesResult["result"] = string(lines)
+//     }else{
+//         fileReaded, err := ioutil.ReadFile(file["path"]) // just pass the file name
+//         if err != nil {logs.Error("Error reading Wazuh file for path: "+file["path"]); return nil,err}
+
+//         linesResult["result"] = string(fileReaded)
+//     }
+
+//     return linesResult, err
+// }
+
+func SaveFileContentWazuh(file map[string]string)(err error) { 
+    bytearray := []byte(file["content"])
+    
+    //check for empty file content
+    if bytearray == nil || len(bytearray) <= 0 { logs.Error("SaveFileContentWazuh error - New content is empty"); return errors.New("SaveFileContentWazuh error - New content is empty")}
+    
+    //split path 
+    fileName := filepath.Base(file["path"])
+    fileDir := filepath.Dir(file["path"])
+
+    //backup file
+    err = utils.BackupFile(fileDir+"/", fileName)
+    if err != nil {logs.Error("ModifyWazuhFile error: "+err.Error()); return errors.New("ModifyWazuhFile error - Backup failed")}
+
+    // err = utils.BackupFullPath(file["path"])
+    // if err != nil {logs.Info("SaveFileContentWazuh. Error doing backup with function BackupFullPath: "+err.Error()); return err}
 
     //make byte array for save the file modified
-    bytearray := []byte(file["content"])
     err = utils.WriteNewDataOnFile(file["path"], bytearray)
-    if err != nil {
-        logs.Info("SaveFileContentWazuh error doing backup with function WriteNewDataOnFile: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Info("SaveFileContentWazuh error doing backup with function WriteNewDataOnFile: "+err.Error()); return err}
+
     return nil
 }

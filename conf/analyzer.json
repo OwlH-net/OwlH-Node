@@ -1,14 +1,21 @@
 {
-    "enable":true,
+    "enable":false,
     "outputfile":"/var/log/owlh/alerts.json",
     "prefilterfile":"conf/prefilters.json",
     "postfilterfile":"conf/postfilters.json",
     "tagsfile":"conf/tags.json",
+    "verbose":true,
+    "stats":true,
+    "channelworkers":200,
+    "timebetweenstatuscheck":3,
+    "timetowaitforfile":10,
+
     "srcfiles": [
         "/var/log/suricata/eve.json",
         "/usr/local/zeek/logs/current/conn.log",
         "/usr/local/zeek/logs/current/dns.log"
     ],
+
     "feedfiles": [
         {
             "feedfile":"/usr/local/owlh/src/owlhnode/conf/feeds/otx.feed",
@@ -25,6 +32,9 @@
             "feedfile":"/usr/local/owlh/src/owlhnode/conf/feeds/falcon.feed",
             "workers":4
         }
-    ]
-    
+    ],
+
+    "suricatasocket":"/var/log/suricata/eve_json.socket",
+    "suricatasocketenabled":false
+
 }
