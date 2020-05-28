@@ -77,7 +77,7 @@ func UpdateNodeData(data map[string]map[string]string, username string)(err erro
     return err
 }
 
-func SaveNodeInformation(anode map[string]map[string]string, username string)(err error) {
+func SaveNodeInformation(anode map[string]string, username string)(err error) {
     err = ping.SaveNodeInformation(anode)
     //changecontrol.ChangeControlInsertData(err, "SaveNodeInformation")    
     return err

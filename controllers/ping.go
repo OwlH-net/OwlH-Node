@@ -182,7 +182,7 @@ func (n *PingController) SaveNodeInformation() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{         
-        var anode map[string]map[string]string
+        var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         logs.Info("ACTION -> PUT")
         logs.Info("CONTROLLER -> PING")

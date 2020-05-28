@@ -160,6 +160,17 @@ func GetMainconfData() (data map[string]map[string]string, err error) {
         return nil, err
     }
 
+    //Ping Suricata for check if is installed
+    isInstalled,err := suricata.Installed()
+    if isInstalled["path"] == false || isInstalled["bin"] == false {
+        main["suricata"]["status"] = ""
+    }
+
+    //******************************
+    //Check if Zeek is installed is not necessary
+    //Is checked by other way
+    //******************************
+
     return main, err
 }
 
@@ -367,35 +378,34 @@ func UpdateNodeData(data map[string]map[string]string) (err error) {
     return nil
 }
 
-func SaveNodeInformation(anode map[string]map[string]string) (err error) {
+func SaveNodeInformation(anode map[string]string) (err error) {
     // nodeData, err := ndb.GetNodeData()
-    if err != nil {
-        logs.Error("SaveNodeInformation Error getting node data: " + err.Error())
-        return err
-    }
-    for x := range anode {
+    // if err != nil {
+    //     logs.Error("SaveNodeInformation Error getting node data: " + err.Error())
+    //     return err
+    // }
+    // for x := range anode {
         err = ndb.DeleteNodeInformation()
         if err != nil {
             logs.Error("SaveNodeInformation Error updating node values: " + err.Error())
             return err
         }
-        err = ndb.InsertNodeData(x, "ip", anode[x]["ip"])
+        err = ndb.InsertNodeData(x, "ip", anode["ip"])
         if err != nil {
             logs.Error("SaveNodeInformation Error inserting node ip: " + err.Error())
             return err
         }
-        err = ndb.InsertNodeData(x, "name", anode[x]["name"])
+        err = ndb.InsertNodeData(x, "name", anode["name"])
         if err != nil {
             logs.Error("SaveNodeInformation Error inserting node name: " + err.Error())
             return err
         }
-        err = ndb.InsertNodeData(x, "port", anode[x]["port"])
+        err = ndb.InsertNodeData(x, "port", anode["port"])
         if err != nil {
             logs.Error("SaveNodeInformation Error inserting node port: " + err.Error())
             return err
         }
-
-    }
+    // }
 
     return nil
 }
