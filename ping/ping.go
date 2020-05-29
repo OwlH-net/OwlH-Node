@@ -378,34 +378,34 @@ func UpdateNodeData(data map[string]map[string]string) (err error) {
     return nil
 }
 
-func SaveNodeInformation(anode map[string]string) (err error) {
+func SaveNodeInformation(anode map[string]map[string]string) (err error) {
     // nodeData, err := ndb.GetNodeData()
     // if err != nil {
     //     logs.Error("SaveNodeInformation Error getting node data: " + err.Error())
     //     return err
     // }
-    // for x := range anode {
+    for x := range anode {
         err = ndb.DeleteNodeInformation()
         if err != nil {
             logs.Error("SaveNodeInformation Error updating node values: " + err.Error())
             return err
         }
-        err = ndb.InsertNodeData(x, "ip", anode["ip"])
+        err = ndb.InsertNodeData(x, "ip", anode[x]["ip"])
         if err != nil {
             logs.Error("SaveNodeInformation Error inserting node ip: " + err.Error())
             return err
         }
-        err = ndb.InsertNodeData(x, "name", anode["name"])
+        err = ndb.InsertNodeData(x, "name", anode[x]["name"])
         if err != nil {
             logs.Error("SaveNodeInformation Error inserting node name: " + err.Error())
             return err
         }
-        err = ndb.InsertNodeData(x, "port", anode["port"])
+        err = ndb.InsertNodeData(x, "port", anode[x]["port"])
         if err != nil {
             logs.Error("SaveNodeInformation Error inserting node port: " + err.Error())
             return err
         }
-    // }
+    }
 
     return nil
 }

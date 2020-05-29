@@ -9,6 +9,11 @@ import (
 )
 
 func CreateMasterToken(login map[string]string) (token string, err error) {
+	logs.Notice(login)
+	// master uuid
+	// user 'admin'
+	// pass 'admin'
+
 	//check user/pass
 	masterExists := false
 	users, err := ndb.GetLoginData()
@@ -30,7 +35,6 @@ func CreateMasterToken(login map[string]string) (token string, err error) {
 
 		if login["user"] == users[x]["user"] && hashedPassFromMaster {
 			for masterid := range masters {
-
 				if masters[masterid]["master"] == login["master"] && masters[masterid]["login"] == x {
 					masterExists = true
 					token, err = validation.Encode(masters[masterid]["secret"])
