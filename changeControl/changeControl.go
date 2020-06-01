@@ -18,6 +18,7 @@ func InsertChangeControl(cc map[string]string){
     timeFormated := currentTime.Format("2006-01-02T15:04:05")
 
     node,err := ndb.GetNodeData()
+    if err != nil { return }
     if err == nil {
         for r := range node{
             ndb.InsertChangeControl(uuid, "deviceName", node[r]["name"])

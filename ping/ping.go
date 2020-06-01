@@ -160,6 +160,17 @@ func GetMainconfData() (data map[string]map[string]string, err error) {
         return nil, err
     }
 
+    //Ping Suricata for check if is installed
+    isInstalled,err := suricata.Installed()
+    if isInstalled["path"] == false || isInstalled["bin"] == false {
+        main["suricata"]["status"] = ""
+    }
+
+    //******************************
+    //Check if Zeek is installed is not necessary
+    //Is checked by other way
+    //******************************
+
     return main, err
 }
 
@@ -369,10 +380,10 @@ func UpdateNodeData(data map[string]map[string]string) (err error) {
 
 func SaveNodeInformation(anode map[string]map[string]string) (err error) {
     // nodeData, err := ndb.GetNodeData()
-    if err != nil {
-        logs.Error("SaveNodeInformation Error getting node data: " + err.Error())
-        return err
-    }
+    // if err != nil {
+    //     logs.Error("SaveNodeInformation Error getting node data: " + err.Error())
+    //     return err
+    // }
     for x := range anode {
         err = ndb.DeleteNodeInformation()
         if err != nil {
@@ -394,7 +405,6 @@ func SaveNodeInformation(anode map[string]map[string]string) (err error) {
             logs.Error("SaveNodeInformation Error inserting node port: " + err.Error())
             return err
         }
-
     }
 
     return nil
