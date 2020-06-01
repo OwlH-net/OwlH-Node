@@ -361,7 +361,7 @@ func AddPluginService(anode map[string]string) (err error) {
             }
         }
 
-        err = ndb.InsertPluginService(uuid, "name", anode["name"])
+        err = ndb.InsertPluginService(uuid, "name", strings.Trim(strings.Replace(anode["name"], " ", "_", -1), " "))
         if err != nil {
             logs.Error("InsertPluginService name Error: " + err.Error())
             return err
