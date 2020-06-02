@@ -174,10 +174,12 @@ func SetBPF(n map[string]string) (err error) {
 
 //Retrieve data, make a backup file and write the new data on the original file
 func SyncRulesetFromMaster(file map[string][]byte) (err error) {
+    logs.Notice(string(file["ruleset"]))
+
     if file["data"] == nil || len(file["data"]) <= 0 {
         return errors.New("SyncRulesetFromMaster error: Can't Synchronize empty ruleset")
     }
-
+    
     path, err := utils.GetKeyValueString("suricataRuleset", "path")
     if err != nil {
         logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
