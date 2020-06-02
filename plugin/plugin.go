@@ -406,6 +406,11 @@ func AddPluginService(anode map[string]string) (err error) {
             logs.Error("InsertPluginService ruleset Error: " + err.Error())
             return err
         }
+        err = ndb.InsertPluginService(uuid, "localRulesetName", "")
+        if err != nil {
+            logs.Error("InsertPluginService Local Ruleset Name Error: " + err.Error())
+            return err
+        }
         err = ndb.InsertPluginService(uuid, "configFile", "")
         if err != nil {
             logs.Error("InsertPluginService configFile Error: " + err.Error())
@@ -439,6 +444,11 @@ func SaveSurictaRulesetSelected(anode map[string]string) (err error) {
     }
     //update name
     err = ndb.UpdatePluginValue(anode["service"], "rulesetName", anode["rulesetName"])
+    if err != nil {
+        logs.Error("plugin/SaveSurictaRulesetSelected name error: " + err.Error())
+        return err
+    }
+    err = ndb.UpdatePluginValue(anode["service"], "localRulesetName", strings.Replace(anode["rulesetName"], " ", "-", -1))
     if err != nil {
         logs.Error("plugin/SaveSurictaRulesetSelected name error: " + err.Error())
         return err
@@ -808,6 +818,12 @@ func ModifyNodeOptionValues(anode map[string]string) (err error) {
             logs.Error("ModifyNodeOptionValues suricata Error: " + err.Error())
             return err
         }
+        err = ndb.UpdatePluginValue(anode["service"], "localRulesetName", strings.Replace(anode["rulesetName"], " ", "-", -1))
+        if err != nil {
+            logs.Error("ModifyNodeOptionValues suricata Error: " + err.Error())
+            return err
+        }
+
         err = ndb.UpdatePluginValue(anode["service"], "iface", anode["interface"])
         if err != nil {
             logs.Error("ModifyNodeOptionValues suricata Error: " + err.Error())
