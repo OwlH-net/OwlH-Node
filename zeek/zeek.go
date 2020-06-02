@@ -1129,5 +1129,4 @@ func parseDiag(output string) (data Diag) {
 
 func Init() {
     Loadconfig()
-
 }

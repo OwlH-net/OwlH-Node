@@ -13,9 +13,15 @@ func CreateMasterToken(login map[string]string, username string) (token string, 
     
     token,err = autentication.CreateMasterToken(login)
     if err!=nil { 
+        logs.Error("NO TOKEN NO TOKEN NO TOKEN NO TOKEN NO TOKEN NO TOKEN NO TOKEN NO TOKEN ")
+        logs.Error("NO TOKEN NO TOKEN NO TOKEN NO TOKEN NO TOKEN NO TOKEN NO TOKEN NO TOKEN ")
+        logs.Error(err.Error())
         cc["actionStatus"] = "error"
         cc["errorDescription"] = err.Error()
     }else{
+        logs.Notice(token)
+        logs.Notice(token)
+        logs.Notice(token)
         cc["actionStatus"] = "success"
     }
     cc["username"] = username

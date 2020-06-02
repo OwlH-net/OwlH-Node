@@ -1,9 +1,9 @@
 package suricata
 
 import (
+    "fmt"
     "github.com/astaxie/beego/logs"
     "os"
-    "fmt"
     "os/exec"
     "owlhnode/database"
     "owlhnode/utils"
@@ -12,8 +12,8 @@ import (
     "time"
     // "encoding/json"
     "errors"
-    "strconv"
     "io/ioutil"
+    "strconv"
     // "encoding/base64"
     // "crypto/sha256"
 )
@@ -189,15 +189,16 @@ func SyncRulesetFromMaster(file map[string][]byte) (err error) {
         return err
     }
 
-    //get name from db
-    pluginName, err := ndb.GetPluginsByParam(string(file["service"]), "name")
-    if err != nil {
-        logs.Error("SyncRulesetFromMaster Error getting data from database: " + err.Error())
-        return err
-    }
+    // //get name from db
+    // pluginName, err := ndb.GetPluginsByParam(string(file["service"]), "name")
+    // if err != nil {
+    //     logs.Error("SyncRulesetFromMaster Error getting data from database: " + err.Error())
+    //     return err
+    // }
 
     //replace file by name
-    plug := strings.Replace(fileToEdit, "<NAME>", pluginName, -1)
+    fileName := strings.Replace(string(file["rulesetName"]), " ", "-", -1)
+    plug := strings.Replace(fileToEdit, "<NAME>", fileName, -1)
 
     //create owlh.rules backup
     err = utils.BackupFile(path, plug)
@@ -217,22 +218,22 @@ func SyncRulesetFromMaster(file map[string][]byte) (err error) {
     if SuriRunning() {
         suricatasc, err := utils.GetKeyValueString("SuricataRulesetReload", "suricatasc")
         if err != nil {
-            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
+            logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
             return err
         }
         param, err := utils.GetKeyValueString("SuricataRulesetReload", "param")
         if err != nil {
-            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
+            logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
             return err
         }
         reloads, err := utils.GetKeyValueString("SuricataRulesetReload", "reload")
         if err != nil {
-            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
+            logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
             return err
         }
         socket, err := utils.GetKeyValueString("SuricataRulesetReload", "socket")
         if err != nil {
-            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
+            logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
             return err
         }
 
@@ -248,28 +249,33 @@ func SyncRulesetFromMaster(file map[string][]byte) (err error) {
 
 //Run suricata
 func RunSuricata() (data string, err error) {
-    cmd, err := utils.GetKeyValueString("suriStart", "start")
-    if err != nil {
-        logs.Error("RunSuricata Error getting data from main.conf: " + err.Error())
-        return "", err
-    }
-    param, err := utils.GetKeyValueString("suriStart", "param")
-    if err != nil {
-        logs.Error("RunSuricata Error getting data from main.conf: " + err.Error())
-        return "", err
-    }
-    command, err := utils.GetKeyValueString("suriStart", "command")
-    if err != nil {
-        logs.Error("RunSuricata Error getting data from main.conf: " + err.Error())
-        return "", err
-    }
+    // Deprecated use StartSuricataMainConf
+    var ddata = map[string]string{}
+    err = StartSuricataMainConf(ddata)
+    return "", err
 
-    _, err = exec.Command(command, param, cmd).Output()
-    if err != nil {
-        logs.Error("Error launching suricata: " + err.Error())
-        return "", err
-    }
-    return "Suricata system is ON!", nil
+    // cmd, err := utils.GetKeyValueString("suriStart", "start")
+    // if err != nil {
+    //     logs.Error("RunSuricata Error getting data from main.conf: " + err.Error())
+    //     return "", err
+    // }
+    // param, err := utils.GetKeyValueString("suriStart", "param")
+    // if err != nil {
+    //     logs.Error("RunSuricata Error getting data from main.conf: " + err.Error())
+    //     return "", err
+    // }
+    // command, err := utils.GetKeyValueString("suriStart", "command")
+    // if err != nil {
+    //     logs.Error("RunSuricata Error getting data from main.conf: " + err.Error())
+    //     return "", err
+    // }
+
+    // _, err = exec.Command(command, param, cmd).Output()
+    // if err != nil {
+    //     logs.Error("Error launching suricata: " + err.Error())
+    //     return "", err
+    // }
+    // return "Suricata system is ON!", nil
 }
 
 //Stop suricata
@@ -439,7 +445,7 @@ func GetMD5files(files map[string]map[string]string) (data map[string]map[string
     return MD5data, err
 }
 
-func LaunchSuricataService(uuid string, iface string) (err error) {
+func LaunchSuricataServiceOld(uuid string, iface string) (err error) {
     fullpidfile, err := utils.GetKeyValueString("suricata", "fullpidfile")
     if err != nil {
         logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
@@ -519,6 +525,127 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
     if err != nil {
         //error launching suricata
         // logs.Error(stdoutStderr.String())
+        logs.Error("plugin/LaunchSuricataService error launching Suricata: " + err.Error())
+        return errors.New("Error Launching suricata - " + err.Error())
+    } else {
+        time.Sleep(time.Second * 1)
+        //read file
+        currentpid, err := os.Open(suricata_pidfile)
+        if err != nil {
+            logs.Error("plugin/LaunchSuricataService error openning Suricata: " + err.Error())
+            return err
+        }
+        defer currentpid.Close()
+        pid, err := ioutil.ReadAll(currentpid)
+        PidNumber := strings.Split(string(pid), "\n")
+
+        //save pid to db
+        err = ndb.UpdatePluginValue(uuid, "pid", PidNumber[0])
+        if err != nil {
+            logs.Error("plugin/LaunchSuricataService error updating pid at DB: " + err.Error())
+            return err
+        }
+
+        //change DB status
+        err = ndb.UpdatePluginValue(uuid, "previousStatus", "enabled")
+        if err != nil {
+            logs.Error("plugin/LaunchSuricataService error: " + err.Error())
+            return err
+        }
+
+        //change DB status
+        err = ndb.UpdatePluginValue(uuid, "status", "enabled")
+        if err != nil {
+            logs.Error("plugin/LaunchSuricataService error: " + err.Error())
+            return err
+        }
+    }
+    return nil
+}
+
+func LaunchSuricataService(uuid string, iface string) (err error) {
+    fullpidfile, err := utils.GetKeyValueString("suricata", "fullpidfile")
+    if err != nil {
+        logs.Error("LaunchSuricataService Error getting data from main.conf -> suricata / fullpidfile: " + err.Error())
+    }
+    rulesetPath, err := utils.GetKeyValueString("suricataRuleset", "path")
+    if err != nil {
+        logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
+    }
+    suricata, err := utils.GetKeyValueString("suricata", "suricata")
+    if err != nil {
+        logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
+    }
+    suricata_config, err := utils.GetKeyValueString("suricata", "suricata_config")
+    if err != nil {
+        logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
+    }
+
+    mainConfData, err := ndb.GetMainconfData()
+    if mainConfData["suricata"]["status"] == "disabled" {
+        return nil
+    }
+
+    allPlugins, err := ndb.GetPlugins()
+
+    args := []string{}
+    args = append(args, "-D")
+
+    if allPlugins[uuid]["configFile"] != "" {
+        suricata_config = allPlugins[uuid]["configFile"]
+        args = append(args, "-c")
+        args = append(args, suricata_config)
+    } else if suricata_config == "" {
+        str := fmt.Sprintf("SURICATA - Start Suricata - missing suricata configuration file, please review default value in main.conf, or configFile property of Suricata %s ", allPlugins[uuid]["name"])
+        logs.Error(str)
+        return errors.New(str)
+    }
+
+    suricata_iface := ""
+    if allPlugins[uuid]["interface"] != "" {
+        suricata_iface = allPlugins[uuid]["interface"]
+    } else if iface != "" {
+        suricata_iface = iface
+    }
+
+    if suricata_iface != "" {
+        args = append(args, "-i")
+        args = append(args, suricata_iface)
+    }
+
+    suricata_pidfile := ""
+    if fullpidfile != "" {
+        suricata_pidfile = strings.Replace(fullpidfile, "<ID>", uuid, -1)
+        args = append(args, "--pidfile")
+        args = append(args, suricata_pidfile)
+    } else {
+        suricata_pidfile = strings.Replace("/var/run/suricata/<ID>-pidfile.pid", "<ID>", uuid, -1)
+    }
+
+    suricata_ruleset_name := ""
+    if allPlugins[uuid]["localRulesetName"] != "" {
+        suricata_ruleset_name = rulesetPath + allPlugins[uuid]["localRulesetName"] + ".rules"
+        args = append(args, "-S")
+        args = append(args, suricata_ruleset_name)
+    }
+
+    if allPlugins[uuid]["bpfFile"] != "" {
+        args = append(args, "-F")
+        args = append(args, allPlugins[uuid]["bpfFile"])
+    } else if allPlugins[uuid]["bpf"] != "" {
+        args = append(args, allPlugins[uuid]["bpf"])
+    }
+
+    err = os.Remove(suricata_pidfile)
+
+    cmd := exec.Command(suricata, args...)
+
+    stdoutStderr, err := cmd.CombinedOutput()
+    if err != nil {
+        logs.Error(err)
+    }
+    logs.Debug("out -> %v", string(stdoutStderr))
+    if err != nil {
         logs.Error("plugin/LaunchSuricataService error launching Suricata: " + err.Error())
         return errors.New("Error Launching suricata - " + err.Error())
     } else {
