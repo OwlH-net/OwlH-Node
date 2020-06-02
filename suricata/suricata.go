@@ -445,7 +445,7 @@ func GetMD5files(files map[string]map[string]string) (data map[string]map[string
     return MD5data, err
 }
 
-func LaunchSuricataService(uuid string, iface string) (err error) {
+func LaunchSuricataServiceOld(uuid string, iface string) (err error) {
     fullpidfile, err := utils.GetKeyValueString("suricata", "fullpidfile")
     if err != nil {
         logs.Error("LaunchSuricataService Error getting data from main.conf: " + err.Error())
@@ -563,7 +563,7 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
     return nil
 }
 
-func LaunchSuricataServiceWithData(uuid string, iface string) (err error) {
+func LaunchSuricataService(uuid string, iface string) (err error) {
     fullpidfile, err := utils.GetKeyValueString("suricata", "fullpidfile")
     if err != nil {
         logs.Error("LaunchSuricataService Error getting data from main.conf -> suricata / fullpidfile: " + err.Error())
@@ -625,7 +625,7 @@ func LaunchSuricataServiceWithData(uuid string, iface string) (err error) {
     suricata_ruleset_name := ""
     if allPlugins[uuid]["localRulesetName"] != "" {
         suricata_ruleset_name = rulesetPath + allPlugins[uuid]["localRulesetName"] + ".rules"
-        args = append(args, "-s")
+        args = append(args, "-S")
         args = append(args, suricata_ruleset_name)
     }
 
