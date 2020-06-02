@@ -111,8 +111,7 @@ func ChangeMainServiceStatus(anode map[string]string) (err error) {
             }
         }
     } else if anode["service"] == "zeek" {
-        logs.Debug("%+v", maindonfdata)
-        logs.Debug("zeek service change key %s to value %s from %s", anode["param"], anode["status"], maindonfdata["zeek"]["status"])
+        logs.Info("zeek service change key %s to value %s from %s", anode["param"], anode["status"], maindonfdata["zeek"]["status"])
         if maindonfdata["zeek"]["status"] == "enabled" || maindonfdata["zeek"]["status"] == "" {
             err = ndb.UpdateMainconfValue("zeek", "status", "disabled")
         } else if maindonfdata["zeek"]["status"] == "disabled" {
