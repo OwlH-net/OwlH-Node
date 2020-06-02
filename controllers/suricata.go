@@ -1,11 +1,11 @@
 package controllers
 
 import (
-    "owlhnode/models"
-    "owlhnode/validation"
     "encoding/json"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
+    "owlhnode/models"
+    "owlhnode/validation"
 )
 
 type SuricataController struct {
@@ -18,7 +18,7 @@ type SuricataController struct {
 // @router / [get]
 func (n *SuricataController) Get() {
     mstatus, err := models.GetSuricata()
-    
+
     n.Data["json"] = mstatus
     if err != nil {
         logs.Info("Suricata controller -> GET -- ERROR : %s", err.Error())
@@ -48,25 +48,24 @@ func (n *SuricataController) Get() {
 func (n *SuricataController) SetBPF() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"SetBPF"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{     
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        
+
         anode["action"] = "PUT"
         anode["controller"] = "SURICATA"
         anode["router"] = "@router /bpf [put]"
-    
-        
+
         err := models.SetBPF(anode, n.Ctx.Input.Header("user"))
-    
+
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Info("BPF JSON RECEIVED -- ERROR : %s", err.Error())
@@ -89,24 +88,24 @@ func (n *SuricataController) SyncRulesetFromMaster() {
     //     n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     // }else if !permissions{
     //     n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "permissions":"none"}
-    // }else{         
-        var anode map[string][]byte
-        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
-        logs.Info("ACTION -> PUT")
-        logs.Info("CONTROLLER -> SURICATA")
-        logs.Info("ROUTER -> @router /sync [put]")
-        for key := range anode {
-            logs.Info("key -> "+key)
-        }
-    
-        err := models.SyncRulesetFromMaster(anode, n.Ctx.Input.Header("user"))
-        
-        n.Data["json"] = map[string]string{"ack": "true"}
-        if err != nil {
-            logs.Info("Ruleset retrieve OUT -- ERROR : %s", err.Error())
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-        }
+    // }else{
+    var anode map[string][]byte
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    logs.Info("ACTION -> PUT")
+    logs.Info("CONTROLLER -> SURICATA")
+    logs.Info("ROUTER -> @router /sync [put]")
+    for key := range anode {
+        logs.Info("key -> " + key)
+    }
+
+    err := models.SyncRulesetFromMaster(anode, n.Ctx.Input.Header("user"))
+
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Info("Ruleset retrieve OUT -- ERROR : %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     // }
     n.ServeJSON()
 }
@@ -119,15 +118,15 @@ func (n *SuricataController) SyncRulesetFromMaster() {
 func (n *SuricataController) SaveConfigFile() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"SaveConfigFile"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{        
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string][]byte
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 
@@ -135,9 +134,9 @@ func (n *SuricataController) SaveConfigFile() {
         logs.Info("CONTROLLER -> SURICATA")
         logs.Info("ROUTER -> @router / [post]")
         for key := range anode {
-            logs.Info("key -> "+key)
+            logs.Info("key -> " + key)
         }
-    
+
         err := models.SaveConfigFile(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -156,28 +155,98 @@ func (n *SuricataController) SaveConfigFile() {
 func (n *SuricataController) RunSuricata() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"RunSuricata"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{         
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         anode["action"] = "PUT"
         anode["controller"] = "SURICATA"
         anode["router"] = "@router /RunSuricata [put]"
         logs.Info("============")
         logs.Info("SURICATA - RunSuricata")
-        for key :=range anode {
-            logs.Info(key +" -> "+anode[key])
+        for key := range anode {
+            logs.Info(key + " -> " + anode[key])
         }
-        data,err := models.RunSuricata(n.Ctx.Input.Header("user"))
+        data, err := models.RunSuricata(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("RunSuricata OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title SuricataConfigurationTest
+// @Description Check Configuration
+// @Success 200 {object} models.suricata
+// @router /check [put]
+func (n *SuricataController) SuricataConfigurationTest() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"RunSuricata"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var anode = map[string]string{}
+        anode["action"] = "PUT"
+        anode["controller"] = "SURICATA"
+        anode["router"] = "@router /RunSuricata [put]"
+        logs.Info("============")
+        logs.Info("SURICATA - SuricataConfigurationTest")
+        for key := range anode {
+            logs.Info(key + " -> " + anode[key])
+        }
+        data, err := models.SuricataConfigurationTest(n.Ctx.Input.Header("uuid"))
+        n.Data["json"] = data
+        if err != nil {
+            logs.Info("SuricataConfigurationTest OUT -- ERROR : %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DumpSuricataConfiguration
+// @Description Dump Suricata Configuration
+// @Success 200 {object} models.suricata
+// @router /dump [get]
+func (n *SuricataController) SuricataDumpCurrentConfig() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"RunSuricata"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var anode = map[string]string{}
+        anode["action"] = "GET"
+        anode["controller"] = "SURICATA"
+        anode["router"] = "@router /dump [get]"
+        logs.Info("============")
+        logs.Info("SURICATA - DumpSuricataConfiguration")
+        for key := range anode {
+            logs.Info(key + " -> " + anode[key])
+        }
+        data, err := models.SuricataDumpCurrentConfig()
+        n.Data["json"] = data
+        if err != nil {
+            logs.Info("DumpSuricataConfiguration OUT -- ERROR : %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
@@ -192,25 +261,25 @@ func (n *SuricataController) RunSuricata() {
 func (n *SuricataController) StopSuricata() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"StopSuricata"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{        
-        var anode map[string]string
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var anode = map[string]string{}
         anode["action"] = "PUT"
         anode["controller"] = "SURICATA"
         anode["router"] = "@router /StopSuricata [put]"
         logs.Info("============")
         logs.Info("SURICATA - StopSuricata")
-        for key :=range anode {
-            logs.Info(key +" -> "+anode[key])
+        for key := range anode {
+            logs.Info(key + " -> " + anode[key])
         }
-        data,err := models.StopSuricata(n.Ctx.Input.Header("user"))
+        data, err := models.StopSuricata(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("StopSuricata OUT -- ERROR : %s", err.Error())
@@ -224,26 +293,26 @@ func (n *SuricataController) StopSuricata() {
 // @Description get all Suricata services
 // @Success 200 {object} models.suricata
 // @router /get [get]
-func (n *SuricataController) GetSuricataServices() {   
+func (n *SuricataController) GetSuricataServices() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"GetSuricataServices"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{          
-        servicesSuricata,err := models.GetSuricataServices(n.Ctx.Input.Header("user"))
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        servicesSuricata, err := models.GetSuricataServices(n.Ctx.Input.Header("user"))
         n.Data["json"] = servicesSuricata
-    
+
         if err != nil {
             logs.Info("GetSuricataServices ERROR : %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
-    } 
+    }
     n.ServeJSON()
 }
 
@@ -255,25 +324,25 @@ func (n *SuricataController) GetSuricataServices() {
 func (n *SuricataController) StartSuricataMainConf() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"StartSuricataMainConf"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{          
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
+
         logs.Info("ACTION -> PUT")
         logs.Info("CONTROLLER -> SURICATA")
         logs.Info("ROUTER -> @router /StartSuricataMainConf [put]")
         for key := range anode {
-            logs.Info("key -> "+key)
+            logs.Info("key -> " + key)
         }
-    
+
         err := models.StartSuricataMainConf(anode, n.Ctx.Input.Header("user"))
         if err != nil {
             logs.Info("StartSuricataMainConf OUT -- ERROR : %s", err.Error())
@@ -291,25 +360,25 @@ func (n *SuricataController) StartSuricataMainConf() {
 func (n *SuricataController) StopSuricataMainConf() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"StopSuricataMainConf"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{        
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
+
         logs.Info("ACTION -> PUT")
         logs.Info("CONTROLLER -> SURICATA")
         logs.Info("ROUTER -> @router /StopSuricataMainConf [put]")
         for key := range anode {
-            logs.Info("key -> "+key)
+            logs.Info("key -> " + key)
         }
-    
+
         err := models.StopSuricataMainConf(anode, n.Ctx.Input.Header("user"))
         if err != nil {
             logs.Info("StopSuricataMainConf OUT -- ERROR : %s", err.Error())
@@ -327,25 +396,25 @@ func (n *SuricataController) StopSuricataMainConf() {
 func (n *SuricataController) KillSuricataMainConf() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"KillSuricataMainConf"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{       
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
+
         logs.Info("ACTION -> PUT")
         logs.Info("CONTROLLER -> SURICATA")
         logs.Info("ROUTER -> @router /KillSuricataMainConf [put]")
         for key := range anode {
-            logs.Info("key -> "+key)
+            logs.Info("key -> " + key)
         }
-    
+
         err := models.KillSuricataMainConf(anode, n.Ctx.Input.Header("user"))
         if err != nil {
             logs.Info("KillSuricataMainConf OUT -- ERROR : %s", err.Error())
@@ -363,26 +432,26 @@ func (n *SuricataController) KillSuricataMainConf() {
 func (n *SuricataController) ReloadSuricataMainConf() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"ReloadSuricataMainConf"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{          
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
+
         logs.Info("ACTION -> PUT")
         logs.Info("CONTROLLER -> SURICATA")
         logs.Info("ROUTER -> @router /ReloadSuricataMainConf [put]")
         for key := range anode {
-            logs.Info("key -> "+key)
+            logs.Info("key -> " + key)
         }
-    
-        err := models.ReloadSuricataMainConf(anode, n.Ctx.Input.Header("user")) 
+
+        err := models.ReloadSuricataMainConf(anode, n.Ctx.Input.Header("user"))
         if err != nil {
             logs.Info("ReloadSuricataMainConf OUT -- ERROR : %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -400,29 +469,29 @@ func (n *SuricataController) GetMD5files() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
         var errorResponse = map[string]map[string]string{}
-        errorResponse["hasError"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        errorResponse["hasError"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.Data["json"] = errorResponse
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"GetMD5files"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
         var errorResponse = map[string]map[string]string{}
-        errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none", "error": "Not enough permissions"}
+        errorResponse["hasError"] = map[string]string{"ack": "false", "permissions": "none", "error": "Not enough permissions"}
         n.Data["json"] = errorResponse
-    }else{          
+    } else {
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
+
         logs.Info("ACTION -> PUT")
         logs.Info("CONTROLLER -> SURICATA")
         logs.Info("ROUTER -> @router /GetMD5files [put]")
         for key := range anode {
-            logs.Info("key -> "+key)
+            logs.Info("key -> " + key)
         }
-    
-        data,err := models.GetMD5files(anode, n.Ctx.Input.Header("user")) 
+
+        data, err := models.GetMD5files(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("GetMD5files OUT -- ERROR : %s", err.Error())

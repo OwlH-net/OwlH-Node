@@ -179,7 +179,7 @@ func SyncRulesetFromMaster(file map[string][]byte) (err error) {
     if file["data"] == nil || len(file["data"]) <= 0 {
         return errors.New("SyncRulesetFromMaster error: Can't Synchronize empty ruleset")
     }
-    
+
     path, err := utils.GetKeyValueString("suricataRuleset", "path")
     if err != nil {
         logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
@@ -638,6 +638,13 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
         args = append(args, allPlugins[uuid]["bpf"])
     }
 
+    result, err = SuricataConfigurationTest(uuid)
+    if err != nil {
+        logs.Error("Suricata configuration check Error, Can't start Suricata")
+        logs.Error(data)
+        return errors.New(data["error"])
+    }
+
     err = os.Remove(suricata_pidfile)
 
     cmd := exec.Command(suricata, args...)
@@ -728,4 +735,79 @@ func StopSuricataService(uuid string, status string) (err error) {
     }
 
     return nil
+}
+
+func SuricataConfigurationTest(uuid string) (responseBack map[string]string, err error) {
+
+    var response = map[string]string{}
+
+    suricata_config, err := utils.GetKeyValueString("suricata", "suricata_config")
+    if err != nil {
+        logs.Error("SuricataConfigurationTest Error getting data from main.conf: " + err.Error())
+    }
+    suricata, err := utils.GetKeyValueString("suricata", "suricata")
+    if err != nil {
+        logs.Error("SuricataConfigurationTest Error getting data from main.conf: " + err.Error())
+    }
+
+    if uuid != "" {
+        allPlugins, err := ndb.GetPlugins()
+        if err != nil {
+            logs.Error("SuricataConfigurationTest Error getting data from main.conf: " + err.Error())
+        } else if allPlugins[uuid]["configFile"] != "" {
+            suricata_config = allPlugins[uuid]["configFile"]
+        }
+    }
+
+    if suricata_config == "" {
+        str := fmt.Sprintf("SURICATA - check Suricata configuration - missing suricata configuration file, please review default value in main.conf, or configFile property of Suricata")
+        logs.Error(str)
+        return response, errors.New(str)
+    }
+
+    args := []string{}
+    args = append(args, "-c")
+    args = append(args, suricata_config)
+    args = append(args, "-T")
+
+    cmd := exec.Command(suricata, args...)
+
+    response["ack"] = "true"
+
+    stdoutStderr, err := cmd.CombinedOutput()
+    if err != nil {
+        logs.Error(err)
+        response["ack"] = "false"
+        response["error"] = err.Error()
+    }
+    response["result"] = string(stdoutStderr)
+    logs.Debug("out -> %v", string(stdoutStderr))
+    return response, err
+}
+
+func SuricataDumpCurrentConfig() (responseBack map[string]string, err error) {
+    var response = map[string]string{}
+
+    suricata, err := utils.GetKeyValueString("suricata", "suricata")
+    if err != nil {
+        logs.Error("SuricataConfigurationTest Error getting data from main.conf: " + err.Error())
+    }
+
+    args := []string{}
+    args = append(args, "--dump")
+
+    cmd := exec.Command(suricata, args...)
+
+    response["ack"] = "true"
+
+    stdoutStderr, err := cmd.CombinedOutput()
+    if err != nil {
+        logs.Error(err)
+        response["ack"] = "false"
+        response["error"] = err.Error()
+    }
+    response["result"] = string(stdoutStderr)
+    logs.Debug("out -> %v", string(stdoutStderr))
+    return response, err
+
 }
