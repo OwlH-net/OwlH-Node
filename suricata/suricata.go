@@ -199,7 +199,8 @@ func SyncRulesetFromMaster(file map[string][]byte) (err error) {
     // }
 
     //replace file by name
-    plug := strings.Replace(fileToEdit, "<NAME>", string(file["rulesetName"]), -1)
+    fileName := strings.Replace(string(file["rulesetName"])," ","-",-1)
+    plug := strings.Replace(fileToEdit, "<NAME>", fileName, -1)
 
     //create owlh.rules backup
     err = utils.BackupFile(path, plug)
