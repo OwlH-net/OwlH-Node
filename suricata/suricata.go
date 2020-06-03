@@ -638,11 +638,11 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
         args = append(args, allPlugins[uuid]["bpf"])
     }
 
-    result, err = SuricataConfigurationTest(uuid)
+    result, err := SuricataConfigurationTest(uuid)
     if err != nil {
         logs.Error("Suricata configuration check Error, Can't start Suricata")
-        logs.Error(data)
-        return errors.New(data["error"])
+        logs.Error(result)
+        return errors.New(result["error"])
     }
 
     err = os.Remove(suricata_pidfile)
