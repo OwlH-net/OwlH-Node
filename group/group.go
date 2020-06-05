@@ -68,6 +68,7 @@ func SuricataGroupService(data map[string]string) (err error) {
                     return err
                 }
 
+                // err = utils.RunCommand(suricata, "-D"+ param+ group[x]["configFile"]+ "-i"+ group[x]["interface"]+ "-F"+ group[x]["BPFfile"])
                 cmd := exec.Command(suricata, "-D", param, group[x]["configFile"], "-i", group[x]["interface"], "-F", group[x]["BPFfile"])
                 err = cmd.Run()
                 if err != nil {
@@ -141,6 +142,7 @@ func SyncGroupRulesetToNode(file map[string][]byte) (err error) {
         }
 
         _, err = exec.Command(suricatasc, param, reloads, socket).Output()
+        // err = utils.RunCommand(suricatasc, param+ reloads+ socket)
         if err != nil {
             logs.Error("Error executing command in SyncRulesetFromMaster function: " + err.Error())
             return err
