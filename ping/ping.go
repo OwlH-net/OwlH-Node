@@ -182,52 +182,52 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
     }
     param, err := utils.GetKeyValueString("execute", "param")
     if err != nil {
-        logs.Error("ping/DeployService Error getting data from main.conf")
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
     suriPID, err := utils.GetKeyValueString("execute", "suriPID")
     if err != nil {
-        logs.Error("ping/DeployService Error getting data from main.conf")
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
     socatPID, err := utils.GetKeyValueString("execute", "socatPID")
     if err != nil {
-        logs.Error("ping/DeployService Error getting data from main.conf")
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
     openSSL, err := utils.GetKeyValueString("execute", "openSSL")
     if err != nil {
-        logs.Error("ping/DeployService Error getting data from main.conf")
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
     pidID, err := utils.GetKeyValueString("execute", "pidID")
     if err != nil {
-        logs.Error("ping/DeployService Error getting data from main.conf")
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
     command, err := utils.GetKeyValueString("execute", "command")
     if err != nil {
-        logs.Error("ping/DeployService Error getting data from main.conf")
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
     check, err := utils.GetKeyValueString("execute", "check")
     if err != nil {
-        logs.Error("ping/DeployService Error getting data from main.conf")
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
     checkTCPDUMP, err := utils.GetKeyValueString("stap", "checkTCPDUMP")
     if err != nil {
-        logs.Error("ping/DeployService Error getting data from main.conf")
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
     checkTCPREPLAY, err := utils.GetKeyValueString("stap", "checkTCPREPLAY")
     if err != nil {
-        logs.Error("ping/DeployService Error getting data from main.conf")
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
     checkSOCAT, err := utils.GetKeyValueString("stap", "checkSOCAT")
     if err != nil {
-        logs.Error("ping/DeployService Error getting data from main.conf")
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
 
