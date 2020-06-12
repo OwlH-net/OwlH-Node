@@ -29,6 +29,7 @@ import (
 var version string
 
 func main() {
+
     utils.Load()
 
     //get logger data
