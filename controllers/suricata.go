@@ -502,3 +502,34 @@ func (n *SuricataController) GetMD5files() {
     }
     n.ServeJSON()
 }
+
+// @Title AddSuricataService()
+// @Description Add new Suricata Service
+// @Success 200 {object} models.suricata
+// @router /service [put]
+func (n *SuricataController) AddSuricataService() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"AddPluginService"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        anode["action"] = "PUT"
+        anode["controller"] = "SURICATA"
+        anode["router"] = "@router /service [put]"
+        err := models.AddSuricataService(anode, n.Ctx.Input.Header("user"))
+
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
