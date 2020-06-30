@@ -249,16 +249,6 @@ func RunCommand(cmdtxt string, params string) (err error) {
     return err
 }
 
-func StartCommand(cmdtxt string, params string) (err error) {
-    cmd := exec.Command(cmdtxt, params)
-    err = cmd.Start()
-    if err != nil {
-        logs.Error("utils run command -> " + err.Error())
-        return err
-    }
-    return err
-}
-
 func FilelistPathByFile(path string, fileToSearch string) (files map[string][]byte, err error) {
     pathMap := make(map[string][]byte)
     err = filepath.Walk(path,

@@ -111,8 +111,7 @@ func ChangeMainServiceStatus(anode map[string]string) (err error) {
             }
         }
     } else if anode["service"] == "zeek" {
-        logs.Debug("%+v", maindonfdata)
-        logs.Debug("zeek service change key %s to value %s from %s", anode["param"], anode["status"], maindonfdata["zeek"]["status"])
+        logs.Info("zeek service change key %s to value %s from %s", anode["param"], anode["status"], maindonfdata["zeek"]["status"])
         if maindonfdata["zeek"]["status"] == "enabled" || maindonfdata["zeek"]["status"] == "" {
             err = ndb.UpdateMainconfValue("zeek", "status", "disabled")
         } else if maindonfdata["zeek"]["status"] == "disabled" {
@@ -361,7 +360,7 @@ func AddPluginService(anode map[string]string) (err error) {
             }
         }
 
-        err = ndb.InsertPluginService(uuid, "name", anode["name"])
+        err = ndb.InsertPluginService(uuid, "name", strings.Trim(strings.Replace(anode["name"], " ", "_", -1), " "))
         if err != nil {
             logs.Error("InsertPluginService name Error: " + err.Error())
             return err
@@ -1672,4 +1671,85 @@ func StopPluginsGracefully() {
             }
         }
     }
+}
+
+func AddSuricataService(servideData map[string]string) (err error) {
+    uuid := utils.Generate()
+
+    path, err := utils.GetKeyValueString("suricataBPF", "pathBPF")
+    if err != nil {
+        logs.Error("AddPluginService Error getting data from main.conf: " + err.Error())
+    }
+
+    // path := "/etc/suricata/bpf"
+    if _, err := os.Stat(path); os.IsNotExist(err) {
+        err = os.MkdirAll(path, 0755)
+        if err != nil {
+            logs.Error("InsertPluginService erro creating BPF directory: " + err.Error())
+            return err
+        }
+    }
+
+    err = ndb.InsertPluginService(uuid, "name", strings.Trim(strings.Replace(servideData["name"], " ", "_", -1), " "))
+    if err != nil {
+        logs.Error("InsertPluginService name Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "type", servideData["type"])
+    if err != nil {
+        logs.Error("InsertPluginService type Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "status", servideData["status"])
+    if err != nil {
+        logs.Error("InsertPluginService status Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "previousStatus", "none")
+    if err != nil {
+        logs.Error("InsertPluginService previousStatus Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "interface", servideData["interface"])
+    if err != nil {
+        logs.Error("InsertPluginService interface Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "bpf", servideData["bpf"])
+    if err != nil {
+        logs.Error("InsertPluginService bpf Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "bpfFile", servideData["bpfFile"])
+    if err != nil {
+        logs.Error("InsertPluginService bpfFile Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "ruleset", servideData["ruleset"])
+    if err != nil {
+        logs.Error("InsertPluginService ruleset Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "rulesetName", servideData["rulesetName"])
+    if err != nil {
+        logs.Error("InsertPluginService ruleset Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "localRulesetName", servideData["rulesetName"])
+    if err != nil {
+        logs.Error("InsertPluginService Local Ruleset Name Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "configFile", servideData["configFile"])
+    if err != nil {
+        logs.Error("InsertPluginService configFile Error: " + err.Error())
+        return err
+    }
+    err = ndb.InsertPluginService(uuid, "pid", "none")
+    if err != nil {
+        logs.Error("InsertPluginService ruleset Error: " + err.Error())
+        return err
+    }
+
+    return nil
 }

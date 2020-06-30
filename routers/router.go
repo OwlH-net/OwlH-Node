@@ -8,8 +8,8 @@
 package routers
 
 import (
-    "owlhnode/controllers"
     "github.com/astaxie/beego"
+    "owlhnode/controllers"
 )
 
 func init() {
@@ -105,6 +105,11 @@ func init() {
             ),
         ),
         beego.NSNamespace("/autentication",
+            beego.NSInclude(
+                &controllers.AutenticationController{},
+            ),
+        ),
+        beego.NSNamespace("/authentication",
             beego.NSInclude(
                 &controllers.AutenticationController{},
             ),
