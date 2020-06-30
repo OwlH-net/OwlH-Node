@@ -1,74 +1,124 @@
 package validation
 
 import (
-	"errors"
-	"github.com/astaxie/beego/logs"
-	jwt "github.com/dgrijalva/jwt-go"
-	"golang.org/x/crypto/bcrypt"
-	"owlhnode/database"
+    "errors"
+    "github.com/astaxie/beego/logs"
+    jwt "github.com/dgrijalva/jwt-go"
+    "golang.org/x/crypto/bcrypt"
+    "owlhnode/database"
 )
 
 func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	logs.Info("NEW HASH PASSWD--> " + string(bytes))
-	return string(bytes), err
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    return string(bytes), err
 }
 
 func CheckPasswordHash(password string, hash string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	if err != nil {
-		logs.Error("validation/CheckPasswordHash " + err.Error())
-		return false, err
-	}
-	return true, nil
+    err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+    if err != nil {
+        logs.Error("validation/CheckPasswordHash " + err.Error())
+        return false, err
+    }
+    return true, nil
 }
 
 // Generates a jwt token.
 func Encode(secret string) (val string, err error) {
-	claims := jwt.StandardClaims{
-		ExpiresAt: 15000,
-		Issuer:    "OwlH",
-	}
+    claims := jwt.StandardClaims{
+        ExpiresAt: 15000,
+        Issuer:    "OwlH",
+    }
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(secret))
-	if err != nil {
-		logs.Error("Encode error: %s", err)
-		return "", err
-	}
-	return tokenString, err
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    tokenString, err := token.SignedString([]byte(secret))
+    if err != nil {
+        logs.Error("Encode error: %s", err)
+        return "", err
+    }
+    return tokenString, err
 }
 
 func VerifyToken(token string, user string) (err error) {
-	masters, err := ndb.GetMasters()
-	if err != nil {
-		logs.Error("CheckToken error getting master data: %s", err)
-		return err
-	}
-	for x := range masters {
-		tkn, err := Encode(masters[x]["secret"])
-		if err != nil {
-			logs.Error("Error checking Master token: %s", err)
-			return err
-		} else {
-			if token == tkn {
-				return nil
-			}
-		}
-	}
-	return errors.New("VerifyToken - Incorrect Token")
+    masters, err := ndb.GetMasters()
+    if err != nil {
+        logs.Error("CheckToken error getting master data: %s", err)
+        return err
+    }
+    for x := range masters {
+        tkn, err := Encode(masters[x]["secret"])
+        if err != nil {
+            logs.Error("Error checking Master token: %s", err)
+            return err
+        } else {
+            if token == tkn {
+                return nil
+            }
+        }
+    }
+    return errors.New("VerifyToken - Incorrect Token")
 }
 
 func VerifyPermissions(user string, object string, permissions []string) (hasPermissions bool, err error) {
-	for x := range permissions {
-		status, err := UserPermissionsValidation(user, permissions[x])
-		if err != nil {
-			logs.Error("VerifyPermissions error - requestType error: %s", err)
-			return false, err
-		}
-		if status {
-			return true, nil
-		}
-	}
-	return false, nil
+    for x := range permissions {
+        status, err := UserPermissionsValidation(user, permissions[x])
+        if err != nil {
+            logs.Error("VerifyPermissions error - requestType error: %s", err)
+            return false, err
+        }
+        if status {
+            return true, nil
+        }
+    }
+    return false, nil
+}
+
+func GetUserParamValue(uuid, param string) (value string, err error) {
+    value, err = ndb.GetUserParamValue(uuid, param)
+    if err != nil {
+        return "", err
+    }
+    return value, nil
+}
+
+func GetLocalUserPassword(userName string) (encPassword string, err error) {
+    logs.Debug("%+v", userName)
+    uuid, err := ndb.GetLocalUserID(userName)
+    if err != nil {
+        return "", err
+    }
+    logs.Debug("%+v", uuid)
+    uPass, err := GetUserParamValue(uuid, "pass")
+    if err != nil {
+        return "", err
+    }
+    logs.Debug("%+v", uPass)
+    return uPass, nil
+}
+
+func VerifyLocalUser(user map[string]string) bool {
+    logs.Debug("%+v", user)
+    uPassword, err := GetLocalUserPassword(user["name"])
+    if err != nil {
+        return false
+    }
+    valid, err := CheckPasswordHash(user["password"], uPassword)
+    if err != nil {
+        return false
+    }
+    return valid
+}
+
+func ChangeLocalUserPassword(user map[string]string) (err error) {
+    logs.Debug("%+v", user)
+    uuid := ""
+    uuid, err = ndb.GetLocalUserID(user["name"])
+    if err != nil {
+        return err
+    }
+    logs.Debug("let's change user %s with uuid %s, passwd %s", user["name"], uuid, user["newpassword"])
+    err = ndb.UpdateUsers(uuid, "pass", user["newpassword"])
+    if err != nil {
+        return err
+    }
+    return nil
 }
