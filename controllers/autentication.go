@@ -1,11 +1,13 @@
 package controllers
 
 import (
+    "encoding/base64"
     "encoding/json"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
     "owlhnode/models"
     "owlhnode/validation"
+    "strings"
 )
 
 type AutenticationController struct {
@@ -207,4 +209,41 @@ func (n *AutenticationController) SyncRoleGroups() {
         }
         n.ServeJSON()
     }
+}
+
+// @Title ChangeLocalUserPassword
+// @Description Change local user pass using basicAuth
+// @router /localuserpasswd [put]
+func (n *AutenticationController) ChangeLocalUserPassword() {
+
+    n.Data["json"] = map[string]string{"ack": "false", "error": ""}
+    validUser := false
+    code := strings.Replace(n.Ctx.Input.Header("Authorization"), "Basic ", "", -1)
+    data, err := base64.StdEncoding.DecodeString(code)
+    userPass := strings.Split(string(data), ":")
+    logs.Debug("%+v", userPass)
+    var user = make(map[string]string)
+    var newPass = make(map[string]string)
+
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    } else {
+        user["name"] = userPass[0]
+        user["password"] = userPass[1]
+        validUser = validation.VerifyLocalUser(user)
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+
+    if validUser {
+        json.Unmarshal(n.Ctx.Input.RequestBody, &newPass)
+        hPass, _ := validation.HashPassword(newPass["newpassword"])
+        user["newpassword"] = hPass
+        validation.ChangeLocalUserPassword(user)
+        n.Data["json"] = map[string]string{"ack": "true"}
+    }
+
+    n.ServeJSON()
+
 }
