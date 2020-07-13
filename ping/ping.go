@@ -420,7 +420,6 @@ func DeleteNode(masterID string) (err error) {
 
     masters, err := ndb.GetMasters()
     for x:= range masters{
-        logs.Critical(masters[x]["master"] == masterID)
         if masters[x]["master"] == masterID{
             err = ndb.DeleteMastersInformation(x)
             if err != nil {
@@ -429,8 +428,6 @@ func DeleteNode(masterID string) (err error) {
             }
         }
     }
-
-
 
     return err
 }
