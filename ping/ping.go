@@ -417,10 +417,16 @@ func DeleteNode(masterID string) (err error) {
         logs.Error("DeleteNode Error deleting node data: " + err.Error())
         return err
     }
-    err = ndb.DeleteMastesInformation(masterID)
-    if err != nil {
-        logs.Error("DeleteNode Error deleting master data: " + err.Error())
-        return err
+
+    masters, err := ndb.GetMasters()
+    for x:= range masters{
+        if masters[x]["master"] == masterID{
+            err = ndb.DeleteMastersInformation(x)
+            if err != nil {
+                logs.Error("DeleteNode Error deleting master data: " + err.Error())
+                return err
+            }
+        }
     }
 
     return err
