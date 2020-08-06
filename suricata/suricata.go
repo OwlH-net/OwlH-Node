@@ -382,6 +382,8 @@ func SaveConfigFile(files map[string][]byte) (err error) {
             logs.Error("SaveConfigFile ExtractFile Error: " + err.Error())
             return err
         }
+        //remove zip file
+        os.Remove(x+"/file.tar.gzip")
     }
     return nil
 }
