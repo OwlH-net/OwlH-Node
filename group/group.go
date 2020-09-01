@@ -101,8 +101,8 @@ func SyncGroupRulesetToNode(file map[string][]byte) (err error) {
     }
 
     //replace file by name
-    pluginName := strings.Replace(string(file["name"]), " ", "_", -1)
-    plug := strings.Replace(fileToEdit, "<NAME>", pluginName, -1)
+    rulesetName := strings.Replace(string(file["name"]), " ", "-", -1)
+    plug := strings.Replace(fileToEdit, "<NAME>", rulesetName, -1)
 
     //create owlh.rules backup
     err = utils.BackupFile(path, plug)
@@ -119,35 +119,8 @@ func SyncGroupRulesetToNode(file map[string][]byte) (err error) {
     }
     // /usr/local/bin/suricatasc -c reload-rules /var/run/suricata/suricata-command.socket
     //SuricataRulesetReload
-    if suricata.SuriRunning() {
-        suricatasc, err := utils.GetKeyValueString("SuricataRulesetReload", "suricatasc")
-        if err != nil {
-            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
-            return err
-        }
-        param, err := utils.GetKeyValueString("SuricataRulesetReload", "param")
-        if err != nil {
-            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
-            return err
-        }
-        reloads, err := utils.GetKeyValueString("SuricataRulesetReload", "reload")
-        if err != nil {
-            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
-            return err
-        }
-        socket, err := utils.GetKeyValueString("SuricataRulesetReload", "socket")
-        if err != nil {
-            logs.Error("suriRunning Error getting data from main.conf: " + err.Error())
-            return err
-        }
-
-        _, err = exec.Command(suricatasc, param, reloads, socket).Output()
-        // err = utils.RunCommand(suricatasc, param+ reloads+ socket)
-        if err != nil {
-            logs.Error("Error executing command in SyncRulesetFromMaster function: " + err.Error())
-            return err
-        }
-    }
+    logs.Info("SURICATA - RULSET SYNC -> please reload suricatas runing ruleset -> %s", rulesetName)
+    suricata.ReloadSuricatas(rulesetName)
 
     return nil
 }

@@ -216,23 +216,17 @@ func SyncRulesetFromMaster(file map[string][]byte) (err error) {
         return err
     }
 
-    // //get name from db
-    // pluginName, err := ndb.GetPluginsByParam(string(file["service"]), "name")
-    // if err != nil {
-    //     logs.Error("SyncRulesetFromMaster Error getting data from database: " + err.Error())
-    //     return err
-    // }
-
     //replace file by name
     fileName := strings.Replace(string(file["rulesetName"]), " ", "-", -1)
     plug := strings.Replace(fileToEdit, "<NAME>", fileName, -1)
+    logs.Info("SURICATA - RULESET SYNC -> ruleset name -> %s, full ruleset name -> %s", fileName, plug)
 
     //create owlh.rules backup
     err = utils.BackupFile(path, plug)
     if err != nil {
         _ = ndb.InsertPluginCommand(uuid, "status", "Error")
         _ = ndb.InsertPluginCommand(uuid, "output", "SyncRulesetFromMaster Error doing Backup: "+err.Error())
-        logs.Error("Error creating owlh.rules backup: " + err.Error())
+        logs.Error("SURICATA - RULESET SYNC -> Error creating ruleset %s backup: %s", plug, err.Error())
         return err
     }
 
@@ -241,45 +235,72 @@ func SyncRulesetFromMaster(file map[string][]byte) (err error) {
     if err != nil {
         _ = ndb.InsertPluginCommand(uuid, "status", "Error")
         _ = ndb.InsertPluginCommand(uuid, "output", "SyncRulesetFromMaster Error writing new ruleset data into file: "+err.Error())
-        logs.Error("Error writting data into owlh.rules file: " + err.Error())
+        logs.Error("SURICATA - RULESET SYNC -> Error writting data into  file: " + err.Error())
         return err
     }
+
     // /usr/local/bin/suricatasc -c reload-rules /var/run/suricata/suricata-command.socket
     //SuricataRulesetReload
-    if SuriRunning() {
-        suricatasc, err := utils.GetKeyValueString("SuricataRulesetReload", "suricatasc")
-        if err != nil {
-            logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
-            return err
-        }
-        param, err := utils.GetKeyValueString("SuricataRulesetReload", "param")
-        if err != nil {
-            logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
-            return err
-        }
-        reloads, err := utils.GetKeyValueString("SuricataRulesetReload", "reload")
-        if err != nil {
-            logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
-            return err
-        }
-        socket, err := utils.GetKeyValueString("SuricataRulesetReload", "socket")
-        if err != nil {
-            logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
-            return err
-        }
-
-        _, err = exec.Command(suricatasc, param, reloads, socket).Output()
-        if err != nil {
-            _ = ndb.InsertPluginCommand(uuid, "status", "Error")
-            _ = ndb.InsertPluginCommand(uuid, "output", "SyncRulesetFromMaster restarting Suricata: "+err.Error())
-            _ = ndb.InsertPluginCommand(uuid, "command", suricatasc+param+reloads+socket)
-            logs.Error("Error executing command in SyncRulesetFromMaster function: " + err.Error())
-            return err
-        }
-    }
+    logs.Info("SURICATA - RULSET SYNC -> please reload suricatas runing ruleset -> %s", fileName)
+    ReloadSuricatas(fileName)
 
     _ = ndb.InsertPluginCommand(uuid, "status", "Success")
     _ = ndb.InsertPluginCommand(uuid, "output", "Ruleset sync successfully")
+    return nil
+}
+
+func ReloadSuricatas(rulesetName string) (err error) {
+
+    fullpidfile, err := utils.GetKeyValueString("suricata", "fullpidfile")
+    if err != nil {
+        logs.Error("SyncRulesetFromMaster Error getting fullpidfile data from main.conf: " + err.Error())
+        return err
+    }
+    suricatasc, err := utils.GetKeyValueString("SuricataRulesetReload", "suricatasc")
+    if err != nil {
+        logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
+        return err
+    }
+    param, err := utils.GetKeyValueString("SuricataRulesetReload", "param")
+    if err != nil {
+        logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
+        return err
+    }
+    reloads, err := utils.GetKeyValueString("SuricataRulesetReload", "reload")
+    if err != nil {
+        logs.Error("SyncRulesetFromMaster Error getting data from main.conf: " + err.Error())
+        return err
+    }
+
+    reloadSignal, err := utils.GetKeyValueString("suricata", "reloadsignal")
+    if err != nil {
+        logs.Error("SyncRulesetFromMaster Error getting suricata-reloadsignal data from main.conf: " + err.Error())
+        return err
+    }
+
+    Suricatas, _ := GetSuricataServices()
+    logs.Info("Suricata Services -> %+v", Suricatas)
+
+    for eachSuricata := range Suricatas {
+        if Suricatas[eachSuricata]["localRulesetName"] == rulesetName {
+            logs.Info("SURICATA - RULESET SYNC -> reload uuid %s", eachSuricata)
+            pidfile := strings.Replace(fullpidfile, "<ID>", eachSuricata, -1)
+            if SuriRunning() {
+                logs.Info("SURICATA - RULESET SYNC -> reload Suricata name -> %s", Suricatas[eachSuricata]["name"])
+                logs.Info("SURICATA - RULESET SYNC -> sc - %s, param - %s, reload command - %s, pidfile - %s", suricatasc, param, reloads, pidfile)
+                cmdOutput, err := exec.Command(suricatasc, param, reloads, pidfile).Output()
+                if err != nil {
+                    logs.Warning("SURICATA - RULESET SYNC -> Can't reload Suricata using SC command: %s (%s)", cmdOutput, err.Error())
+                    cmdOutput, err = exec.Command("kill", reloadSignal, Suricatas[eachSuricata]["pid"]).Output()
+                    logs.Info("SURICATA - RULESET SYNC -> running kill signal to reload pid -> %s", Suricatas[eachSuricata]["pid"])
+                    if err != nil {
+                        logs.Warning("SURICATA - RULESET SYNC -> Can't reload Suricata using kill signal: %s (%s)", cmdOutput, err.Error())
+                        return err
+                    }
+                }
+            }
+        }
+    }
     return nil
 }
 
@@ -356,7 +377,7 @@ func StopSuricata() (data string, err error) {
 func GetSuricataServices() (data map[string]map[string]string, err error) {
     data, err = ndb.GetServices("suricata")
     if err != nil {
-        logs.Error("GetSuricataServices Error: " + err.Error())
+        logs.Error("GetSuricataServices Reading services Error: " + err.Error())
         return nil, err
     }
     return data, nil
@@ -418,7 +439,6 @@ func StartSuricataMainConf(anode map[string]string) (err error) {
         logs.Error("StartSuricataMainConf/Error starting suricata: " + err.Error())
         return err
     }
-
 
     return nil
 }
@@ -642,7 +662,7 @@ func GetMD5files(files map[string]map[string]string) (data map[string]map[string
 //         _ = ndb.InsertPluginCommand(uuidLog, "output", "LaunchSuricataService Launch Suricata mainconf error")
 //         vals := strings.Join(args, ",")
 //         _ = ndb.InsertPluginCommand(uuidLog, "command", suricata+vals)
-        
+
 //         logs.Error("plugin/LaunchSuricataService error launching Suricata: " + err.Error())
 //         return errors.New("Error Launching suricata - " + err.Error())
 //     } else {
@@ -695,6 +715,8 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
     _ = ndb.InsertPluginCommand(uuidLog, "action", "LaunchSuricataService")
     _ = ndb.InsertPluginCommand(uuidLog, "description", "Launch suricata service")
 
+    logs.Info("SURICATA -> Launch suricata %s, if needed", uuid)
+
     fullpidfile, err := utils.GetKeyValueString("suricata", "fullpidfile")
     if err != nil {
         logs.Error("LaunchSuricataService Error getting data from main.conf -> suricata / fullpidfile: " + err.Error())
@@ -714,6 +736,7 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
 
     mainConfData, err := ndb.GetMainconfData()
     if mainConfData["suricata"]["status"] == "disabled" {
+        logs.Info("Suricata is disabled by main.conf - won't run any suricata service")
         return nil
     }
 
@@ -728,7 +751,7 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
         args = append(args, suricata_config)
     } else if suricata_config == "" {
         _ = ndb.InsertPluginCommand(uuidLog, "status", "Error")
-        _ = ndb.InsertPluginCommand(uuidLog, "output", "SURICATA - Start Suricata - missing suricata configuration file, please review default value in main.conf, or configFile property of Suricata "+ allPlugins[uuid]["name"])
+        _ = ndb.InsertPluginCommand(uuidLog, "output", "SURICATA - Start Suricata - missing suricata configuration file, please review default value in main.conf, or configFile property of Suricata "+allPlugins[uuid]["name"])
         str := fmt.Sprintf("SURICATA - Start Suricata - missing suricata configuration file, please review default value in main.conf, or configFile property of Suricata %s ", allPlugins[uuid]["name"])
         logs.Error(str)
         return errors.New(str)
@@ -769,6 +792,7 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
         args = append(args, allPlugins[uuid]["bpf"])
     }
 
+    logs.Info("SURICATA -> running configuration Test")
     result, err := SuricataConfigurationTest(uuid)
     if err != nil {
         _ = ndb.InsertPluginCommand(uuidLog, "status", "Error")
@@ -787,22 +811,36 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
     vals := strings.Join(args, ",")
     _ = ndb.InsertPluginCommand(uuidLog, "command", suricata+vals)
 
+    logs.Info("SURICATA -> Running Suricata with args %+v", args)
     cmd := exec.Command(suricata, args...)
 
     stdoutStderr, err := cmd.CombinedOutput()
-    if err != nil {
-        _ = ndb.InsertPluginCommand(uuidLog, "status", "Error")
-        _ = ndb.InsertPluginCommand(uuidLog, "output", "LaunchSuricataService Launch Suricata mainconf error")
-        logs.Error(err)
-    }
     logs.Debug("out -> %v", string(stdoutStderr))
     if err != nil {
         _ = ndb.InsertPluginCommand(uuidLog, "status", "Error")
-        _ = ndb.InsertPluginCommand(uuidLog, "output", "plugin/LaunchSuricataService error launching Suricata: " + err.Error())
+        _ = ndb.InsertPluginCommand(uuidLog, "output", "plugin/LaunchSuricataService error launching Suricata: "+err.Error())
         logs.Error("plugin/LaunchSuricataService error launching Suricata: " + err.Error())
         return errors.New("Error Launching suricata - " + err.Error())
     } else {
-        time.Sleep(time.Second * 1)
+        time.Sleep(time.Second * 10)
+        logs.Info("SURICATA -> Started ")
+
+        //change DB status
+        logs.Info("SURICATA -> UPDATE previous status")
+        err = ndb.UpdatePluginValue(uuid, "previousStatus", "enabled")
+        if err != nil {
+            logs.Error("plugin/LaunchSuricataService set previous status error : " + err.Error())
+            return err
+        }
+
+        //change DB status
+        logs.Info("SURICATA -> UPDATE current status")
+        err = ndb.UpdatePluginValue(uuid, "status", "enabled")
+        if err != nil {
+            logs.Error("plugin/LaunchSuricataService set current status error: " + err.Error())
+            return err
+        }
+
         //read file
         currentpid, err := os.Open(suricata_pidfile)
         if err != nil {
@@ -813,6 +851,8 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
         pid, err := ioutil.ReadAll(currentpid)
         PidNumber := strings.Split(string(pid), "\n")
 
+        logs.Info("SURICATA -> Started, new PID %v", PidNumber)
+
         //save pid to db
         err = ndb.UpdatePluginValue(uuid, "pid", PidNumber[0])
         if err != nil {
@@ -820,20 +860,8 @@ func LaunchSuricataService(uuid string, iface string) (err error) {
             return err
         }
 
-        //change DB status
-        err = ndb.UpdatePluginValue(uuid, "previousStatus", "enabled")
-        if err != nil {
-            logs.Error("plugin/LaunchSuricataService error: " + err.Error())
-            return err
-        }
-
-        //change DB status
-        err = ndb.UpdatePluginValue(uuid, "status", "enabled")
-        if err != nil {
-            logs.Error("plugin/LaunchSuricataService error: " + err.Error())
-            return err
-        }
     }
+    logs.Info("SURICATA -> Launch Service done.")
 
     _ = ndb.InsertPluginCommand(uuidLog, "status", "Success")
     _ = ndb.InsertPluginCommand(uuidLog, "output", "LaunchSuricataService reloaded successfully")
@@ -877,15 +905,15 @@ func StopSuricataService(uuid string, status string) (err error) {
     if err != nil {
         _ = ndb.InsertPluginCommand(uuidLog, "status", "Error")
         _ = ndb.InsertPluginCommand(uuidLog, "output", "StopSuricataService remove PID file error: "+err.Error())
-        _ = ndb.InsertPluginCommand(uuidLog, "command", suricataBackup + uuid + "-" + suricataPidfile)
+        _ = ndb.InsertPluginCommand(uuidLog, "command", suricataBackup+uuid+"-"+suricataPidfile)
     }
 
     //change DB pid
-    err = ndb.UpdatePluginValue(uuid, "pid", "none")
-    if err != nil {
-        logs.Error("plugin/StopSuricataService error updating pid at DB: " + err.Error())
-        return err
-    }
+    // err = ndb.UpdatePluginValue(uuid, "pid", "none")
+    // if err != nil {
+    //     logs.Error("plugin/StopSuricataService error updating pid at DB: " + err.Error())
+    //     return err
+    // }
 
     //change DB status
     err = ndb.UpdatePluginValue(uuid, "previousStatus", status)
@@ -979,4 +1007,37 @@ func SuricataDumpCurrentConfig() (responseBack map[string]string, err error) {
     logs.Debug("out -> %v", string(stdoutStderr))
     return response, err
 
+}
+
+func SuricataVersion() (version map[string]string, err error) {
+    var response = map[string]string{}
+
+    suricata, err := utils.GetKeyValueString("suricata", "suricata")
+    if err != nil {
+        logs.Error("SuricataVersion Error getting suricata binary data from main.conf: " + err.Error())
+    }
+
+    args := []string{}
+    args = append(args, "-V")
+
+    cmd := exec.Command(suricata, args...)
+
+    response["ack"] = "true"
+
+    stdoutStderr, err := cmd.CombinedOutput()
+    if err != nil {
+        logs.Error("Suricata Version Error -> %s", err.Error())
+        response["ack"] = "false"
+        response["error"] = err.Error()
+    }
+    response["version_string"] = string(stdoutStderr)
+    re := regexp.MustCompile("(\\d+\\.\\d+\\.\\d+)")
+    match := re.FindStringSubmatch(string(stdoutStderr))
+    if len(match) > 1 {
+        response["version"] = match[1]
+    }
+
+    logs.Debug("Suricata Version output -> %v", string(stdoutStderr))
+
+    return response, err
 }

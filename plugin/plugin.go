@@ -426,6 +426,7 @@ func AddPluginService(anode map[string]string) (err error) {
 }
 
 func UpdateSuricataValue(anode map[string]string) (err error) {
+    logs.Info("SURICATA -> Update service values -> %s, %s, %s", anode["service"], anode["param"], anode["value"])
     err = ndb.UpdatePluginValue(anode["service"], anode["param"], anode["value"])
     if err != nil {
         logs.Error("plugin/UpdateSuricataValue error: " + err.Error())
@@ -475,6 +476,7 @@ func CheckServicesStatus() {
     for w := range allPlugins {
         if allPlugins[w]["pid"] != "none" {
             if allPlugins[w]["type"] == "suricata" {
+                logs.Info("SURICATA -> Review Suricata Service %s", w)
                 pid, err := exec.Command(command, param, strings.Replace(suriPID, "<ID>", "grep "+w+" |", -1)).Output()
                 if err != nil {
                     logs.Error("plugin/CheckServicesStatus Checking previous PID: " + err.Error())
@@ -482,19 +484,19 @@ func CheckServicesStatus() {
 
                 pidValue := strings.Split(string(pid), "\n")
 
-                if pidValue[0] != "" && pidValue[0] != allPlugins[w]["pid"] && allPlugins[w]["status"] == "enabled" {
+                logs.Info("SURICATA -> check pid %s, %s, %s", pidValue[0], allPlugins[w]["pid"], allPlugins[w]["status"])
+                if pidValue[0] != "" && pidValue[0] != allPlugins[w]["pid"] && allPlugins[w]["previousStatus"] == "enabled" {
                     err = ndb.UpdatePluginValue(w, "pid", pidValue[0])
                     if err != nil {
                         logs.Error("plugin/CheckServicesStatus error updating pid at DB: " + err.Error())
                     }
                     logs.Notice(pidValue[0] + " UPDATED!")
-                } else if pidValue[0] == "" && allPlugins[w]["status"] == "enabled" {
+                } else if pidValue[0] == "" && allPlugins[w]["previousStatus"] == "enabled" {
                     err = suricata.LaunchSuricataService(w, allPlugins[w]["interface"])
                     if err != nil {
                         logs.Error("plugin/CheckServicesStatus error launching SURICATA after node stops: " + err.Error())
-                        _ = suricata.StopSuricataService(w, allPlugins[w]["status"])
                     } else {
-                        logs.Notice("Launching Suricata Service")
+                        logs.Notice("SURICATA -> Launching Suricata Service")
                     }
                 }
             } else if allPlugins[w]["type"] == "zeek" {
@@ -1611,6 +1613,7 @@ func StopPluginsGracefully() {
             if plugins[id]["pid"] != "none" {
                 //kill suricata process
                 PidInt, _ := strconv.Atoi(strings.Trim(string(plugins[id]["pid"]), "\n"))
+                logs.Info("SURICATA -> Stop suricata with Pid %v", PidInt)
                 process, _ := os.FindProcess(PidInt)
                 _ = process.Kill()
                 //delete pid file
