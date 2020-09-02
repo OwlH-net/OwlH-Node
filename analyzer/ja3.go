@@ -107,6 +107,7 @@ func loadJA3Hashes() (err error) {
         logs.Error("JA3 - Error importing ja3 hashes from file to struct: %s ", err.Error())
         return err
     }
+    return nil
 
 }
 
