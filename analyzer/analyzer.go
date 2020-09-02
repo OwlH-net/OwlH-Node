@@ -42,6 +42,7 @@ type Analyzer struct {
     Feedfiles              []Feedfile
     Suricatasocket         string `json:"suricatasocket"`
     SuricatasocketEnabled  bool   `json:"suricatasocketenabled"`
+    WazuhSocketEnabled     bool   `json:"wazuhsocketenabled"`
     TimebetweenStatusCheck int    `json:"timebetweenstatuscheck"`
     Timetowaitforfile      int    `json:"timetowaitforfilek"`
     ChannelWorkers         int    `json:"channelworkers"`
@@ -236,6 +237,9 @@ func DoFeed(wkrid int) {
         bline, err := json.Marshal(jsoninterface)
         if err != nil {
             logs.Error("DoFeed - Marshal before ToDispatcher - Error: %s", err.Error())
+        }
+        if isJA3Enabled() {
+            bline = ja3Manage(bline)
         }
         ToDispatcher("CHfeed", string(bline))
     }
@@ -457,6 +461,7 @@ func DoWriter(wkrid int) {
         if err != nil {
             logs.Error("Analyzer Writer: can't write line to file: " + outputfile + " -> " + err.Error())
         }
+        dgramWriter(line)
     }
 }
 
@@ -869,6 +874,8 @@ func Init() {
     readconf()
     go InitAnalizer()
     go dgram()
+    loadJA3Config()
+    loadJA3Hashes()
 }
 
 func PingAnalyzer() (data map[string]string, err error) {
@@ -976,4 +983,26 @@ func dgram() {
         //logs.Info("line is - %s", string(scanner.Bytes()))
         ToDispatcher("start", string(scanner.Bytes()))
     }
+}
+
+func dgramWriter(line string) {
+    logs.Info("Line to Wazuh by DGRAM")
+    if !config.WazuhSocketEnabled {
+        logs.Info("")
+        return
+    }
+    c, err := net.Dial("unixgram", "/var/ossec/queue/ossec/queue")
+    if err != nil {
+        logs.Error("Dial error", err)
+        return
+    }
+    defer c.Close()
+
+    msg := "1:/var/log/owlh/alerts.json/:" + line
+    _, err = c.Write([]byte(msg))
+    if err != nil {
+        logs.Error("Write error:", err)
+        return
+    }
+    logs.Info("Client sent:", msg)
 }

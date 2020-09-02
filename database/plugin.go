@@ -103,7 +103,7 @@ func GetServices(service string) (path map[string]map[string]string, err error) 
     defer rowsQuery.Close()
     for rowsQuery.Next() {
         if err = rowsQuery.Scan(&uuidSource); err != nil {
-            logs.Error("GetServices -- Query return error: %s", err.Error())
+            logs.Error("GetServices -- UUID Query return error: %s", err.Error())
             return nil, err
         }
 
@@ -111,13 +111,13 @@ func GetServices(service string) (path map[string]map[string]string, err error) 
 
         rows, err := Pdb.Query(sql)
         if err != nil {
-            logs.Error("GetServices Pdb.Query Error : %s", err.Error())
+            logs.Error("GetServices - get uuid items error - Pdb.Query Error : %s", err.Error())
             return nil, err
         }
         defer rows.Close()
         for rows.Next() {
-            if err = rows.Scan(&service); err != nil {
-                logs.Error("GetServices -- Query return error: %s", err.Error())
+            if err = rows.Scan(&uniqid, &param, &value); err != nil {
+                logs.Error("GetServices -- get uuid values scan  error: %s", err.Error())
                 return nil, err
             }
             if serviceValues[uniqid] == nil {

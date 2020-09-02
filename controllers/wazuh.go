@@ -1,10 +1,10 @@
 package controllers
 
 import (
-    "owlhnode/models"
+    "encoding/json"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
-    "encoding/json"
+    "owlhnode/models"
     "owlhnode/validation"
 )
 
@@ -19,16 +19,16 @@ type WazuhController struct {
 func (n *WazuhController) Get() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"GetWazuh"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{         
-        logs.Info ("Wazuh controller -> GET")
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        logs.Info("Wazuh controller -> GET")
         mstatus, err := models.GetWazuh(n.Ctx.Input.Header("user"))
         n.Data["json"] = mstatus
         if err != nil {
@@ -47,26 +47,26 @@ func (n *WazuhController) Get() {
 func (n *WazuhController) RunWazuh() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"RunWazuh"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{          
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         logs.Info("RunWazuh -> In")
-        var anode map[string]string
+        var anode = map[string]string{}
         anode["action"] = "PUT"
         anode["controller"] = "WAZUH"
         anode["router"] = "@router /RunWazuh [put]"
         logs.Info("============")
         logs.Info("WAZUH - RunWazuh")
-        for key :=range anode {
-            logs.Info(key +" -> "+anode[key])
+        for key := range anode {
+            logs.Info(key + " -> " + anode[key])
         }
-        data,err := models.RunWazuh(n.Ctx.Input.Header("user"))
+        data, err := models.RunWazuh(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("RunWazuh OUT -- ERROR : %s", err.Error())
@@ -85,26 +85,26 @@ func (n *WazuhController) RunWazuh() {
 func (n *WazuhController) StopWazuh() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"StopWazuh"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{        
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         logs.Info("StopWazuh -> In")
-        var anode map[string]string
+        var anode = map[string]string{}
         anode["action"] = "PUT"
         anode["controller"] = "WAZUH"
         anode["router"] = "@router /StopWazuh [put]"
         logs.Info("============")
         logs.Info("WAZUH - StopWazuh")
-        for key :=range anode {
-            logs.Info(key +" -> "+anode[key])
+        for key := range anode {
+            logs.Info(key + " -> " + anode[key])
         }
-        data,err := models.StopWazuh(n.Ctx.Input.Header("user"))
+        data, err := models.StopWazuh(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Info("StopWazuh OUT -- ERROR : %s", err.Error())
@@ -123,18 +123,18 @@ func (n *WazuhController) PingWazuhFiles() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
         var errorResponse = map[string]map[string]string{}
-        errorResponse["hasError"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        errorResponse["hasError"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.Data["json"] = errorResponse
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"PingWazuhFiles"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
         var errorResponse = map[string]map[string]string{}
-        errorResponse["hasError"] = map[string]string{"ack": "false","permissions":"none", "error": "Not enough permissions"}
+        errorResponse["hasError"] = map[string]string{"ack": "false", "permissions": "none", "error": "Not enough permissions"}
         n.Data["json"] = errorResponse
-    }else{       
+    } else {
         files, err := models.PingWazuhFiles(n.Ctx.Input.Header("user"))
         n.Data["json"] = files
         if err != nil {
@@ -154,15 +154,15 @@ func (n *WazuhController) PingWazuhFiles() {
 func (n *WazuhController) DeleteWazuhFile() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"DeleteWazuhFile"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{      
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]interface{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -170,8 +170,10 @@ func (n *WazuhController) DeleteWazuhFile() {
         anode["router"] = "@router /StopSuricata [put]"
         err := models.DeleteWazuhFile(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
-        
-        if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -184,15 +186,15 @@ func (n *WazuhController) DeleteWazuhFile() {
 func (n *WazuhController) AddWazuhFile() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"AddWazuhFile"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{         
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]interface{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -200,8 +202,10 @@ func (n *WazuhController) AddWazuhFile() {
         anode["router"] = "@router /StopSuricata [put]"
         err := models.AddWazuhFile(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
-        
-        if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -214,24 +218,26 @@ func (n *WazuhController) AddWazuhFile() {
 func (n *WazuhController) LoadFileLastLines() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"LoadFileLastLines"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{        
-        var anode map[string]string
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var anode = map[string]string{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
         anode["controller"] = "SURICATA"
         anode["router"] = "@router /StopSuricata [put]"
-        data,err := models.LoadFileLastLines(anode, n.Ctx.Input.Header("user"))
+        data, err := models.LoadFileLastLines(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
-        
-        if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -244,25 +250,27 @@ func (n *WazuhController) LoadFileLastLines() {
 func (n *WazuhController) SaveFileContentWazuh() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"SaveFileContentWazuh"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{         
-        var anode map[string]string
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var anode = map[string]string{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
         anode["controller"] = "SURICATA"
         anode["router"] = "@router /StopSuricata [put]"
-    
+
         err := models.SaveFileContentWazuh(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
-        
-        if err != nil {n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}}
+
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
