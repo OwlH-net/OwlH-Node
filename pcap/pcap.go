@@ -6,7 +6,7 @@ import (
     "encoding/json"
     "errors"
     // "log"
-			 
+
     "bufio"
     "io/ioutil"
     "net"
@@ -129,10 +129,10 @@ func isCurrentMac(arp *layers.ARP) (is bool) {
     srcHw = arp.SourceHwAddress
 
     if _, ok := Currentmacs[srcHw.String()]; ok {
-															 
+
         return true
     } else {
-																	  
+
         return false
     }
     return false
@@ -245,8 +245,6 @@ func addCurrentMac(arp *layers.ARP) {
         logs.Info("CM lets add  time %v", newip.First)
     }
 
-						   
-							   
     cMac.IPs[newip.Ip] = newip
     if arpmain.Verbose {
         logs.Info("CM - new mac details")
@@ -372,9 +370,9 @@ func learnarp(arp *layers.ARP) (err error) {
     if !isknownMac(arp) {
         addKnownMac(arp)
     } else {
-										
+
         updateLast(arp, true)
-						  
+
     }
     saveKnownMacs()
 
@@ -620,7 +618,7 @@ func alertNewARP(arp *layers.ARP, alertabout int) {
 }
 
 func isKnowMACIP(arp *layers.ARP) (isknown bool) {
-							
+
     var srcHw net.HardwareAddr
     srcHw = arp.SourceHwAddress
 
@@ -632,7 +630,7 @@ func isKnowMACIP(arp *layers.ARP) (isknown bool) {
 }
 
 func isCurrentMacIp(arp *layers.ARP) (isknown bool) {
-							
+
     var srcHw net.HardwareAddr
     srcHw = arp.SourceHwAddress
 

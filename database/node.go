@@ -568,15 +568,11 @@ func InsertMaster(uuid string, param string, value string) (err error) {
     return nil
 }
 
-func DeleteMastesInformation(uuid string) (err error) {
+func DeleteMastersInformation(uuid string)(err error){
     deleteData, err := Nodedb.Prepare("delete from masters where master_uniqueid=?;")
     _, err = deleteData.Exec(&uuid)
     defer deleteData.Close()
-    if err != nil {
-        logs.Error("DeleteMastesInformation ERROR deleting: " + err.Error())
-        deleteData.Close()
-        return err
-    }
+    if err != nil {logs.Error("DeleteMastersInformation ERROR deleting: "+err.Error());return err}
     return nil
 }
 

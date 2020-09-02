@@ -211,10 +211,7 @@ func (n *PingController) DeleteNode() {
     hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{         
-        logs.Info("ACTION -> PUT")
-        logs.Info("CONTROLLER -> PING")
-        logs.Info("ROUTER -> @router /DeleteNode [put]")
+    }else{              
         err := models.DeleteNode(n.Ctx.Input.Header("uuid"), n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {

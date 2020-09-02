@@ -35,6 +35,6 @@
     ],
 
     "suricatasocket":"/var/log/suricata/eve_json.socket",
-    "suricatasocketenabled":false
-
+    "suricatasocketenabled":false,
+    "wazuhsocketenabled":true
 }
