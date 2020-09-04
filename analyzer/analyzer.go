@@ -986,9 +986,7 @@ func dgram() {
 }
 
 func dgramWriter(line string) {
-    logs.Info("Line to Wazuh by DGRAM")
     if !config.WazuhSocketEnabled {
-        logs.Info("")
         return
     }
     c, err := net.Dial("unixgram", "/var/ossec/queue/ossec/queue")
