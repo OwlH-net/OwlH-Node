@@ -180,6 +180,16 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
         logs.Error("ping/PingService -- Error getting suricata service data: " + err.Error())
         return nil, err
     }
+    stapConnCount, err := utils.GetKeyValueString("execute", "stapConnCount")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    stapConn, err := utils.GetKeyValueString("execute", "stapConn")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
     param, err := utils.GetKeyValueString("execute", "param")
     if err != nil {
         logs.Error("ping/PingPluginsNode Error getting data from main.conf")
@@ -322,6 +332,23 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
                 allPlugins[x]["running"] = "true"
             }
         }
+
+        //add stap connections for each service        
+        data, err := exec.Command(command, param, strings.Replace(stapConnCount, "<PORT>", allPlugins[x]["port"], -1)).Output()
+        if err != nil {
+            logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())
+        }
+        count, err := exec.Command(command, param, strings.Replace(stapConn, "<PORT>", allPlugins[x]["port"], -1)).Output()
+        if err != nil {
+            logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())
+        }
+
+        if !strings.Contains(string(data), "0.0.0.0"){
+            logs.Warn(string(data))
+            allPlugins[x]["connections"] = string(data)
+        }
+        allPlugins[x]["connectionsCount"] = string(count)
+
     }
 
     //get suricata values that are not in the database

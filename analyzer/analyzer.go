@@ -880,12 +880,8 @@ func Init() {
 
 func PingAnalyzer() (data map[string]string, err error) {
 
+    //unmarshal analyzer.conf into data struct
     readconf()
-
-    filePath, err := utils.GetKeyValueString("node", "alertLog")
-    if err != nil {
-        logs.Error("PingAnalyzer Error getting data from main.conf")
-    }
 
     analyzerData := make(map[string]string)
     analyzerData["status"] = "Disabled"
@@ -897,14 +893,14 @@ func PingAnalyzer() (data map[string]string, err error) {
     }
 
     analyzerData["status"] = analyzerStatus
-    analyzerData["path"] = filePath
+    analyzerData["path"] = config.OutputFile
     analyzerData["size"] = "0"
 
     if analyzerData["status"] == "Disabled" {
         return analyzerData, nil
     }
 
-    fi, err := os.Stat(filePath)
+    fi, err := os.Stat(config.OutputFile)
     if err != nil {
         logs.Error("Can't access Analyzer ouput file data: " + err.Error())
         return analyzerData, err
