@@ -883,13 +883,17 @@ func PingAnalyzer() (data map[string]string, err error) {
     //unmarshal analyzer.conf into data struct
     readconf()
 
+    filePath = config.OutputFile
+
     analyzerData := make(map[string]string)
     analyzerData["status"] = "Disabled"
 
     analyzerStatus, err := ndb.GetStatusAnalyzer()
     if err != nil {
-        logs.Error("Error getting Analyzer data: " + err.Error())
-        return analyzerData, err
+        logs.Error("Error getting Analyzer data from DB: %s, defaulting to: %s", err.Error(), config.Enable)
+        if config.Enable {
+            analyzerStatus = "Enabled"
+        }
     }
 
     analyzerData["status"] = analyzerStatus
@@ -902,7 +906,7 @@ func PingAnalyzer() (data map[string]string, err error) {
 
     fi, err := os.Stat(config.OutputFile)
     if err != nil {
-        logs.Error("Can't access Analyzer ouput file data: " + err.Error())
+        logs.Error("Can't access Analyzer output file %s Error: %s", filePath, err.Error())
         return analyzerData, err
     }
     size := fi.Size()
@@ -982,9 +986,7 @@ func dgram() {
 }
 
 func dgramWriter(line string) {
-    logs.Info("Line to Wazuh by DGRAM")
     if !config.WazuhSocketEnabled {
-        logs.Info("")
         return
     }
     c, err := net.Dial("unixgram", "/var/ossec/queue/ossec/queue")
