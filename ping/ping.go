@@ -362,31 +362,34 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
             data, err := exec.Command(command, param, portReplace).Output()
             if err != nil {logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())}    
             allPlugins[x]["connections"] = string(data)            
-        }else{
+        }else if allPlugins[x]["type"] == "socket-network" || allPlugins[x]["type"] == "socket-pcap"{
             data, err := exec.Command(command, param, strings.Replace(stapConn, "<PORT>", allPlugins[x]["port"], -1)).Output()
             if err != nil {logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())}
             allPlugins[x]["connections"] = string(data)                    
         } 
-        //split connections
-        splitted := strings.Split(allPlugins[x]["connections"], "\n")
-        var dataConn []string
-        for _,val := range splitted {
-            if val != "" {
-                dataConn = append(dataConn,  val)
+
+        if allPlugins[x]["type"] == "network-socket" || allPlugins[x]["type"] == "socket-network" || allPlugins[x]["type"] == "socket-pcap"{            
+            //split connections
+            splitted := strings.Split(allPlugins[x]["connections"], "\n")
+            var dataConn []string
+            for _,val := range splitted {
+                if val != "" {
+                    dataConn = append(dataConn,  val)
+                }
             }
-        }
-
-        //get number of connections
-        allPlugins[x]["connectionsCount"] = strconv.Itoa(len(dataConn))
-
-        //check clients umbral
-        if len(dataConn) <= greenMax && len(dataConn) >= greenMin {
-            allPlugins[x]["connectionsColor"] = "success"
-        }else if (len(dataConn) > greenMax && len(dataConn) <= yellowMax) || (len(dataConn) < greenMin && len(dataConn) >= yellowMin) {
-            allPlugins[x]["connectionsColor"] = "warning"            
-        }else{
-            allPlugins[x]["connectionsColor"] = "danger"
-        }
+    
+            //get number of connections
+            allPlugins[x]["connectionsCount"] = strconv.Itoa(len(dataConn))
+    
+            //check clients umbral
+            if len(dataConn) <= greenMax && len(dataConn) >= greenMin {
+                allPlugins[x]["connectionsColor"] = "success"
+            }else if (len(dataConn) <= yellowMax) && (len(dataConn) >= yellowMin) {
+                allPlugins[x]["connectionsColor"] = "warning"            
+            }else{
+                allPlugins[x]["connectionsColor"] = "danger"
+            }
+        }          
     }
 
     //get suricata values that are not in the database
