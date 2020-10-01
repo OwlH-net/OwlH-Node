@@ -1224,12 +1224,6 @@ func DeployStapService(anode map[string]string) (err error) {
         }
         pidValueSocat := strings.Split(string(pid), "\n")
 
-        logs.Info(allValues)
-        logs.Warn(pidValueSocat)
-        logs.Warn(pidValueSocat)
-        logs.Warn(pidValueSocat)
-        logs.Warn(pidValueSocat)
-
         //check for pid error
         if pidValueSocat[0] == "" {
             pipeErrors, _ := ioutil.ReadAll(stdError)
@@ -1256,8 +1250,8 @@ func DeployStapService(anode map[string]string) (err error) {
         }
 
         time.Sleep(time.Second * 1)
-        // DumpTCP := strings.Replace(tcpdumpPID, "<TCPDUMP>", grepTCPDUMP, -1)
-        DumpBPF := strings.Replace(tcpdumpPID, "<IFACE>", allPlugins[anode["service"]]["interface"], -1)
+        DumpTCP := strings.Replace(tcpdumpPID, "<TCPDUMP>", grepTCPDUMP, -1)
+        DumpBPF := strings.Replace(DumpTCP, "<IFACE>", allPlugins[anode["service"]]["interface"], -1)
         allDumpValues := strings.Replace(DumpBPF, "<BPF>", allPlugins[anode["service"]]["bpf"], -1)
 
         //get pid for tcpdump
@@ -1269,13 +1263,6 @@ func DeployStapService(anode map[string]string) (err error) {
             return err
         }
         pidValueTcpdump := strings.Split(string(pid), "\n")
-        
-        logs.Info(allDumpValues)
-        logs.Critical(pidValueTcpdump)
-        logs.Critical(pidValueTcpdump)
-        logs.Critical(pidValueTcpdump)
-        logs.Critical(pidValueTcpdump)
-
 
         //check for a new tcpdump PID
         if pidValueTcpdump[0] != "" {
