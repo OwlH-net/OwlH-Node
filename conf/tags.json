@@ -1,0 +1,22 @@
+{
+    "tags":[
+        {
+            "tagname":"tag1",
+            "type":"string",
+            "fields":["field1","field2"],
+            "exp":"string to match",
+            "stop":false,
+            "action":"add",
+            "tag": "is a local system"
+        },
+        {
+            "tagname":"tag2",
+            "type":"string",
+            "fields":["field1","field2"],
+            "exp":"string to match",
+            "stop":false,
+            "action":"insert",
+            "tag": "is not a local system"
+        }
+    ]
+}

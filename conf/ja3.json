@@ -1,0 +1,8 @@
+{
+    "desc":"analyzer ja3 configuration",
+    "enable":false,
+    "verbose":false,
+    "stats":false,
+    "sourceurl":"https://ja3er.com/getAllUasJson",
+    "localja3file":"conf/ja3UA.json"
+}

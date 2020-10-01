@@ -1,0 +1,20 @@
+{
+    "filters":[
+        {
+            "filtername":"Remove stats events",
+            "type":"string",
+            "fields":["event_type"],
+            "exp":"stats",
+            "stop":false,
+            "action": "exclude"
+        },
+        {
+            "filtername":"Remove flow events",
+            "type":"string",
+            "fields":["event_type"],
+            "exp":"flow",
+            "stop":false,
+            "action": "exclude"
+        }
+    ]
+}
