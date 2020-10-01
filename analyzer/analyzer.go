@@ -883,7 +883,7 @@ func PingAnalyzer() (data map[string]string, err error) {
     //unmarshal analyzer.conf into data struct
     readconf()
 
-    filePath = config.OutputFile
+    filePath := config.OutputFile
 
     analyzerData := make(map[string]string)
     analyzerData["status"] = "Disabled"
