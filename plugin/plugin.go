@@ -1203,23 +1203,23 @@ func DeployStapService(anode map[string]string) (err error) {
             return err
         }
 
-        //get tcpreplay pid
-        var grepPIDS string
-        for x := range allPlugins {
-            if allPlugins[x]["type"] == "network-socket" && allPlugins[x]["pid"] != "none" {
-                grepPIDS = grepPIDS + "| grep -v " + allPlugins[x]["pid"] + " "
-            }
-        }
+        // //get all socat pid
+        // var grepPIDS string
+        // for x := range allPlugins {
+        //     if allPlugins[x]["type"] == "network-socket" && allPlugins[x]["pid"] != "none" {
+        //         grepPIDS = grepPIDS + "| grep -v " + allPlugins[x]["pid"] + " "
+        //     }
+        // }
 
         time.Sleep(time.Second * 1)
-        //get tcpreplay pids
+        //get socat pids
         collector = strings.Replace(openSSL, "<COLLECTOR>", allPlugins[anode["service"]]["collector"], -1)
         allValues := strings.Replace(collector, "<PORT>", allPlugins[anode["service"]]["port"], -1)
         pid, err := exec.Command(command, param, allValues).Output()
         if err != nil {
             logs.Error("DeployStapService deploy network-socket getting socat error: " + err.Error())
             _ = ndb.InsertPluginCommand(uuid, "status", "Error")
-            _ = ndb.InsertPluginCommand(uuid, "output", "Error starting tcpreplay for network->socket service")
+            _ = ndb.InsertPluginCommand(uuid, "output", "Error starting socat for network->socket service")
             return err
         }
         pidValueSocat := strings.Split(string(pid), "\n")
@@ -1644,7 +1644,7 @@ func StopPluginsGracefully() {
             }
         } else if plugins[id]["type"] == "network-socket" {
             if plugins[id]["pid"] != "none" || plugins[id]["tcpdump"] != "none" {
-                //kill tcpreplay
+                //kill socat
                 collector := strings.Replace(openSSL, "<COLLECTOR>", plugins[id]["collector"], -1)
                 allValues := strings.Replace(collector, "<PORT>", plugins[id]["port"], -1)
                 pid, _ := exec.Command(command, param, allValues).Output()
