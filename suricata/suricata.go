@@ -190,6 +190,7 @@ func SetBPF(n map[string]string) (err error) {
 
 //Retrieve data, make a backup file and write the new data on the original file
 func SyncRulesetFromMaster(file map[string][]byte) (err error) {
+
     //historical log
     uuid := utils.Generate()
     currentTime := time.Now()
@@ -198,8 +199,6 @@ func SyncRulesetFromMaster(file map[string][]byte) (err error) {
     _ = ndb.InsertPluginCommand(uuid, "type", "Suricata")
     _ = ndb.InsertPluginCommand(uuid, "action", "SyncRulesetFromMaster")
     _ = ndb.InsertPluginCommand(uuid, "description", "Sync ruleset from master")
-
-    logs.Notice(string(file["ruleset"]))
 
     if file["data"] == nil || len(file["data"]) <= 0 {
         return errors.New("SyncRulesetFromMaster error: Can't Synchronize empty ruleset")
@@ -246,6 +245,10 @@ func SyncRulesetFromMaster(file map[string][]byte) (err error) {
 
     _ = ndb.InsertPluginCommand(uuid, "status", "Success")
     _ = ndb.InsertPluginCommand(uuid, "output", "Ruleset sync successfully")
+
+    //update plugin sync status
+    // err = ndb.UpdatePluginValue()
+
     return nil
 }
 

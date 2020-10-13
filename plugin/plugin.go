@@ -365,6 +365,11 @@ func AddPluginService(anode map[string]string) (err error) {
             logs.Error("InsertPluginService name Error: " + err.Error())
             return err
         }
+        err = ndb.InsertPluginService(uuid, "rulesetSync", "false")
+        if err != nil {
+            logs.Error("InsertPluginService type Error: " + err.Error())
+            return err
+        }
         err = ndb.InsertPluginService(uuid, "type", anode["type"])
         if err != nil {
             logs.Error("InsertPluginService type Error: " + err.Error())
