@@ -23,6 +23,10 @@ var Targets = map[string]Targetfile{}
 func Logger() {
     var err error
     //get logger parameters
+    filepath, err := utils.GetKeyValueString("logs", "filepath")
+    if err != nil {
+        logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
+    }
     filename, err := utils.GetKeyValueString("logs", "filename")
     if err != nil {
         logs.Error("Error getting data from main.conf for load Logger data: " + err.Error())
@@ -51,12 +55,19 @@ func Logger() {
     if err != nil {
         logs.Error("Error getting data from main.conf for load Logger data: " + err.Error())
     }
+    maxfiles, err := utils.GetKeyValueInt("logs", "maxfiles")
+    if err != nil {
+        logs.Error("Error getting data from main.conf for load Logger data: " + err.Error())
+    }
 
+    //transform maxsize to bytes
+    newMaxSize,_ := utils.GetBytesFromSizeType(maxsize)
+    
     logs.NewLogger(10000)
-    logs.SetLogger(logs.AdapterFile, `{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
-    // logs.SetLogger(logs.AdapterFile,`{"filename":"`+data[id][path]+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
-    //     }
-    // }
+    logs.SetLogger(logs.AdapterFile, `{"filename":"`+filepath+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+newMaxSize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
+
+    err = utils.ClearOlderLogFiles(filepath, filename+"." , maxfiles)
+    if err != nil {logs.Error(err.Error())}
 }
 
 func FileRotation() {
