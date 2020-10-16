@@ -533,7 +533,7 @@ func GetBytesFromSizeType(data string)(size string, err error){
         return "5000000000",err
 }
 
-func ClearOlderLogFiles(path string, fileName string, quantity int) error  {
+func ClearOlderLogFiles(path string, fileName string, quantity int, pattern string) error  {
     pathMap := make(map[string]string)
 
     //get older backup file
@@ -542,7 +542,8 @@ func ClearOlderLogFiles(path string, fileName string, quantity int) error  {
             if err != nil {return err}
             
             if !info.IsDir() {
-                re := regexp.MustCompile("owlhnode-api[.]\\d{4}[-]\\d{2}[-]\\d{2}[.]\\d{3}.log")
+                // re := regexp.MustCompile("owlhnode-api[.]\\d{4}[-]\\d{2}[-]\\d{2}[.]\\d{3}.log")
+                re := regexp.MustCompile(pattern)
                 match := re.FindStringSubmatch(file)
 
                 if match != nil{                

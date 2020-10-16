@@ -377,6 +377,281 @@ func checkFields() (ok bool) {
     // ok = CheckField(field)
     // if !ok {return false}
 
+
+    //default monitor files
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='path'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','path','/var/log/owlh/alerts.json')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='maxSize'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','maxSize','5G')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='maxFiles' "
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','maxFiles','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='rotate' "
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','rotate','Enabled')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='maxLines' "
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','maxLines','1000000000')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='maxDays' "
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','maxDays','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='path' and file_value='/var/log/suricata/eve.json'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','path','/var/log/suricata/eve.json')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='maxSize' and file_value='5G'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','maxSize','5G')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='maxFiles' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','maxFiles','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='rotate' and file_value='Enabled'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','rotate','Enabled')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='maxLines' and file_value='1000000000'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','maxLines','1000000000')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='maxDays' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','maxDays','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='path' and file_value='/var/log/suricata/fast.log'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','path','/var/log/suricata/fast.log')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='maxSize' and file_value='5G'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','maxSize','5G')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='maxFiles' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','maxFiles','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='rotate' and file_value='Enabled'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','rotate','Enabled')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='maxLines' and file_value='1000000000'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','maxLines','1000000000')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='maxDays' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','maxDays','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='path' and file_value='/var/log/suricata/stats.log'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','path','/var/log/suricata/stats.log')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='maxSize' and file_value='5G'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','maxSize','5G')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='maxFiles' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','maxFiles','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='rotate' and file_value='Enabled'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','rotate','Enabled')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='maxLines' and file_value='1000000000'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','maxLines','1000000000')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='maxDays' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','maxDays','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='path' and file_value='/var/log/suricata/suricata.log'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','path','/var/log/suricata/suricata.log')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='maxSize' and file_value='5G'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','maxSize','5G')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='maxFiles' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','maxFiles','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='rotate' and file_value='Enabled'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','rotate','Enabled')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='maxLines' and file_value='1000000000'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','maxLines','1000000000')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='maxDays' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','maxDays','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+
     //add values to rolePermissions realition table
     field.Fconn = "nodeConn"
     field.Ftable = "rolePermissions"
