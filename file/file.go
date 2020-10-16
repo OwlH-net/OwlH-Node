@@ -46,7 +46,6 @@ func SendFile(file string)(data map[string]string, err error){
 
 //read changed file, make a backup and save into file
 func SaveFile(file map[string]string)(err error){
-    logs.Notice(file)
     //Get full path
     fileName, err := utils.GetKeyValueString("files", file["file"])
     if err != nil {logs.Error("SaveFile Error getting data from main.conf")}

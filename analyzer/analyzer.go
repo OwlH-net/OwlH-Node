@@ -851,7 +851,7 @@ func InitAnalizer() {
     StartPostFilter(config.ChannelWorkers)
 
     go LoadSources()
-    logs.Debug("AN - AN - AN - config - Verbose - %t", config.Verbose)
+    logs.Info("AN - AN - AN - config - Verbose - %t", config.Verbose)
     if config.Stats {
         go CHcontrol()
     }

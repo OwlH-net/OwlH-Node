@@ -293,7 +293,29 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
     }
 
     for x := range allPlugins {
-        if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata" {
+        if allPlugins[x]["status"] == "disabled" && allPlugins[x]["type"] == "suricata" {
+            path, err := utils.GetKeyValueString("suricataRuleset", "path")
+            if err != nil {
+                logs.Error("ping/PingPluginsNode Error getting data from main.conf: " + err.Error())
+                return nil, err
+            }
+            fileToEdit, err := utils.GetKeyValueString("suricataRuleset", "file")
+            if err != nil {
+                logs.Error("ping/PingPluginsNode Error getting data from main.conf: " + err.Error())
+                return nil, err
+            }
+            fileName := strings.Replace(fileToEdit, "<NAME>", allPlugins[x]["localRulesetName"], -1)
+            //check if ruleset exists locally
+            
+            if _, err := os.Stat(path+fileName); os.IsNotExist(err) {
+                ndb.UpdatePluginValue(x, "rulesetSync", "false")
+                allPlugins[x]["rulesetSync"] = "false"
+            }else{
+                ndb.UpdatePluginValue(x, "rulesetSync", "true")
+                allPlugins[x]["rulesetSync"] = "true"
+            }
+        }
+        if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata" { 
             // change pid file name
             if _, err := os.Stat(bck + x + "-pidfile.pid"); os.IsNotExist(err) {
                 err = suricata.StopSuricataService(x, allPlugins[x]["status"])

@@ -31,40 +31,7 @@ var version string
 func main() {
 
     utils.Load()
-
-    //get logger data
-    filename, err := utils.GetKeyValueString("logs", "filename")
-    if err != nil {
-        logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
-    }
-    maxlines, err := utils.GetKeyValueString("logs", "maxlines")
-    if err != nil {
-        logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
-    }
-    maxsize, err := utils.GetKeyValueString("logs", "maxsize")
-    if err != nil {
-        logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
-    }
-    daily, err := utils.GetKeyValueString("logs", "daily")
-    if err != nil {
-        logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
-    }
-    maxdays, err := utils.GetKeyValueString("logs", "maxdays")
-    if err != nil {
-        logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
-    }
-    rotate, err := utils.GetKeyValueString("logs", "rotate")
-    if err != nil {
-        logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
-    }
-    level, err := utils.GetKeyValueString("logs", "level")
-    if err != nil {
-        logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
-    }
-
-    logs.NewLogger(10000)
-    logs.SetLogger(logs.AdapterFile, `{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
-
+    
     version = "0.17.0.20200908"
     logs.Info("OwlH Node : v%s", version)
 
