@@ -32,7 +32,10 @@ func main() {
 
     utils.Load()
     
-    version = "0.17.0.20200908"
+    //launch logger
+    monitor.Logger()
+
+    version = "0.17.0.20201019"
     logs.Info("OwlH Node : v%s", version)
 
     cancontinue := configuration.MainCheck()
@@ -91,8 +94,6 @@ func main() {
     logs.Info("Main Starting -> reading GROUP DB")
     ndb.GConn() //group database
 
-    //launch logger
-    monitor.Logger()
     go ManageSignals()
     go monitor.FileRotation()
     zeek.Init()
