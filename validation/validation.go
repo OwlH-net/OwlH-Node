@@ -81,22 +81,18 @@ func GetUserParamValue(uuid, param string) (value string, err error) {
 }
 
 func GetLocalUserPassword(userName string) (encPassword string, err error) {
-    logs.Debug("%+v", userName)
     uuid, err := ndb.GetLocalUserID(userName)
     if err != nil {
         return "", err
     }
-    logs.Debug("%+v", uuid)
     uPass, err := GetUserParamValue(uuid, "pass")
     if err != nil {
         return "", err
     }
-    logs.Debug("%+v", uPass)
     return uPass, nil
 }
 
 func VerifyLocalUser(user map[string]string) bool {
-    logs.Debug("%+v", user)
     uPassword, err := GetLocalUserPassword(user["name"])
     if err != nil {
         return false
@@ -109,13 +105,11 @@ func VerifyLocalUser(user map[string]string) bool {
 }
 
 func ChangeLocalUserPassword(user map[string]string) (err error) {
-    logs.Debug("%+v", user)
     uuid := ""
     uuid, err = ndb.GetLocalUserID(user["name"])
     if err != nil {
         return err
     }
-    logs.Debug("let's change user %s with uuid %s, passwd %s", user["name"], uuid, user["newpassword"])
     err = ndb.UpdateUsers(uuid, "pass", user["newpassword"])
     if err != nil {
         return err

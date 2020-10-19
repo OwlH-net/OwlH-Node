@@ -23,6 +23,10 @@ var Targets = map[string]Targetfile{}
 func Logger() {
     var err error
     //get logger parameters
+    filepath, err := utils.GetKeyValueString("logs", "filepath")
+    if err != nil {
+        logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
+    }
     filename, err := utils.GetKeyValueString("logs", "filename")
     if err != nil {
         logs.Error("Error getting data from main.conf for load Logger data: " + err.Error())
@@ -51,12 +55,20 @@ func Logger() {
     if err != nil {
         logs.Error("Error getting data from main.conf for load Logger data: " + err.Error())
     }
+    maxfiles, err := utils.GetKeyValueInt("logs", "maxfiles")
+    if err != nil {
+        logs.Error("Error getting data from main.conf for load Logger data: " + err.Error())
+    }
 
+    //transform maxsize to bytes
+    newMaxSize,_ := utils.GetBytesFromSizeType(maxsize)
+    pattern := "owlhnode-api[.]\\d{4}[-]\\d{2}[-]\\d{2}[.]\\d{3}.log"
+    err = utils.ClearOlderLogFiles(filepath, filename+"." , maxfiles, pattern)
+    if err != nil {logs.Error(err.Error())}
+    
     logs.NewLogger(10000)
-    logs.SetLogger(logs.AdapterFile, `{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
-    // logs.SetLogger(logs.AdapterFile,`{"filename":"`+data[id][path]+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
-    //     }
-    // }
+    logs.SetLogger(logs.AdapterFile, `{"filename":"`+filepath+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+newMaxSize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
+
 }
 
 func FileRotation() {
@@ -68,6 +80,14 @@ func FileRotation() {
         }
 
         for x := range rotate {
+            //transform maxsize to bytes
+            newMaxSize,_ := utils.GetBytesFromSizeType(rotate[x]["maxSize"])
+            
+            fileNumber, _ := strconv.Atoi(rotate[x]["maxFiles"])
+            pattern := filepath.Base(rotate[x]["path"])+"-\\d{10}"
+            err = utils.ClearOlderLogFiles(filepath.Dir(rotate[x]["path"])+"/", filepath.Base(rotate[x]["path"]), fileNumber, pattern)
+            if err != nil {logs.Error(err.Error())}
+
             //Check if file exists.
             _, err := os.Stat(rotate[x]["path"])
             if err == nil && rotate[x]["rotate"] == "Enabled" {
@@ -91,8 +111,9 @@ func FileRotation() {
                         }
                         if !info.IsDir() {
                             if strings.Contains(fileSearch, filepath.Base(rotate[x]["path"])+"-") {
-                                maxDays, _ := strconv.Atoi(rotate[x]["maxDays"])
-                                oldFile := info.ModTime().AddDate(0, 0, maxDays)
+
+                                maxFiles, _ := strconv.Atoi(rotate[x]["maxFiles"])
+                                oldFile := info.ModTime().AddDate(0, 0, maxFiles)
                                 if oldFile.Format("2006-01-02") < currentTime.Format("2006-01-02") {
                                     err = os.Remove(filepath.Dir(rotate[x]["path"]) + "/" + info.Name())
                                     if err != nil {
@@ -122,7 +143,7 @@ func FileRotation() {
                 }
 
                 fileLines, _ := strconv.Atoi(rotate[x]["maxLines"])
-                fileSize, _ := strconv.ParseInt(rotate[x]["maxSize"], 10, 64)
+                fileSize, _ := strconv.ParseInt(newMaxSize, 10, 64)
                 if lines > fileLines {
                     //CHECK MAX LINES
                     err = utils.BackupFullPath(rotate[x]["path"])
@@ -151,7 +172,7 @@ func FileRotation() {
                     if err != nil {
                         logs.Error("FileRotation ERROR2: " + err.Error())
                     }
-                    // } else if currentTime.Format("2006-01-02") > modifiedtime.Format("2006-01-02") {
+                    // } else if currentTime.For<mat("2006-01-02") > modifiedtime.Format("2006-01-02") {
                 } else if Targets[rotate[x]["path"]].lastrotated.Format("2006-01-02") > currentTime.Format("2006-01-02") {
                     //CHECK FILE MODIFICATION DATE
                     err = utils.BackupFullPath(rotate[x]["path"])
@@ -183,6 +204,7 @@ func FileRotation() {
 }
 
 func EditRotation(anode map[string]string) (err error) {
+    logs.Debug(anode)
     err = ndb.UpdateMonitorFileValue(anode["file"], "path", anode["path"])
     if err != nil {
         logs.Error("EditRotation monitor files edit path Error: " + err.Error())
@@ -196,6 +218,11 @@ func EditRotation(anode map[string]string) (err error) {
     err = ndb.UpdateMonitorFileValue(anode["file"], "maxLines", anode["lines"])
     if err != nil {
         logs.Error("EditRotation monitor files edit maxLines Error: " + err.Error())
+        return err
+    }
+    err = ndb.UpdateMonitorFileValue(anode["file"], "maxFiles", anode["files"])
+    if err != nil {
+        logs.Error("EditRotation monitor files edit maxFiles Error: " + err.Error())
         return err
     }
     err = ndb.UpdateMonitorFileValue(anode["file"], "maxDays", anode["days"])

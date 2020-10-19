@@ -9,7 +9,6 @@ import (
 )
 
 func CreateMasterToken(login map[string]string) (token string, err error) {
-    logs.Notice(login)
     // master uuid
     // user 'admin'
     // pass 'admin'

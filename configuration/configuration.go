@@ -1,41 +1,40 @@
 package configuration
 
 import (
-    "github.com/astaxie/beego/logs"
     "database/sql"
+    "github.com/astaxie/beego/logs"
+    _ "github.com/mattn/go-sqlite3"
+    "os"
     "owlhnode/utils"
     "owlhnode/validation"
-    "os"
     "path"
-    _ "github.com/mattn/go-sqlite3"
 )
 
 type Dbconfig struct {
-    Dbname          string
-    Dbconn          string
-    Dbpath          string
-    Dbtables        []Table
+    Dbname   string
+    Dbconn   string
+    Dbpath   string
+    Dbtables []Table
 }
 
 type Table struct {
-    Tconn           string
-    Tname           string
-    Tcreate         string
-    Tfields         []Field
+    Tconn   string
+    Tname   string
+    Tcreate string
+    Tfields []Field
 }
 
 type Field struct {
-    Fconn           string
-    Ftable          string
-    Fname           string
-    Fquery          string
-    Finsert         string
+    Fconn   string
+    Ftable  string
+    Fname   string
+    Fquery  string
+    Finsert string
 }
 
-var DBCONFIG        []Dbconfig
+var DBCONFIG []Dbconfig
 
-
-func MainCheck()(cancontinue bool){
+func MainCheck() (cancontinue bool) {
 
     ok := checkDatabases()
     if !ok {
@@ -56,8 +55,8 @@ func MainCheck()(cancontinue bool){
     return true
 }
 
-func checkDatabases()(ok bool){
-    dbs := []string{"monitorConn","stapConn","pluginConn","nodeConn","groupConn"}
+func checkDatabases() (ok bool) {
+    dbs := []string{"monitorConn", "stapConn", "pluginConn", "nodeConn", "groupConn"}
     for db := range dbs {
         ok := CheckDB(dbs[db])
         if !ok {
@@ -67,8 +66,7 @@ func checkDatabases()(ok bool){
     return true
 }
 
-
-func checkTables()(ok bool){
+func checkTables() (ok bool) {
     var table Table
 
     table.Tname = "plugins"
@@ -265,17 +263,19 @@ func checkTables()(ok bool){
     return true
 }
 
-func checkFields()(ok bool){
+func checkFields() (ok bool) {
     var field Field
 
     //add any objec to table objects
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "objects"
-    field.Fquery     = "select obj_value from objects where obj_uniqueid='any' and obj_param='desc' and obj_value='everything'"
-    field.Finsert    = "insert into objects (obj_uniqueid,obj_param,obj_value) values ('any','desc','everything')"
-    field.Fname      = "objects - desc"
+    field.Fconn = "nodeConn"
+    field.Ftable = "objects"
+    field.Fquery = "select obj_value from objects where obj_uniqueid='any' and obj_param='desc' and obj_value='everything'"
+    field.Finsert = "insert into objects (obj_uniqueid,obj_param,obj_value) values ('any','desc','everything')"
+    field.Fname = "objects - desc"
     ok = CheckField(field)
-    if !ok {return false}
+    if !ok {
+        return false
+    }
 
     // //add admin permission by default
     // field.Fconn      = "nodeConn"
@@ -377,286 +377,594 @@ func checkFields()(ok bool){
     // ok = CheckField(field)
     // if !ok {return false}
 
-     //add values to rolePermissions realition table
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0004-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0004-000000000000','role','00000000-0000-0000-0000-000000000001')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0004-000000000000' and rp_param='permissions' and rp_value='get'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0004-000000000000','permissions','get')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0004-000000000000' and rp_param='object' and rp_value='any'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0004-000000000000','object','any')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0005-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0005-000000000000','role','00000000-0000-0000-0000-000000000001')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0005-000000000000' and rp_param='permissions' and rp_value='put'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0005-000000000000','permissions','put')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0005-000000000000' and rp_param='object' and rp_value='any'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0005-000000000000','object','any')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0006-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0006-000000000000','role','00000000-0000-0000-0000-000000000001')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0006-000000000000' and rp_param='permissions' and rp_value='post'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0006-000000000000','permissions','post')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0006-000000000000' and rp_param='object' and rp_value='any'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0006-000000000000','object','any')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
- 
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0007-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0007-000000000000','role','00000000-0000-0000-0000-000000000001')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0007-000000000000' and rp_param='permissions' and rp_value='delete'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0007-000000000000','permissions','delete')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0007-000000000000' and rp_param='object' and rp_value='any'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0007-000000000000','object','any')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0001-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0001-000000000000','role','00000000-0000-0000-0000-000000000001')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0001-000000000000' and rp_param='permissions' and rp_value='admin'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0001-000000000000','permissions','admin')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
-     field.Fconn      = "nodeConn"
-     field.Ftable     = "rolePermissions"
-     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0001-000000000000' and rp_param='object' and rp_value='any'"
-     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0001-000000000000','object','any')"
-     field.Fname      = "rolePermissions - role for permissions"
-     ok = CheckField(field)
-     if !ok {return false}
 
-    //add users
-    userAdmin := utils.Generate()
-    hashedPass,err := validation.HashPassword("admin"); if err != nil { logs.Error("Configuration Error HashPassword: "+err.Error())}
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "users"
-    field.Fquery     = "select user_param from users where user_param='pass'"
-    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','pass','"+hashedPass+"')"
-    field.Fname      = "pass - admin"
+    //default monitor files
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='path'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','path','/var/log/owlh/alerts.json')"
+    field.Fname = "files - default files for monitoring"
     ok = CheckField(field)
     if !ok {
         return false
     }
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "users"
-    field.Fquery     = "select user_param from users where user_param='user'"
-    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','user','admin')"
-    field.Fname      = "user - admin"
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='maxSize'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','maxSize','5G')"
+    field.Fname = "files - default files for monitoring"
     ok = CheckField(field)
     if !ok {
         return false
     }
-    field.Fconn      = "nodeConn"
-    field.Ftable     = "users"
-    field.Fquery     = "select user_param from users where user_param='type'"
-    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('"+userAdmin+"','type','local')"
-    field.Fname      = "type - local"
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='maxFiles' "
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','maxFiles','7')"
+    field.Fname = "files - default files for monitoring"
     ok = CheckField(field)
     if !ok {
         return false
     }
-
-    field.Fconn      = "groupConn"
-    field.Ftable     = "suricata"
-    field.Fquery     = "select suri_param from suricata where suri_param='BPFfile'"
-    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','BPFfile','')"
-    field.Fname      = "suricata - BPFfile"
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='rotate' "
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','rotate','Enabled')"
+    field.Fname = "files - default files for monitoring"
     ok = CheckField(field)
     if !ok {
         return false
     }
-    field.Fconn      = "groupConn"
-    field.Ftable     = "suricata"
-    field.Fquery     = "select suri_param from suricata where suri_param='configFile'"
-    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','configFile','')"
-    field.Fname      = "suricata - configFile"
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='maxLines' "
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','maxLines','1000000000')"
+    field.Fname = "files - default files for monitoring"
     ok = CheckField(field)
     if !ok {
         return false
     }
-    field.Fconn      = "groupConn"
-    field.Ftable     = "suricata"
-    field.Fquery     = "select suri_param from suricata where suri_param='interface'"
-    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','interface','')"
-    field.Fname      = "suricata - interface"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-    field.Fconn      = "groupConn"
-    field.Ftable     = "suricata"
-    field.Fquery     = "select suri_param from suricata where suri_param='name'"
-    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','name','')"
-    field.Fname      = "suricata - name"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-    field.Fconn      = "groupConn"
-    field.Ftable     = "suricata"
-    field.Fquery     = "select suri_param from suricata where suri_param='BPFrule'"
-    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','BPFrule','')"
-    field.Fname      = "suricata - BPFrule"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-    field.Fconn      = "groupConn"
-    field.Ftable     = "suricata"
-    field.Fquery     = "select suri_param from suricata where suri_param='commandLine'"
-    field.Finsert    = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','commandLine','')"
-    field.Fname      = "suricata - commandLine"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "plugins"
-    field.Fquery     = "select analyzer_param from analyzer where analyzer_param='status'"
-    field.Finsert    = "insert into analyzer (analyzer_uniqueid,analyzer_param,analyzer_value) values ('analyzer','status','Disabled')"
-    field.Fname      = "analyzer - status"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "mainconf"
-    field.Fquery     = "select main_param from mainconf where main_param='status' and main_uniqueid='suricata'"
-    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('suricata','status','enabled')"
-    field.Fname      = "suricata - status"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "mainconf"
-    field.Fquery     = "select main_param from mainconf where main_param='previousStatus' and main_uniqueid='suricata'"
-    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('suricata','previousStatus','enabled')"
-    field.Fname      = "suricata - previousStatus"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "mainconf"
-    field.Fquery     = "select main_param from mainconf where main_param='mode' and main_uniqueid='zeek'"
-    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','mode','standalone')"
-    field.Fname      = "zeek - standalone mode"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "mainconf"
-    field.Fquery     = "select main_param from mainconf where main_param='status' and main_uniqueid='zeek'"
-    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','status','disabled')"
-    field.Fname      = "zeek - status disabled"
-    ok = CheckField(field)
-    if !ok {
-        return false
-    }
-
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "mainconf"
-    field.Fquery     = "select main_param from mainconf where main_param='previousStatus' and main_uniqueid='zeek'"
-    field.Finsert    = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','previousStatus','stop')"
-    field.Fname      = "zeek - previous status stop"
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9000-0000-000000000000' and file_param='maxDays' "
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9000-0000-000000000000','maxDays','7')"
+    field.Fname = "files - default files for monitoring"
     ok = CheckField(field)
     if !ok {
         return false
     }
     
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='path' and file_value='/var/log/suricata/eve.json'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','path','/var/log/suricata/eve.json')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='maxSize' and file_value='5G'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','maxSize','5G')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='maxFiles' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','maxFiles','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='rotate' and file_value='Enabled'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','rotate','Enabled')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='maxLines' and file_value='1000000000'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','maxLines','1000000000')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9001-0000-000000000000' and file_param='maxDays' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9001-0000-000000000000','maxDays','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='path' and file_value='/var/log/suricata/fast.log'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','path','/var/log/suricata/fast.log')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='maxSize' and file_value='5G'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','maxSize','5G')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='maxFiles' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','maxFiles','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='rotate' and file_value='Enabled'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','rotate','Enabled')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='maxLines' and file_value='1000000000'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','maxLines','1000000000')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9002-0000-000000000000' and file_param='maxDays' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9002-0000-000000000000','maxDays','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='path' and file_value='/var/log/suricata/stats.log'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','path','/var/log/suricata/stats.log')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='maxSize' and file_value='5G'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','maxSize','5G')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='maxFiles' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','maxFiles','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='rotate' and file_value='Enabled'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','rotate','Enabled')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='maxLines' and file_value='1000000000'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','maxLines','1000000000')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9003-0000-000000000000' and file_param='maxDays' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9003-0000-000000000000','maxDays','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='path' and file_value='/var/log/suricata/suricata.log'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','path','/var/log/suricata/suricata.log')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='maxSize' and file_value='5G'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','maxSize','5G')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='maxFiles' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','maxFiles','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='rotate' and file_value='Enabled'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','rotate','Enabled')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='maxLines' and file_value='1000000000'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','maxLines','1000000000')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "monitorConn"
+    field.Ftable = "files"
+    field.Fquery = "select file_value from files where file_uniqueid='00000000-0000-9004-0000-000000000000' and file_param='maxDays' and file_value='7'"
+    field.Finsert = "insert into files (file_uniqueid,file_param,file_value) values ('00000000-0000-9004-0000-000000000000','maxDays','7')"
+    field.Fname = "files - default files for monitoring"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+
+    //add values to rolePermissions realition table
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0004-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0004-000000000000','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0004-000000000000' and rp_param='permissions' and rp_value='get'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0004-000000000000','permissions','get')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0004-000000000000' and rp_param='object' and rp_value='any'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0004-000000000000','object','any')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0005-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0005-000000000000','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0005-000000000000' and rp_param='permissions' and rp_value='put'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0005-000000000000','permissions','put')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0005-000000000000' and rp_param='object' and rp_value='any'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0005-000000000000','object','any')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0006-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0006-000000000000','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0006-000000000000' and rp_param='permissions' and rp_value='post'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0006-000000000000','permissions','post')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0006-000000000000' and rp_param='object' and rp_value='any'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0006-000000000000','object','any')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0007-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0007-000000000000','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0007-000000000000' and rp_param='permissions' and rp_value='delete'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0007-000000000000','permissions','delete')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0007-000000000000' and rp_param='object' and rp_value='any'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0007-000000000000','object','any')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0001-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0001-000000000000','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0001-000000000000' and rp_param='permissions' and rp_value='admin'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0001-000000000000','permissions','admin')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "rolePermissions"
+    field.Fquery = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0001-000000000000' and rp_param='object' and rp_value='any'"
+    field.Finsert = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0001-000000000000','object','any')"
+    field.Fname = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    //add users
+    userAdmin := utils.Generate()
+    hashedPass, err := validation.HashPassword("admin")
+    if err != nil {
+        logs.Error("Configuration Error HashPassword: " + err.Error())
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "users"
+    field.Fquery = "select user_param from users where user_param='pass'"
+    field.Finsert = "insert into users (user_uniqueid,user_param,user_value) values ('" + userAdmin + "','pass','" + hashedPass + "')"
+    field.Fname = "pass - admin"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "users"
+    field.Fquery = "select user_param from users where user_param='user'"
+    field.Finsert = "insert into users (user_uniqueid,user_param,user_value) values ('" + userAdmin + "','user','admin')"
+    field.Fname = "user - admin"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "nodeConn"
+    field.Ftable = "users"
+    field.Fquery = "select user_param from users where user_param='type'"
+    field.Finsert = "insert into users (user_uniqueid,user_param,user_value) values ('" + userAdmin + "','type','local')"
+    field.Fname = "type - local"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn = "groupConn"
+    field.Ftable = "suricata"
+    field.Fquery = "select suri_param from suricata where suri_param='BPFfile'"
+    field.Finsert = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','BPFfile','')"
+    field.Fname = "suricata - BPFfile"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "groupConn"
+    field.Ftable = "suricata"
+    field.Fquery = "select suri_param from suricata where suri_param='configFile'"
+    field.Finsert = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','configFile','')"
+    field.Fname = "suricata - configFile"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "groupConn"
+    field.Ftable = "suricata"
+    field.Fquery = "select suri_param from suricata where suri_param='interface'"
+    field.Finsert = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','interface','')"
+    field.Fname = "suricata - interface"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "groupConn"
+    field.Ftable = "suricata"
+    field.Fquery = "select suri_param from suricata where suri_param='name'"
+    field.Finsert = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','name','')"
+    field.Fname = "suricata - name"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "groupConn"
+    field.Ftable = "suricata"
+    field.Fquery = "select suri_param from suricata where suri_param='BPFrule'"
+    field.Finsert = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','BPFrule','')"
+    field.Fname = "suricata - BPFrule"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn = "groupConn"
+    field.Ftable = "suricata"
+    field.Fquery = "select suri_param from suricata where suri_param='commandLine'"
+    field.Finsert = "insert into suricata (suri_uniqueid,suri_param,suri_value) values ('suricata','commandLine','')"
+    field.Fname = "suricata - commandLine"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn = "pluginConn"
+    field.Ftable = "plugins"
+    field.Fquery = "select analyzer_param from analyzer where analyzer_param='status'"
+    field.Finsert = "insert into analyzer (analyzer_uniqueid,analyzer_param,analyzer_value) values ('analyzer','status','Enabled')"
+    field.Fname = "analyzer - status"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn = "pluginConn"
+    field.Ftable = "mainconf"
+    field.Fquery = "select main_param from mainconf where main_param='status' and main_uniqueid='suricata'"
+    field.Finsert = "insert into mainconf (main_uniqueid,main_param,main_value) values ('suricata','status','enabled')"
+    field.Fname = "suricata - status"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn = "pluginConn"
+    field.Ftable = "mainconf"
+    field.Fquery = "select main_param from mainconf where main_param='previousStatus' and main_uniqueid='suricata'"
+    field.Finsert = "insert into mainconf (main_uniqueid,main_param,main_value) values ('suricata','previousStatus','enabled')"
+    field.Fname = "suricata - previousStatus"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn = "pluginConn"
+    field.Ftable = "mainconf"
+    field.Fquery = "select main_param from mainconf where main_param='mode' and main_uniqueid='zeek'"
+    field.Finsert = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','mode','standalone')"
+    field.Fname = "zeek - standalone mode"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn = "pluginConn"
+    field.Ftable = "mainconf"
+    field.Fquery = "select main_param from mainconf where main_param='status' and main_uniqueid='zeek'"
+    field.Finsert = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','status','disabled')"
+    field.Fname = "zeek - status disabled"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
+    field.Fconn = "pluginConn"
+    field.Ftable = "mainconf"
+    field.Fquery = "select main_param from mainconf where main_param='previousStatus' and main_uniqueid='zeek'"
+    field.Finsert = "insert into mainconf (main_uniqueid,main_param,main_value) values ('zeek','previousStatus','stop')"
+    field.Fname = "zeek - previous status stop"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
     //Zeek default values
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "plugins"
-    field.Fquery     = "select plugin_param from plugins where plugin_param='interface'"
-    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','interface','')"
-    field.Fname      = "plugin - interface"
+    field.Fconn = "pluginConn"
+    field.Ftable = "plugins"
+    field.Fquery = "select plugin_param from plugins where plugin_param='interface'"
+    field.Finsert = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','interface','')"
+    field.Fname = "plugin - interface"
     ok = CheckField(field)
     if !ok {
         return false
     }
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "plugins"
-    field.Fquery     = "select plugin_param from plugins where plugin_param='name'"
-    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','name','Zeek #1')"
-    field.Fname      = "plugin - name"
+    field.Fconn = "pluginConn"
+    field.Ftable = "plugins"
+    field.Fquery = "select plugin_param from plugins where plugin_param='name'"
+    field.Finsert = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','name','Zeek #1')"
+    field.Fname = "plugin - name"
     ok = CheckField(field)
     if !ok {
         return false
     }
-    field.Fconn      = "pluginConn"
-    field.Ftable     = "plugins"
-    field.Fquery     = "select plugin_param from plugins where plugin_param='type'"
-    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','type','zeek')"
-    field.Fname      = "plugin - type"
+    field.Fconn = "pluginConn"
+    field.Ftable = "plugins"
+    field.Fquery = "select plugin_param from plugins where plugin_param='type'"
+    field.Finsert = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','type','zeek')"
+    field.Fname = "plugin - type"
     ok = CheckField(field)
     if !ok {
         return false
@@ -665,15 +973,18 @@ func checkFields()(ok bool){
     return true
 }
 
-func CheckDB(conn string)(ok bool) {
+func CheckDB(conn string) (ok bool) {
     dbpath, err := utils.GetKeyValueString(conn, "path")
-    if err != nil {logs.Error("Configuration -> Can't get "+conn+" path from main.conf"); return false}
+    if err != nil {
+        logs.Error("Configuration -> Can't get " + conn + " path from main.conf")
+        return false
+    }
 
-    //check if path exists 
+    //check if path exists
     if _, err := os.Stat(path.Dir(dbpath)); os.IsNotExist(err) {
         os.MkdirAll(path.Dir(dbpath), os.ModePerm)
     }
-    //check if folder exists 
+    //check if folder exists
     if _, err := os.Stat(dbpath); os.IsNotExist(err) {
         os.Create(dbpath)
     }
@@ -681,10 +992,10 @@ func CheckDB(conn string)(ok bool) {
     exists := DbExists(dbpath)
 
     if exists {
-        logs.Warn("Configuration -> db "+dbpath+" exists")
+        logs.Warn("Configuration -> db " + dbpath + " exists")
         return true
     } else {
-        logs.Warn("Configuration -> db "+dbpath+" does not exist, ... Creating")
+        logs.Warn("Configuration -> db " + dbpath + " does not exist, ... Creating")
         err = DbCreate(dbpath)
         if err != nil {
             return false
@@ -693,16 +1004,16 @@ func CheckDB(conn string)(ok bool) {
     return true
 }
 
-func CheckField(field Field)(ok bool){
+func CheckField(field Field) (ok bool) {
     dbpath, err := utils.GetKeyValueString(field.Fconn, "path")
     if err != nil {
-        logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf")
+        logs.Error("Configuration -> Can't get DB " + field.Fconn + " path from main.conf")
         return false
     }
 
     exists := FieldExists(dbpath, field.Fquery)
     if !exists {
-        logs.Warn("Configuration -> Field "+field.Fname+" doesn't exist on Table/DB "+field.Ftable+"/"+field.Fconn+" ...Creating")
+        logs.Warn("Configuration -> Field " + field.Fname + " doesn't exist on Table/DB " + field.Ftable + "/" + field.Fconn + " ...Creating")
         created := FieldCreate(dbpath, field.Finsert, field.Fname)
         if !created {
             return false
@@ -710,14 +1021,14 @@ func CheckField(field Field)(ok bool){
         return true
     }
 
-    logs.Info("Configuration -> Field "+field.Fname+" exists on Table/DB "+field.Ftable+"/"+field.Fconn)
+    logs.Info("Configuration -> Field " + field.Fname + " exists on Table/DB " + field.Ftable + "/" + field.Fconn)
     return true
 }
 
-func FieldExists(dbpath, qry string)(ok bool){
+func FieldExists(dbpath, qry string) (ok bool) {
     dblink, err := sql.Open("sqlite3", dbpath)
     if err != nil {
-        logs.Error("Configuration -> Check Field -> db " + dbpath + " can't be opened -> err: "+err.Error())
+        logs.Error("Configuration -> Check Field -> db " + dbpath + " can't be opened -> err: " + err.Error())
         return false
     }
     defer dblink.Close()
@@ -735,54 +1046,52 @@ func FieldExists(dbpath, qry string)(ok bool){
     return true
 }
 
-func FieldCreate(dbpath string, insert string, name string)(ok bool){
-    logs.Info("Configuration -> Creating field "+name+" in "+dbpath)
+func FieldCreate(dbpath string, insert string, name string) (ok bool) {
+    logs.Info("Configuration -> Creating field " + name + " in " + dbpath)
 
     dblink, err := sql.Open("sqlite3", dbpath)
     if err != nil {
-        logs.Error("Configuration -> Check Field -> db " + dbpath + " can't be opened -> err: "+err.Error())
+        logs.Error("Configuration -> Check Field -> db " + dbpath + " can't be opened -> err: " + err.Error())
         return false
     }
     defer dblink.Close()
     _, err = dblink.Exec(insert)
     if err != nil {
-        logs.Error("Configuration -> Creating field " + name + " failed -> err: "+err.Error())
+        logs.Error("Configuration -> Creating field " + name + " failed -> err: " + err.Error())
         return false
     }
     return true
 }
 
-func CheckTable(table Table)(ok bool){
+func CheckTable(table Table) (ok bool) {
     dbpath, err := utils.GetKeyValueString(table.Tconn, "path")
     if err != nil {
-        logs.Error("Configuration -> Can't get "+table.Tconn+" path from main.conf")
+        logs.Error("Configuration -> Can't get " + table.Tconn + " path from main.conf")
         return false
     }
 
     exists := TableExists(dbpath, table.Tname)
     if !exists {
-        logs.Warn("Configuration -> Table "+table.Tname+" doesn't exist on DB "+table.Tconn+" ...Creating")
-        created := TableCreate(table.Tconn,table.Tname,table.Tcreate)
+        logs.Warn("Configuration -> Table " + table.Tname + " doesn't exist on DB " + table.Tconn + " ...Creating")
+        created := TableCreate(table.Tconn, table.Tname, table.Tcreate)
         if !created {
             return false
         }
         return true
     }
 
-    logs.Info("Configuration -> Table "+table.Tname+" exists on DB "+table.Tconn)
+    logs.Info("Configuration -> Table " + table.Tname + " exists on DB " + table.Tconn)
     return true
 }
 
-
-
-func DbExists(db string)(exists bool){
+func DbExists(db string) (exists bool) {
     if _, err := os.Stat(db); os.IsNotExist(err) {
         logs.Error("Configuration -> Check DB -> db " + db + " not found -> err: " + err.Error())
         return false
-    }else{
+    } else {
         dblink, err := sql.Open("sqlite3", db)
         if err != nil {
-            logs.Error("Configuration -> Check DB -> db " + db + " can't be opened -> err: "+err.Error())
+            logs.Error("Configuration -> Check DB -> db " + db + " can't be opened -> err: " + err.Error())
             return false
         }
         defer dblink.Close()
@@ -792,10 +1101,10 @@ func DbExists(db string)(exists bool){
     return false
 }
 
-func TableExists(db string, table string)(exists bool){
+func TableExists(db string, table string) (exists bool) {
     dblink, err := sql.Open("sqlite3", db)
     if err != nil {
-        logs.Error("Configuration -> Check Table -> db " + db + " can't open -> err: "+err.Error())
+        logs.Error("Configuration -> Check Table -> db " + db + " can't open -> err: " + err.Error())
         return false
     }
     defer dblink.Close()
@@ -815,33 +1124,31 @@ func TableExists(db string, table string)(exists bool){
     return true
 }
 
-
-
-func TableCreate(conn string, tablename string, create string)(ok bool){
-    logs.Info("Configuration -> Creating table "+tablename+" in "+conn)
+func TableCreate(conn string, tablename string, create string) (ok bool) {
+    logs.Info("Configuration -> Creating table " + tablename + " in " + conn)
     dbpath, err := utils.GetKeyValueString(conn, "path")
     if err != nil {
-        logs.Error("Configuration -> Can't get "+conn+" path from main.conf -> "+err.Error())
+        logs.Error("Configuration -> Can't get " + conn + " path from main.conf -> " + err.Error())
         return false
     }
-    db, err := sql.Open("sqlite3",dbpath)
+    db, err := sql.Open("sqlite3", dbpath)
     if err != nil {
-        logs.Error("Configuration -> "+dbpath+" Open Failed -> err: "+err.Error())
+        logs.Error("Configuration -> " + dbpath + " Open Failed -> err: " + err.Error())
         return false
     }
     _, err = db.Exec(create)
     if err != nil {
-        logs.Error("Configuration -> Creating table " +tablename + " failed -> err: "+err.Error())
+        logs.Error("Configuration -> Creating table " + tablename + " failed -> err: " + err.Error())
         return false
     }
-    return true 
+    return true
 }
 
-func DbCreate(db string)(err error) {
-    logs.Warn ("Configuration -> Creating DB file -> "+db)
+func DbCreate(db string) (err error) {
+    logs.Warn("Configuration -> Creating DB file -> " + db)
     _, err = os.OpenFile(db, os.O_CREATE, 0644)
     if err != nil {
-        logs.Error("Configuration -> Creating DB File "+ db +" err: "+err.Error())
+        logs.Error("Configuration -> Creating DB File " + db + " err: " + err.Error())
         return err
     }
     return nil

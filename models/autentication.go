@@ -19,9 +19,6 @@ func CreateMasterToken(login map[string]string, username string) (token string, 
         cc["actionStatus"] = "error"
         cc["errorDescription"] = err.Error()
     }else{
-        logs.Notice(token)
-        logs.Notice(token)
-        logs.Notice(token)
         cc["actionStatus"] = "success"
     }
     cc["username"] = username

@@ -8,6 +8,7 @@ import (
     "owlhnode/suricata"
     "owlhnode/utils"
     "strings"
+    "strconv"
     // "owlhnode/zeek"
     "owlhnode/database"
 )
@@ -180,6 +181,16 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
         logs.Error("ping/PingService -- Error getting suricata service data: " + err.Error())
         return nil, err
     }
+    stapConnNetSoc, err := utils.GetKeyValueString("execute", "stapConnNetSoc")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    stapConn, err := utils.GetKeyValueString("execute", "stapConn")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
     param, err := utils.GetKeyValueString("execute", "param")
     if err != nil {
         logs.Error("ping/PingPluginsNode Error getting data from main.conf")
@@ -230,7 +241,28 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
         logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
+    greenMax, err := utils.GetKeyValueInt("stap", "greenMax")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    greenMin, err := utils.GetKeyValueInt("stap", "greenMin")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    yellowMax, err := utils.GetKeyValueInt("stap", "yellowMax")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    yellowMin, err := utils.GetKeyValueInt("stap", "yellowMin")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
 
+    //get plugins
     allPlugins, err := ndb.GetPlugins()
     if err != nil {
         logs.Error("ping/GetMainconfData error getting GetPlugins values: " + err.Error())
@@ -261,7 +293,29 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
     }
 
     for x := range allPlugins {
-        if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata" {
+        if allPlugins[x]["status"] == "disabled" && allPlugins[x]["type"] == "suricata" {
+            path, err := utils.GetKeyValueString("suricataRuleset", "path")
+            if err != nil {
+                logs.Error("ping/PingPluginsNode Error getting data from main.conf: " + err.Error())
+                return nil, err
+            }
+            fileToEdit, err := utils.GetKeyValueString("suricataRuleset", "file")
+            if err != nil {
+                logs.Error("ping/PingPluginsNode Error getting data from main.conf: " + err.Error())
+                return nil, err
+            }
+            fileName := strings.Replace(fileToEdit, "<NAME>", allPlugins[x]["localRulesetName"], -1)
+            //check if ruleset exists locally
+            
+            if _, err := os.Stat(path+fileName); os.IsNotExist(err) {
+                ndb.UpdatePluginValue(x, "rulesetSync", "false")
+                allPlugins[x]["rulesetSync"] = "false"
+            }else{
+                ndb.UpdatePluginValue(x, "rulesetSync", "true")
+                allPlugins[x]["rulesetSync"] = "true"
+            }
+        }
+        if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata" { 
             // change pid file name
             if _, err := os.Stat(bck + x + "-pidfile.pid"); os.IsNotExist(err) {
                 err = suricata.StopSuricataService(x, allPlugins[x]["status"])
@@ -322,6 +376,42 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
                 allPlugins[x]["running"] = "true"
             }
         }
+
+        //get all stap connections 
+        if allPlugins[x]["type"] == "network-socket" {                    
+            ipReplace:=strings.Replace(stapConnNetSoc, "<IP>", allPlugins[x]["ip"], -1)
+            portReplace:=strings.Replace(ipReplace, "<PORT>", allPlugins[x]["port"], -1)
+            data, err := exec.Command(command, param, portReplace).Output()
+            if err != nil {logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())}    
+            allPlugins[x]["connections"] = string(data)            
+        }else if allPlugins[x]["type"] == "socket-network" || allPlugins[x]["type"] == "socket-pcap"{
+            data, err := exec.Command(command, param, strings.Replace(stapConn, "<PORT>", allPlugins[x]["port"], -1)).Output()
+            if err != nil {logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())}
+            allPlugins[x]["connections"] = string(data)                    
+        } 
+
+        if allPlugins[x]["type"] == "network-socket" || allPlugins[x]["type"] == "socket-network" || allPlugins[x]["type"] == "socket-pcap"{            
+            //split connections
+            splitted := strings.Split(allPlugins[x]["connections"], "\n")
+            var dataConn []string
+            for _,val := range splitted {
+                if val != "" {
+                    dataConn = append(dataConn,  val)
+                }
+            }
+    
+            //get number of connections
+            allPlugins[x]["connectionsCount"] = strconv.Itoa(len(dataConn))
+    
+            //check clients umbral
+            if len(dataConn) <= greenMax && len(dataConn) >= greenMin {
+                allPlugins[x]["connectionsColor"] = "success"
+            }else if (len(dataConn) <= yellowMax) && (len(dataConn) >= yellowMin) {
+                allPlugins[x]["connectionsColor"] = "warning"            
+            }else{
+                allPlugins[x]["connectionsColor"] = "danger"
+            }
+        }          
     }
 
     //get suricata values that are not in the database

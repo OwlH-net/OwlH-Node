@@ -851,7 +851,7 @@ func InitAnalizer() {
     StartPostFilter(config.ChannelWorkers)
 
     go LoadSources()
-    logs.Debug("AN - AN - AN - config - Verbose - %t", config.Verbose)
+    logs.Info("AN - AN - AN - config - Verbose - %t", config.Verbose)
     if config.Stats {
         go CHcontrol()
     }
@@ -880,33 +880,33 @@ func Init() {
 
 func PingAnalyzer() (data map[string]string, err error) {
 
+    //unmarshal analyzer.conf into data struct
     readconf()
 
-    filePath, err := utils.GetKeyValueString("node", "alertLog")
-    if err != nil {
-        logs.Error("PingAnalyzer Error getting data from main.conf")
-    }
+    filePath := config.OutputFile
 
     analyzerData := make(map[string]string)
     analyzerData["status"] = "Disabled"
 
     analyzerStatus, err := ndb.GetStatusAnalyzer()
     if err != nil {
-        logs.Error("Error getting Analyzer data: " + err.Error())
-        return analyzerData, err
+        logs.Error("Error getting Analyzer data from DB: %s, defaulting to: %s", err.Error(), config.Enable)
+        if config.Enable {
+            analyzerStatus = "Enabled"
+        }
     }
 
     analyzerData["status"] = analyzerStatus
-    analyzerData["path"] = filePath
+    analyzerData["path"] = config.OutputFile
     analyzerData["size"] = "0"
 
     if analyzerData["status"] == "Disabled" {
         return analyzerData, nil
     }
 
-    fi, err := os.Stat(filePath)
+    fi, err := os.Stat(config.OutputFile)
     if err != nil {
-        logs.Error("Can't access Analyzer ouput file data: " + err.Error())
+        logs.Error("Can't access Analyzer output file %s Error: %s", filePath, err.Error())
         return analyzerData, err
     }
     size := fi.Size()
@@ -986,9 +986,7 @@ func dgram() {
 }
 
 func dgramWriter(line string) {
-    logs.Info("Line to Wazuh by DGRAM")
     if !config.WazuhSocketEnabled {
-        logs.Info("")
         return
     }
     c, err := net.Dial("unixgram", "/var/ossec/queue/ossec/queue")
