@@ -132,7 +132,7 @@ func FileRotation() {
                 if err != nil {
                     logs.Error("FileRotation ERROR readding file: " + err.Error())
                 }
-                defer file.Close()
+                // defer file.Close()
                 fileInfo, err := file.Stat()
 
                 //get number of lines for check maxLines
@@ -191,6 +191,7 @@ func FileRotation() {
                     targetlast.lastrotated = currentTime
                     Targets[rotate[x]["path"]] = targetlast
                 }
+                file.Close()
             }
         }
         logs.Info("Monitor files rotated!")
