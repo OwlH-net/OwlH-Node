@@ -533,3 +533,31 @@ func (n *SuricataController) AddSuricataService() {
     }
     n.ServeJSON()
 }
+
+// @Title GetSuricataRulesets()
+// @Description Add new Suricata Service
+// @Success 200 {object} models.suricata
+// @router /getSuricataRulesets [get]
+func (n *SuricataController) GetSuricataRulesets() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"GetSuricataRulesets"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        data,err := models.GetSuricataRulesets()
+
+        n.Data["json"] = data
+        if err != nil {
+            var errorResponse = map[string]map[string]string{}
+            errorResponse["hasError"] = map[string]string{"ack": "false", "error": err.Error()}
+            n.Data["json"] = errorResponse
+        }
+    }
+    n.ServeJSON()
+}

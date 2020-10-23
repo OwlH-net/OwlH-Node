@@ -142,3 +142,8 @@ func GetMD5files(files map[string]map[string]string, username string) (data map[
     // changecontrol.ChangeControlInsertData(err, "GetMD5files")
     return data, err
 }
+
+func GetSuricataRulesets() (data map[string]map[string]string, err error) {
+    data, err = suricata.GetSuricataRulesets()
+    return data, err
+}
