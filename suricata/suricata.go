@@ -1046,3 +1046,22 @@ func SuricataVersion() (version map[string]string, err error) {
 
     return response, err
 }
+
+func GetSuricataRulesets() (version map[string]map[string]string, err error) {
+    plugins,err := ndb.GetPlugins()
+    if err != nil {logs.Error("suricata/GetSuricataRulesets error: " + err.Error()); return nil,err}
+
+    var serviceValues = map[string]map[string]string{}
+
+    for x := range plugins {
+        if plugins[x]["type"] == "suricata"{
+            if serviceValues[x] == nil {
+                serviceValues[x] = map[string]string{}
+            }
+            serviceValues[x]["name"] = plugins[x]["name"]
+            serviceValues[x]["ruleset"] = plugins[x]["rulesetName"]
+        }
+    }
+
+    return serviceValues, err
+}
