@@ -217,6 +217,10 @@ func AddPluginService(anode map[string]string) (err error) {
             logs.Error("InsertPluginService pid Error: " + err.Error())
             return err
         }
+        if anode["status"] == "enabled" {
+            anode["service"] = uuid
+            DeployStapService(anode)
+        }
     }
     if anode["type"] == "socket-pcap" {
         err = ndb.InsertPluginService(uuid, "name", anode["name"])
