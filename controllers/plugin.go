@@ -1,10 +1,11 @@
 package controllers
 
 import (
+    "encoding/json"
     "github.com/astaxie/beego"
+    "github.com/astaxie/beego/logs"
     "owlhnode/models"
     "owlhnode/validation"
-    "encoding/json"
 )
 
 type PluginController struct {
@@ -17,15 +18,15 @@ type PluginController struct {
 func (n *PluginController) ChangeServiceStatus() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"ChangeServiceStatus"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{         
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -47,15 +48,15 @@ func (n *PluginController) ChangeServiceStatus() {
 func (n *PluginController) ChangeMainServiceStatus() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"ChangeMainServiceStatus"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{     
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -76,15 +77,15 @@ func (n *PluginController) ChangeMainServiceStatus() {
 func (n *PluginController) DeleteService() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"DeleteService"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{     
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "DELETE"
@@ -106,22 +107,23 @@ func (n *PluginController) DeleteService() {
 func (n *PluginController) AddPluginService() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"AddPluginService"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{        
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        logs.Info("action add service values -> %+v", anode)
         anode["action"] = "PUT"
         anode["controller"] = "PLUGIN"
         anode["router"] = "@router /addService [put]"
         err := models.AddPluginService(anode, n.Ctx.Input.Header("user"))
-    
+
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -136,15 +138,15 @@ func (n *PluginController) AddPluginService() {
 func (n *PluginController) UpdateSuricataValue() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"UpdateSuricataValue"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{          
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -165,15 +167,15 @@ func (n *PluginController) UpdateSuricataValue() {
 func (n *PluginController) DeployStapService() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"DeployStapService"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{       
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -194,15 +196,15 @@ func (n *PluginController) DeployStapService() {
 func (n *PluginController) StopStapService() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"StopStapService"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{        
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -223,15 +225,15 @@ func (n *PluginController) StopStapService() {
 func (n *PluginController) ModifyNodeOptionValues() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"ModifyNodeOptionValues"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{       
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -252,15 +254,15 @@ func (n *PluginController) ModifyNodeOptionValues() {
 func (n *PluginController) ChangeSuricataTable() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"ChangeSuricataTable"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{      
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -281,15 +283,15 @@ func (n *PluginController) ChangeSuricataTable() {
 func (n *PluginController) GetServiceCommands() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"GetServiceCommands"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{        
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
@@ -310,15 +312,15 @@ func (n *PluginController) GetServiceCommands() {
 func (n *PluginController) SaveSurictaRulesetSelected() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
         return
-    }    
+    }
     permissions := []string{"SaveSurictaRulesetSelected"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{        
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         anode["action"] = "PUT"
