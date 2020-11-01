@@ -1,14 +1,14 @@
 package models
 
 import (
+    "github.com/astaxie/beego/logs"
     "owlhnode/analyzer"
     "owlhnode/changeControl"
-    "github.com/astaxie/beego/logs"
 )
 
-func PingAnalyzer(username string)(data map[string]string, err error) {
+func PingAnalyzer(username string) (data map[string]string, err error) {
     data, err = analyzer.PingAnalyzer()
-    //changecontrol.ChangeControlInsertData(err, "PingAnalyzer", username)    
+    //changecontrol.ChangeControlInsertData(err, "PingAnalyzer", username)
     return data, err
 }
 
@@ -16,26 +16,25 @@ func ChangeAnalyzerStatus(anode map[string]string, username string) (err error) 
     logs.Info("============")
     logs.Info("ANALYZER - ChangeAnalyzerStatus")
     cc := anode
-    for key :=range anode {
-        logs.Info(key +" -> "+cc[key])
+    for key := range anode {
+        logs.Info(key + " -> " + cc[key])
     }
-    
-    delete(anode,"action")
-    delete(anode,"controller")
-    delete(anode,"router")
-    
+
+    delete(anode, "action")
+    delete(anode, "controller")
+    delete(anode, "router")
+
     err = analyzer.ChangeAnalyzerStatus(anode)
-    
-    if err!=nil { 
+
+    if err != nil {
         cc["actionStatus"] = "error"
         cc["errorDescription"] = err.Error()
-    }else{
+    } else {
         cc["actionStatus"] = "success"
     }
 
     cc["username"] = username
     cc["actionDescription"] = "Change Analyzer Status"
-
 
     changecontrol.InsertChangeControl(cc)
     return err
@@ -51,16 +50,16 @@ func SyncAnalyzer(file map[string][]byte, username string) (err error) {
     logs.Info("file - analyzer.json")
     //TODO action
     err = analyzer.SyncAnalyzer(file)
-    
-    if err!=nil { 
+
+    if err != nil {
         cc["actionStatus"] = "error"
         cc["errorDescription"] = err.Error()
-    }else{
+    } else {
         cc["actionStatus"] = "success"
     }
     cc["username"] = username
     cc["actionDescription"] = "sync Analyzer configuration"
 
-    changecontrol.InsertChangeControl(cc)    
+    changecontrol.InsertChangeControl(cc)
     return nil
 }

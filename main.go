@@ -31,7 +31,7 @@ var version string
 func main() {
 
     utils.Load()
-    
+
     //launch logger
     monitor.Logger()
 
