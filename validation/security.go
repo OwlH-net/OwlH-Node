@@ -11,8 +11,8 @@ import (
 )
 
 func UserPermissionsValidation(user string, permissionRequest string) (val bool, err error) {
-    logs.Emergency(user)
-    logs.Emergency(permissionRequest)
+    logs.Debug(user)
+    logs.Debug(permissionRequest)
     uuidUser, err := ndb.GetUserID(user)
     if err != nil {
         logs.Error("UserPermissionsValidation error getting user id: %s", err)

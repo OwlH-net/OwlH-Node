@@ -1,5 +1,5 @@
 {
-    "enable":false,
+    "enable":true,
     "outputfile":"/var/log/owlh/alerts.json",
     "prefilterfile":"conf/prefilters.json",
     "postfilterfile":"conf/postfilters.json",
@@ -36,5 +36,5 @@
 
     "suricatasocket":"/var/log/suricata/eve_json.socket",
     "suricatasocketenabled":false,
-    "wazuhsocketenabled":true
+    "wazuhsocketenabled":false
 }
