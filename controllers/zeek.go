@@ -43,7 +43,7 @@ func (n *ZeekController) Get() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
-    logs.Info("Zeek - Get info - return back ")
+    logs.Debug("Zeek - Get info - return back ")
 
     n.ServeJSON()
 }
@@ -145,7 +145,7 @@ func (n *ZeekController) Command() {
             n.Data["json"] = map[string]string{"ack": "false", "error": iserror.Error()}
         }
     }
-    logs.Info("Zeek - run command - return back ")
+    logs.Debug("Zeek - run command - return back ")
     n.ServeJSON()
 }
 
