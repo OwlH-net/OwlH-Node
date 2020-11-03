@@ -293,7 +293,7 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
     }
 
     for x := range allPlugins {
-        if allPlugins[x]["status"] == "disabled" && allPlugins[x]["type"] == "suricata" {
+        if allPlugins[x]["type"] == "suricata" {
             path, err := utils.GetKeyValueString("suricataRuleset", "path")
             if err != nil {
                 logs.Error("ping/PingPluginsNode Error getting data from main.conf: " + err.Error())
@@ -304,15 +304,24 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
                 logs.Error("ping/PingPluginsNode Error getting data from main.conf: " + err.Error())
                 return nil, err
             }
-            fileName := strings.Replace(fileToEdit, "<NAME>", allPlugins[x]["localRulesetName"], -1)
-            //check if ruleset exists locally
-            
+
+            //check if ruleset exists locally            
+            fileName := strings.Replace(fileToEdit, "<NAME>", allPlugins[x]["localRulesetName"], -1)            
             if _, err := os.Stat(path+fileName); os.IsNotExist(err) {
-                ndb.UpdatePluginValue(x, "rulesetSync", "false")
                 allPlugins[x]["rulesetSync"] = "false"
             }else{
-                ndb.UpdatePluginValue(x, "rulesetSync", "true")
                 allPlugins[x]["rulesetSync"] = "true"
+            }
+
+            //check if process is running even though database status is disabled
+            pid, err := exec.Command(command, param, strings.Replace(suriPID, "<ID>", "grep "+x+" |", -1)).Output()
+            if err != nil {
+                logs.Error("ping/PingPluginsNode Checking suricata PID: " + err.Error())
+            }
+            if strings.Split(string(pid), "\n")[0] == "" {
+                allPlugins[x]["running"] = "false"
+            } else {
+                allPlugins[x]["running"] = "true"
             }
         }
         if allPlugins[x]["status"] == "enabled" && allPlugins[x]["type"] == "suricata" { 
@@ -328,18 +337,7 @@ func PingPluginsNode() (data map[string]map[string]string, err error) {
                     logs.Error("ping/PingPluginsNode pidfile doesn't exist. Error launching suricata again: " + err.Error())
                     return nil, err
                 }
-            }
-
-            //check if process is running even though database status is disabled
-            pid, err := exec.Command(command, param, strings.Replace(suriPID, "<ID>", "grep "+x+" |", -1)).Output()
-            if err != nil {
-                logs.Error("ping/PingPluginsNode Checking suricata PID: " + err.Error())
-            }
-            if strings.Split(string(pid), "\n")[0] == "" {
-                allPlugins[x]["running"] = "false"
-            } else {
-                allPlugins[x]["running"] = "true"
-            }
+            }        
         }
 
         //check if process is running even though database status is enabled
