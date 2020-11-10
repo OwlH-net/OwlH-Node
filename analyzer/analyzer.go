@@ -32,6 +32,7 @@ type chcounter struct {
 
 type Analyzer struct {
     Enable                 bool     `json:"enable"`
+    Force                  bool     `json:"force"`
     Verbose                bool     `json:"verbose"`
     Stats                  bool     `json:"stats"`
     OutputFile             string   `json:"outputfile"`
@@ -95,6 +96,7 @@ type Event struct {
 type monitfile struct {
     File   string
     Status bool
+    Error  bool
 }
 
 var monitorfiles = map[string]monitfile{}
@@ -565,6 +567,7 @@ func ControlSource(file, uuid string) {
     t, err := utils.GetKeyValueString("loop", "ControlSource")
     if err != nil {
         logs.Error("Search Error: Cannot load controlsource - loop time from main.conf.")
+        return
     }
     tDuration, err := strconv.Atoi(t)
 
@@ -576,6 +579,7 @@ func ControlSource(file, uuid string) {
         }
         time.Sleep(time.Second * time.Duration(tDuration))
         if fileinfo, err := os.Stat(file); !os.IsNotExist(err) {
+
             stat, _ := fileinfo.Sys().(*syscall.Stat_t)
             if config.Verbose {
                 logs.Info("AN - %40s, %32s, inode c- %7d vs %7d", file, uuid, stat.Ino, previousinode)
@@ -604,25 +608,28 @@ func IsFileMonitored(file string) (monitored bool) {
     return false
 }
 
+func IsFileInMonitoredFiles(file string) (uuid string, isInList bool) {
+    for uuid := range monitorfiles {
+        mfile := monitorfiles[uuid]
+        if mfile.File == file {
+            return uuid, true
+        }
+    }
+    return "", false
+}
+
 func StartSource(file, uuid string) {
 
-    if config.Verbose {
-        logs.Info("Starting tail of source file: " + file)
-    }
+    logs.Debug("Starting tail of source file: " + file)
     var seekv tail.SeekInfo
 
     seekv.Offset = 0
     seekv.Whence = os.SEEK_END
 
-    // for {
-    if config.Verbose {
-        logs.Info("tailing - %40s - [%32s]", file, uuid)
-    }
+    logs.Debug("tailing - %40s - [%32s]", file, uuid)
     if _, err := os.Stat(file); os.IsNotExist(err) {
         delete(monitorfiles, uuid)
         return
-        // time.Sleep(time.Second * time.Duration(config.Timetowaitforfile))
-        // continue
     }
     t, err := tail.TailFile(file, tail.Config{Follow: true, Poll: false, Location: &seekv})
     if err != nil {
@@ -645,10 +652,7 @@ func StartSource(file, uuid string) {
         ToDispatcher("start", line.Text)
     }
 
-    if config.Verbose {
-        logs.Info("End tailing - %s", file)
-    }
-    // }
+    logs.Debug("End tailing - %s", file)
 }
 
 func LoadFeed() {
@@ -666,35 +670,41 @@ func LoadSources() {
         logs.Info("Init - loading sources")
     }
     for {
+        analyzer, _ := PingAnalyzer()
         for file := range config.Srcfiles {
-            analyzer, _ := PingAnalyzer()
             if analyzer["status"] == "Disabled" {
                 logs.Info("Analyzer is Disabled - Nothing to do")
                 return
             }
-            if IsFileMonitored(config.Srcfiles[file]) {
-                time.Sleep(time.Second * time.Duration(config.TimebetweenStatusCheck))
+
+            _, err := os.Stat(config.Srcfiles[file])
+            if os.IsNotExist(err) {
                 continue
             }
 
-            if config.Verbose {
-                logs.Info("AN - file %s is not being monitored, start monitoring", config.Srcfiles[file])
+            if IsFileMonitored(config.Srcfiles[file]) {
+                continue
             }
 
-            uuid := utils.Generate()
+            uuid, isInMonitoredFiles := IsFileInMonitoredFiles(config.Srcfiles[file])
+            if !isInMonitoredFiles {
+                uuid = utils.Generate()
+            }
+
+            logs.Debug("AN - file %s is not being monitored, start monitoring", config.Srcfiles[file])
 
             var mfile monitfile
             mfile.Status = true
             mfile.File = config.Srcfiles[file]
+            mfile.Error = false
             monitorfiles[uuid] = mfile
-            if config.Verbose {
-                logs.Info("AN - file added to monitor list - %40s, %32s, %t", mfile.File, uuid, mfile.Status)
-            }
+            logs.Debug("AN - file added to monitor list - %40s, %32s, %t", mfile.File, uuid, mfile.Status)
 
             go StartSource(config.Srcfiles[file], uuid)
             go ControlSource(config.Srcfiles[file], uuid)
 
         }
+        time.Sleep(time.Second * time.Duration(config.TimebetweenStatusCheck))
     }
 }
 
@@ -872,6 +882,11 @@ func InitAnalizer() {
 
 func Init() {
     readconf()
+    //forced by main conf
+    if config.Force && !config.Enable {
+        logs.Info("AN - Forced by main.conf configuration. Analyzer is disabled")
+        return
+    }
     go InitAnalizer()
     go dgram()
     loadJA3Config()
@@ -930,9 +945,9 @@ func ChangeAnalyzerStatus(anode map[string]string) (err error) {
         return nil
     } else {
         if config.Verbose {
-            logs.Error("ChangeAnalyzerStatus bad analyzer value spected for status")
+            logs.Error("ChangeAnalyzerStatus bad analyzer value expected for status")
         }
-        return errors.New("ChangeAnalyzerStatus bad analyzer value spected for status")
+        return errors.New("ChangeAnalyzerStatus bad analyzer value expected for status")
     }
 
 }
