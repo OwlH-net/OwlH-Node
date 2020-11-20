@@ -212,7 +212,7 @@ func StoppingZeekAtNodeEnd() error {
         logs.Error("ERROR - ZEEK - STOP at node EXIT -> %s", err.Error())
     }
     if zeekConfig.Verbose {
-        logs.Info("ZEEK - Stop at node EXIT - output -> %s", output)
+        logs.Debug("ZEEK - Stop at node EXIT - output -> %s", output)
     }
     return err
 }
@@ -231,7 +231,7 @@ func StartingZeekAtNodeInit() error {
         logs.Error("ERROR - ZEEK - DEPLOY At Node Start -> %s", err.Error())
     }
     if zeekConfig.Verbose {
-        logs.Info("ZEEK - DEPLOY At node start -> %s", output)
+        logs.Debug("ZEEK - DEPLOY At node start -> %s", output)
     }
     return err
 }
@@ -250,7 +250,7 @@ func AmITheManager() (manager bool, ip string) {
 
 func ZeekPath() (exists bool) {
     if zeekConfig.Verbose {
-        logs.Info("Zeek getting zeek path")
+        logs.Debug("Zeek getting zeek path")
     }
     var err error
     path, err := utils.GetKeyValueString("zeek", "zeekpath")
@@ -268,7 +268,7 @@ func ZeekPath() (exists bool) {
 
 func ZeekBin() (exists bool) {
     if zeekConfig.Verbose {
-        logs.Info("Zeek getting zeek binary file")
+        logs.Debug("Zeek getting zeek binary file")
     }
     var err error
     zeekctl, err := utils.GetKeyValueString("zeek", "zeekctl")
@@ -291,7 +291,7 @@ func ZeekBin() (exists bool) {
 }
 
 func ZeekRunning() (running bool) {
-    logs.Info("Is Zeek running? nothing done - DEPRECATED!!!!!!")
+    logs.Debug("Is Zeek running? nothing done - DEPRECATED!!!!!!")
     return false
 }
 
@@ -307,7 +307,7 @@ func isZeekRunning() bool {
 
 func ZeekStatus() (zeekstatus []ZeekNode, err error) {
     if zeekConfig.Verbose {
-        logs.Info("Zeek checking zeek status")
+        logs.Debug("Zeek checking zeek status")
     }
     if !canIManage() {
         str := fmt.Sprintf("ZEEK Management - This node belongs to a Cluster, but is not the manager, manager is at %s ", GlobalZeekCFG.Managerip)

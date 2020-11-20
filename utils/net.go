@@ -4,6 +4,7 @@ import (
     "fmt"
     "github.com/astaxie/beego/logs"
     "net"
+    "strings"
 )
 
 func LocalAddresses() (laddr []string) {
@@ -24,7 +25,7 @@ func LocalAddresses() (laddr []string) {
                 ip := v.IP
                 laddr = append(laddr, ip.String())
             case *net.IPAddr:
-                logs.Info("%v : %s (%s)\n", i.Name, v, v.IP.DefaultMask())
+                logs.Debug("%v : %s (%s)\n", i.Name, v, v.IP.DefaultMask())
             }
         }
     }
@@ -32,6 +33,9 @@ func LocalAddresses() (laddr []string) {
 }
 
 func IsLocalAddress(address string) bool {
+    if strings.ToLower(address) == "localhost" {
+        return true
+    }
     localaddrs := LocalAddresses()
     for addr := range localaddrs {
         if address == localaddrs[addr] {
