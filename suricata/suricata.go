@@ -982,7 +982,7 @@ func SuricataConfigurationTest(uuid string) (responseBack map[string]string, err
     args = append(args, suricata_interface)
 
     if allPlugins[uuid]["localRulesetName"] != "" {
-        suricata_ruleset_name = rulesetPath + allPlugins[uuid]["localRulesetName"] + ".rules"
+        suricata_ruleset_name := rulesetPath + allPlugins[uuid]["localRulesetName"] + ".rules"
         args = append(args, "-S")
         args = append(args, suricata_ruleset_name)
     }
