@@ -952,9 +952,9 @@ func SuricataConfigurationTest(uuid string) (responseBack map[string]string, err
         logs.Error("SuricataConfigurationTest Error getting data from main.conf: " + err.Error())
     }
 
+    allPlugins, err := ndb.GetPlugins()
     suricata_interface := ""
     if uuid != "" {
-        allPlugins, err := ndb.GetPlugins()
         if err != nil {
             logs.Error("SuricataConfigurationTest Error getting plugin list from DB: " + err.Error())
         } else if allPlugins[uuid]["configFile"] != "" {
