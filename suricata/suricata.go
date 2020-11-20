@@ -407,7 +407,7 @@ func SaveConfigFile(files map[string][]byte) (err error) {
             return err
         }
         //remove zip file
-        os.Remove(x+"/file.tar.gzip")
+        os.Remove(x + "/file.tar.gzip")
     }
     return nil
 }
@@ -952,12 +952,14 @@ func SuricataConfigurationTest(uuid string) (responseBack map[string]string, err
         logs.Error("SuricataConfigurationTest Error getting data from main.conf: " + err.Error())
     }
 
+    allPlugins, err := ndb.GetPlugins()
+    suricata_interface := ""
     if uuid != "" {
-        allPlugins, err := ndb.GetPlugins()
         if err != nil {
-            logs.Error("SuricataConfigurationTest Error getting data from main.conf: " + err.Error())
+            logs.Error("SuricataConfigurationTest Error getting plugin list from DB: " + err.Error())
         } else if allPlugins[uuid]["configFile"] != "" {
             suricata_config = allPlugins[uuid]["configFile"]
+            suricata_interface = allPlugins[uuid]["interface"]
         }
     }
 
@@ -967,9 +969,24 @@ func SuricataConfigurationTest(uuid string) (responseBack map[string]string, err
         return response, errors.New(str)
     }
 
+    rulesetPath, err := utils.GetKeyValueString("suricataRuleset", "path")
+    if err != nil {
+        logs.Error("SURICATA - Check Suricata configuration - Error getting rulesetpath from main.conf: " + err.Error())
+    }
+
     args := []string{}
     args = append(args, "-c")
     args = append(args, suricata_config)
+
+    args = append(args, "-i")
+    args = append(args, suricata_interface)
+
+    if allPlugins[uuid]["localRulesetName"] != "" {
+        suricata_ruleset_name := rulesetPath + allPlugins[uuid]["localRulesetName"] + ".rules"
+        args = append(args, "-S")
+        args = append(args, suricata_ruleset_name)
+    }
+
     args = append(args, "-T")
 
     cmd := exec.Command(suricata, args...)
@@ -1048,13 +1065,16 @@ func SuricataVersion() (version map[string]string, err error) {
 }
 
 func GetSuricataRulesets() (version map[string]map[string]string, err error) {
-    plugins,err := ndb.GetPlugins()
-    if err != nil {logs.Error("suricata/GetSuricataRulesets error: " + err.Error()); return nil,err}
+    plugins, err := ndb.GetPlugins()
+    if err != nil {
+        logs.Error("suricata/GetSuricataRulesets error: " + err.Error())
+        return nil, err
+    }
 
     var serviceValues = map[string]map[string]string{}
 
     for x := range plugins {
-        if plugins[x]["type"] == "suricata"{
+        if plugins[x]["type"] == "suricata" {
             if serviceValues[x] == nil {
                 serviceValues[x] = map[string]string{}
             }
