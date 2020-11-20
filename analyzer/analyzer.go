@@ -1017,5 +1017,5 @@ func dgramWriter(line string) {
         logs.Error("Write error:", err)
         return
     }
-    logs.Info("Client sent:", msg)
+    logs.Debug("Client sent:", msg)
 }
