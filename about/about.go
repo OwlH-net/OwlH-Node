@@ -23,7 +23,7 @@ import (
 type AboutST struct {
 }
 
-var Version = "Version OwlH Node v0.17.4 build 03122020.2100"
+var Version = "OwlH Node v0.17.4 build 03122020.2100"
 
 func about() (aboutStruct AboutST) {
     logs.Info("About -> get node details")

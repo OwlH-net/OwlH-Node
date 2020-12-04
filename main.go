@@ -5,8 +5,10 @@ import (
     // "github.com/astaxie/beego/context"
     "bufio"
     "crypto/tls"
+    "flag"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
+    "log"
     "os"
     "os/signal"
     "owlhnode/about"
@@ -27,7 +29,16 @@ import (
     "syscall"
 )
 
+var (
+    pversion = flag.Bool("v", false, "OwlH Node Version")
+)
+
 func main() {
+    flag.Parse()
+    if *pversion {
+        log.Printf(about.GetVersion())
+        return
+    }
 
     utils.Load()
 
