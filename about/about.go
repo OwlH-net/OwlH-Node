@@ -5,7 +5,7 @@ import (
     // "encoding/json"
     // "errors"
     "github.com/astaxie/beego/logs"
-    "owlhnode/suricata"
+    // "owlhnode/suricata"
     // "github.com/hpcloud/tail"
     // "io/ioutil"
     // "net"
@@ -17,20 +17,24 @@ import (
     // "strings"
     // "syscall"
     // "time"
-    // // "regexp"
+    // "regexp"
 )
 
 type AboutST struct {
 }
 
-var version = "OwlH Node 01082020.1900"
+var Version = "Version OwlH Node v0.17.4 build 03122020.2100"
 
 func about() (aboutStruct AboutST) {
     logs.Info("About -> get node details")
-    logs.Info("Node Version -> %s", version)
+    logs.Info("Node Version -> %s", Version)
     logs.Info("Node Name ->")
     logs.Info("Node IP ->")
-    suricataVersion, versionError := suricata.SuricataVersion()
-    logs.Info("Suricata Version -> %+v", suricataVersion)
-    return nil
+    // suricataVersion, versionError := suricata.SuricataVersion()
+    // logs.Info("Suricata Version -> %+v", suricataVersion)
+    return aboutStruct
+}
+
+func GetVersion() (version string) {
+    return Version
 }

@@ -9,6 +9,7 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "os"
     "os/signal"
+    "owlhnode/about"
     "owlhnode/analyzer"
     "owlhnode/configuration"
     "owlhnode/database"
@@ -26,8 +27,6 @@ import (
     "syscall"
 )
 
-var version string
-
 func main() {
 
     utils.Load()
@@ -35,8 +34,8 @@ func main() {
     //launch logger
     monitor.Logger()
 
-    version = "0.17.2.20201031"
-    logs.Info("OwlH Node : v%s", version)
+    version := about.GetVersion()
+    logs.Info("%s", version)
 
     cancontinue := configuration.MainCheck()
     if !cancontinue {
