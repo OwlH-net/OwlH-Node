@@ -61,11 +61,13 @@ func Logger() {
     }
 
     //transform maxsize to bytes
-    newMaxSize,_ := utils.GetBytesFromSizeType(maxsize)
+    newMaxSize, _ := utils.GetBytesFromSizeType(maxsize)
     pattern := "owlhnode-api[.]\\d{4}[-]\\d{2}[-]\\d{2}[.]\\d{3}.log"
-    err = utils.ClearOlderLogFiles(filepath, filename+"." , maxfiles, pattern)
-    if err != nil {logs.Error(err.Error())}
-    
+    err = utils.ClearOlderLogFiles(filepath, filename+".", maxfiles, pattern)
+    if err != nil {
+        logs.Error(err.Error())
+    }
+
     logs.NewLogger(10000)
     logs.SetLogger(logs.AdapterFile, `{"filename":"`+filepath+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+newMaxSize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
@@ -81,12 +83,14 @@ func FileRotation() {
 
         for x := range rotate {
             //transform maxsize to bytes
-            newMaxSize,_ := utils.GetBytesFromSizeType(rotate[x]["maxSize"])
-            
+            newMaxSize, _ := utils.GetBytesFromSizeType(rotate[x]["maxSize"])
+
             fileNumber, _ := strconv.Atoi(rotate[x]["maxFiles"])
-            pattern := filepath.Base(rotate[x]["path"])+"-\\d{10}"
+            pattern := filepath.Base(rotate[x]["path"]) + "-\\d{10}"
             err = utils.ClearOlderLogFiles(filepath.Dir(rotate[x]["path"])+"/", filepath.Base(rotate[x]["path"]), fileNumber, pattern)
-            if err != nil {logs.Error(err.Error())}
+            if err != nil {
+                logs.Error(err.Error())
+            }
 
             //Check if file exists.
             _, err := os.Stat(rotate[x]["path"])
@@ -194,7 +198,7 @@ func FileRotation() {
                 file.Close()
             }
         }
-        logs.Info("Monitor files rotated!")
+        logs.Debug("Monitor files rotated!")
         t, err := utils.GetKeyValueString("loop", "FileRotation")
         if err != nil {
             logs.Error("Search Error: Cannot load node information.")

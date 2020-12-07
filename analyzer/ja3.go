@@ -66,7 +66,7 @@ func ja3Manage(bline []byte) (nBline []byte) {
     jsoninterface := make(map[string]interface{})
     json.Unmarshal([]byte(bline), &jsoninterface)
 
-    logs.Info("JA3 - Line has JA3 Values -> %+v", jsoninterface)
+    logs.Debug("JA3 - Line has JA3 Values -> %+v", jsoninterface)
 
     return bline
 }

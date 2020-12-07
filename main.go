@@ -31,11 +31,11 @@ var version string
 func main() {
 
     utils.Load()
-    
+
     //launch logger
     monitor.Logger()
 
-    version = "0.17.0.20201019"
+    version = "0.17.2.20201031"
     logs.Info("OwlH Node : v%s", version)
 
     cancontinue := configuration.MainCheck()

@@ -12,6 +12,15 @@ type WazuhController struct {
     beego.Controller
 }
 
+type WazuhDetails struct {
+    Path    bool   `json:"path"`
+    Bin     bool   `json:"bin"`
+    Running bool   `json:"running"`
+    Name    string `json:"name"`
+    ID      string `json:"id"`
+    Ip      string `json:"ip"`
+}
+
 // @Title GetWazuh
 // @Description get Wazuh status
 // @Success 200 {object} models.wazuh
@@ -28,10 +37,26 @@ func (n *WazuhController) Get() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
     } else {
-        logs.Info("Wazuh controller -> GET")
         mstatus, err := models.GetWazuh(n.Ctx.Input.Header("user"))
-        n.Data["json"] = mstatus
-        if err != nil {
+        if err == nil {
+            var wazuhDetails WazuhDetails
+            wazuhDetails.Bin = mstatus["bin"]
+            wazuhDetails.Path = mstatus["path"]
+            wazuhDetails.Running = mstatus["running"]
+            details, err := models.GetWazuhDetails()
+            if err == nil {
+                wazuhDetails.ID = details.ID
+                wazuhDetails.Ip = details.Ip
+                wazuhDetails.Name = details.Name
+            }
+            logs.Info("wazuh -> to convert -> %+v", wazuhDetails)
+
+            returnData, err := json.Marshal(wazuhDetails)
+
+            n.Data["json"] = string(returnData)
+            logs.Info("wazuh -> returning -> %+v", string(returnData))
+
+        } else {
             logs.Info("GetWazuh OUT -- ERROR : %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
