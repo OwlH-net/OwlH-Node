@@ -240,10 +240,10 @@ func ModifyWazuhFile(anode map[string]interface{}) (err error) {
     byteData, _ := json.Marshal(anode)
     json.Unmarshal(byteData, &receivedWazuhFiles)
 
-    //check fgor empty array
-    if receivedWazuhFiles.Paths == nil || len(receivedWazuhFiles.Paths) <= 0 {
-        return errors.New("ModifyWazuhFile error - New content is empty")
-    }
+    // //check gor empty array
+    // if receivedWazuhFiles.Paths == nil || len(receivedWazuhFiles.Paths) <= 0 {
+    //     return errors.New("ModifyWazuhFile error - New content is empty")
+    // }
     //backup file
     err = utils.BackupFile(ossecFileFullPath, ossecFile)
     if err != nil {
@@ -267,6 +267,7 @@ func ModifyWazuhFile(anode map[string]interface{}) (err error) {
     var h int
     h = 0
     fileContent := make(map[int]string)
+
     for scanner.Scan() {
         var init = regexp.MustCompile(`<!-- OWLH INIT -->`)
         var end = regexp.MustCompile(`<!-- OWLH END -->`)

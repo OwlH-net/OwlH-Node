@@ -495,10 +495,6 @@ func validRelPath(p string) bool {
 }
 
 func LoadFileLastLines(file map[string]string)(data map[string]string, err error) {
-    logs.Notice(file)
-    logs.Notice(file)
-    logs.Notice(file)
-    logs.Notice(file)
     command, err := GetKeyValueString("execute", "command")  
     if err != nil {logs.Error("Error getting data from main.conf: "+err.Error())}
     param, err := GetKeyValueString("execute", "param")  
