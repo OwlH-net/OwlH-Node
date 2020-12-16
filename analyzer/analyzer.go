@@ -915,9 +915,9 @@ func PingAnalyzer() (data map[string]string, err error) {
     analyzerData["path"] = config.OutputFile
     analyzerData["size"] = "0"
 
-    if analyzerData["status"] == "Disabled" {
-        return analyzerData, nil
-    }
+    // if analyzerData["status"] == "Disabled" {
+    //     return analyzerData, nil
+    // }
 
     fi, err := os.Stat(config.OutputFile)
     if err != nil {

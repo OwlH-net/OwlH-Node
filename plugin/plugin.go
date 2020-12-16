@@ -829,7 +829,7 @@ func ModifyNodeOptionValues(anode map[string]string) (err error) {
             return err
         }
 
-        err = ndb.UpdatePluginValue(anode["service"], "iface", anode["interface"])
+        err = ndb.UpdatePluginValue(anode["service"], "interface", anode["interface"])
         if err != nil {
             logs.Error("ModifyNodeOptionValues suricata Error: " + err.Error())
             return err
@@ -858,7 +858,6 @@ func ModifyNodeOptionValues(anode map[string]string) (err error) {
         }
         logs.Notice(allPlugins[anode["service"]]["name"] + " service updated!!!")
     } else if anode["type"] == "socket-pcap" || anode["type"] == "socket-network" {
-
         //check for STAP certificate
         if _, err := os.Stat(anode["cert"]); os.IsNotExist(err) {
             logs.Error("STAP certificate does not exists")
@@ -885,6 +884,15 @@ func ModifyNodeOptionValues(anode map[string]string) (err error) {
             logs.Error("ModifyNodeOptionValues " + anode["type"] + " Error: " + err.Error())
             return err
         }
+        if anode["type"] == "socket-network" {
+            if _,ok := anode["interface"]; ok{
+                err = ndb.UpdatePluginValue(anode["service"], "interface", anode["interface"])
+                if err != nil {
+                    logs.Error("ModifyNodeOptionValues socket-network Error: " + err.Error())
+                    return err
+                }   
+            }
+        }
         if anode["type"] == "socket-pcap" {
             err = ndb.UpdatePluginValue(anode["service"], "pcap-path", anode["pcap-path"])
             if err != nil {
@@ -895,6 +903,13 @@ func ModifyNodeOptionValues(anode map[string]string) (err error) {
             if err != nil {
                 logs.Error("ModifyNodeOptionValues " + anode["type"] + " Error: " + err.Error())
                 return err
+            }
+            if _,ok := anode["bpf"]; ok{
+                err = ndb.UpdatePluginValue(anode["service"], "bpf", anode["bpf"])
+                if err != nil {
+                    logs.Error("ModifyNodeOptionValues socket-pcap Error: " + err.Error())
+                    return err
+                }   
             }
         }
         for x := range allPlugins {
@@ -954,6 +969,20 @@ func ModifyNodeOptionValues(anode map[string]string) (err error) {
         if err != nil {
             logs.Error("ModifyNodeOptionValues network-socket Error: " + err.Error())
             return err
+        }
+        if _,ok := anode["interface"]; ok{
+            err = ndb.UpdatePluginValue(anode["service"], "interface", anode["interface"])
+            if err != nil {
+                logs.Error("ModifyNodeOptionValues network-socket Error: " + err.Error())
+                return err
+            }   
+        }
+        if _,ok := anode["bpf"]; ok{
+            err = ndb.UpdatePluginValue(anode["service"], "bpf", anode["bpf"])
+            if err != nil {
+                logs.Error("ModifyNodeOptionValues network-socket Error: " + err.Error())
+                return err
+            }   
         }
         for x := range allPlugins {
             if x != anode["service"] && allPlugins[x]["type"] == anode["type"] && allPlugins[x]["collector"] == anode["collector"] && allPlugins[x]["port"] == anode["port"] && allPlugins[x]["interface"] == anode["interface"] {
