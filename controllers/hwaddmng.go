@@ -1,16 +1,18 @@
 package controllers
 
 import (
-    "encoding/json"
-    "github.com/astaxie/beego"
-    // "github.com/astaxie/beego/logs"
-    "owlhnode/models"
-    "owlhnode/pcap"
-    // "owlhnode/validation"
+	"encoding/json"
+
+	"github.com/astaxie/beego"
+
+	// "github.com/astaxie/beego/logs"
+	"github.com/OwlH-net/OwlH-Node/models"
+	"github.com/OwlH-net/OwlH-Node/pcap"
+	// "github.com/OwlH-net/OwlH-Node/validation"
 )
 
 type HwaddmngController struct {
-    beego.Controller
+	beego.Controller
 }
 
 // @Title AddMacIp
@@ -18,31 +20,31 @@ type HwaddmngController struct {
 // @router / [post]
 func (n *HwaddmngController) AddMacIp() {
 	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    // if errToken != nil {
-    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-    //     n.ServeJSON()
-    //     return
-    // }    
-    // permissions := []string{"AddMacIp"}
-    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    // if permissionsErr != nil || hasPermission == false {
-    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    // }else{         
-        var anode map[string]string
-        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        anode["action"] = "POST"
-        anode["controller"] = "hwaddmng"
-        anode["router"] = "@router / [post]"
+	// if errToken != nil {
+	//     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+	//     n.ServeJSON()
+	//     return
+	// }
+	// permissions := []string{"AddMacIp"}
+	// hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+	// if permissionsErr != nil || hasPermission == false {
+	//     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+	// }else{
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	anode["action"] = "POST"
+	anode["controller"] = "hwaddmng"
+	anode["router"] = "@router / [post]"
 
-        // err := models.AddMacIp(anode, n.Ctx.Input.Header("user"))
-        err := models.AddMacIp(anode)
-    
-        n.Data["json"] = map[string]string{"ack": "true"}
-        if err != nil {
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-        }
-    // }
-    n.ServeJSON()
+	// err := models.AddMacIp(anode, n.Ctx.Input.Header("user"))
+	err := models.AddMacIp(anode)
+
+	n.Data["json"] = map[string]string{"ack": "true"}
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+	// }
+	n.ServeJSON()
 }
 
 // @Title LoadConfig
@@ -50,28 +52,28 @@ func (n *HwaddmngController) AddMacIp() {
 // @router /config [put]
 func (n *HwaddmngController) LoadConfig() {
 	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    // if errToken != nil {
-    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-    //     n.ServeJSON()
-    //     return
-    // }    
-    // permissions := []string{"LoadConfig"}
-    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    // if permissionsErr != nil || hasPermission == false {
-    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    // }else{         
-        anode := make(map[string]string)
-        // json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        anode["action"] = "PUT"
-        anode["controller"] = "hwaddmng"
-        anode["router"] = "@router / [put]"
-        
-        // models.LoadConfig(anode, n.Ctx.Input.Header("user"))
-        models.LoadConfig(anode)
-        
-        n.Data["json"] = pcap.ArpmainReturn
-    // }
-    n.ServeJSON()
+	// if errToken != nil {
+	//     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+	//     n.ServeJSON()
+	//     return
+	// }
+	// permissions := []string{"LoadConfig"}
+	// hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+	// if permissionsErr != nil || hasPermission == false {
+	//     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+	// }else{
+	anode := make(map[string]string)
+	// json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	anode["action"] = "PUT"
+	anode["controller"] = "hwaddmng"
+	anode["router"] = "@router / [put]"
+
+	// models.LoadConfig(anode, n.Ctx.Input.Header("user"))
+	models.LoadConfig(anode)
+
+	n.Data["json"] = pcap.ArpmainReturn
+	// }
+	n.ServeJSON()
 }
 
 // @Title Config
@@ -79,32 +81,31 @@ func (n *HwaddmngController) LoadConfig() {
 // @router /config [post]
 func (n *HwaddmngController) Config() {
 	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    // if errToken != nil {
-    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-    //     n.ServeJSON()
-    //     return
-    // }    
-    // permissions := []string{"ConfigPost"}
-    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    // if permissionsErr != nil || hasPermission == false {
-    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    // }else{         
-        anode := make(map[string]string)
-        anodeIface := make(map[string]interface{})
+	// if errToken != nil {
+	//     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+	//     n.ServeJSON()
+	//     return
+	// }
+	// permissions := []string{"ConfigPost"}
+	// hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+	// if permissionsErr != nil || hasPermission == false {
+	//     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+	// }else{
+	anode := make(map[string]string)
+	anodeIface := make(map[string]interface{})
 
-        json.Unmarshal(n.Ctx.Input.RequestBody, &anodeIface)
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anodeIface)
 
-        anode["action"] = "POST"
-        anode["controller"] = "hwaddmng"
-        anode["router"] = "@router / [post]"
-        
-        // models.Config(anodeIface,anode, n.Ctx.Input.Header("user"))
-        models.Config(anodeIface,anode)
-        
-        
-        n.Data["json"] = pcap.ArpmainReturn
-    // }
-    n.ServeJSON()
+	anode["action"] = "POST"
+	anode["controller"] = "hwaddmng"
+	anode["router"] = "@router / [post]"
+
+	// models.Config(anodeIface,anode, n.Ctx.Input.Header("user"))
+	models.Config(anodeIface, anode)
+
+	n.Data["json"] = pcap.ArpmainReturn
+	// }
+	n.ServeJSON()
 }
 
 // @Title DbManagement
@@ -112,30 +113,30 @@ func (n *HwaddmngController) Config() {
 // @router /db [post]
 func (n *HwaddmngController) Db() {
 	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    // if errToken != nil {
-    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-    //     n.ServeJSON()
-    //     return
-    // }    
-    // permissions := []string{"Db"}
-    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    // if permissionsErr != nil || hasPermission == false {
-    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    // }else{         
-        anode := make(map[string]string)
-        anodeIface := make(map[string]string)
+	// if errToken != nil {
+	//     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+	//     n.ServeJSON()
+	//     return
+	// }
+	// permissions := []string{"Db"}
+	// hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+	// if permissionsErr != nil || hasPermission == false {
+	//     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+	// }else{
+	anode := make(map[string]string)
+	anodeIface := make(map[string]string)
 
-        json.Unmarshal(n.Ctx.Input.RequestBody, &anodeIface)
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anodeIface)
 
-        anode["action"] = "POST"
-        anode["controller"] = "hwaddmng"
-        anode["router"] = "@router / [post]"
-        
-        // models.Db(anodeIface,anode, n.Ctx.Input.Header("user"))
-        models.Db(anodeIface,anode)
+	anode["action"] = "POST"
+	anode["controller"] = "hwaddmng"
+	anode["router"] = "@router / [post]"
 
-    // }
-    // n.ServeJSON()
+	// models.Db(anodeIface,anode, n.Ctx.Input.Header("user"))
+	models.Db(anodeIface, anode)
+
+	// }
+	// n.ServeJSON()
 }
 
 // @Title Config
@@ -144,28 +145,27 @@ func (n *HwaddmngController) Db() {
 // @router /config [get]
 func (n *HwaddmngController) GetConfig() {
 	// errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    // if errToken != nil {
-    //     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-    //     n.ServeJSON()
-    //     return
-    // }    
-    // permissions := []string{"AddMacIp"}
-    // hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    // if permissionsErr != nil || hasPermission == false {
-    //     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    // }else{         
-        anode := make(map[string]string)
-        anodeIface := make(map[string]interface{})
+	// if errToken != nil {
+	//     n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+	//     n.ServeJSON()
+	//     return
+	// }
+	// permissions := []string{"AddMacIp"}
+	// hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+	// if permissionsErr != nil || hasPermission == false {
+	//     n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+	// }else{
+	anode := make(map[string]string)
+	anodeIface := make(map[string]interface{})
 
-        anode["action"] = "GET"
-        anode["controller"] = "hwaddmng"
-        anode["router"] = "@router / [get]"
-        
-        // models.Config(anodeIface,anode, n.Ctx.Input.Header("user"))
-        models.Config(anodeIface,anode)
-        
-        
-        n.Data["json"] = pcap.ArpmainReturn
-    // }
-    n.ServeJSON()
+	anode["action"] = "GET"
+	anode["controller"] = "hwaddmng"
+	anode["router"] = "@router / [get]"
+
+	// models.Config(anodeIface,anode, n.Ctx.Input.Header("user"))
+	models.Config(anodeIface, anode)
+
+	n.Data["json"] = pcap.ArpmainReturn
+	// }
+	n.ServeJSON()
 }

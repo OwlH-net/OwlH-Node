@@ -1,14 +1,14 @@
 package controllers
 
 import (
-    "owlhnode/models"
-    "github.com/astaxie/beego"
-    "github.com/astaxie/beego/logs"
-    "owlhnode/validation"
+	"github.com/OwlH-net/OwlH-Node/models"
+	"github.com/OwlH-net/OwlH-Node/validation"
+	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 )
 
 type CollectorController struct {
-    beego.Controller
+	beego.Controller
 }
 
 // @Title PlayCollector
@@ -17,25 +17,25 @@ type CollectorController struct {
 // @Failure 403 body is empty
 // @router /play [get]
 func (n *CollectorController) PlayCollector() {
-    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-        n.ServeJSON()
-        return
-    }    
-    permissions := []string{"PlayCollector"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{    
-        err := models.PlayCollector(n.Ctx.Input.Header("user"))
-        n.Data["json"] = map[string]string{"ack": "true"}
-        if err != nil {
-            logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-        }
-    }
-    n.ServeJSON()
+	errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+	if errToken != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+		n.ServeJSON()
+		return
+	}
+	permissions := []string{"PlayCollector"}
+	hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+	if permissionsErr != nil || hasPermission == false {
+		n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+	} else {
+		err := models.PlayCollector(n.Ctx.Input.Header("user"))
+		n.Data["json"] = map[string]string{"ack": "true"}
+		if err != nil {
+			logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+	}
+	n.ServeJSON()
 }
 
 // @Title StopCollector
@@ -44,25 +44,25 @@ func (n *CollectorController) PlayCollector() {
 // @Failure 403 body is empty
 // @router /stop [get]
 func (n *CollectorController) StopCollector() {
-    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-        n.ServeJSON()
-        return
-    }    
-    permissions := []string{"StopCollector"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{    
-        err := models.StopCollector(n.Ctx.Input.Header("user"))
-        n.Data["json"] = map[string]string{"ack": "true"}
-        if err != nil {
-            logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-        }
-    }
-    n.ServeJSON()
+	errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+	if errToken != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+		n.ServeJSON()
+		return
+	}
+	permissions := []string{"StopCollector"}
+	hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+	if permissionsErr != nil || hasPermission == false {
+		n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+	} else {
+		err := models.StopCollector(n.Ctx.Input.Header("user"))
+		n.Data["json"] = map[string]string{"ack": "true"}
+		if err != nil {
+			logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+	}
+	n.ServeJSON()
 }
 
 // @Title ShowCollector
@@ -71,24 +71,24 @@ func (n *CollectorController) StopCollector() {
 // @Failure 403 body is empty
 // @router /show [get]
 func (n *CollectorController) ShowCollector() {
-    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-        n.ServeJSON()
-        return
-    }    
-    permissions := []string{"ShowCollector"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{    
-        data, err := models.ShowCollector(n.Ctx.Input.Header("user"))
-        n.Data["json"] =  map[string]string{"data": data}
-    
-        if err != nil {
-            logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-        }
-    }
-    n.ServeJSON()
+	errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+	if errToken != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+		n.ServeJSON()
+		return
+	}
+	permissions := []string{"ShowCollector"}
+	hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+	if permissionsErr != nil || hasPermission == false {
+		n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+	} else {
+		data, err := models.ShowCollector(n.Ctx.Input.Header("user"))
+		n.Data["json"] = map[string]string{"data": data}
+
+		if err != nil {
+			logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+	}
+	n.ServeJSON()
 }

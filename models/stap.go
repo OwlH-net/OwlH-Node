@@ -1,121 +1,122 @@
 package models
 
 import (
-    "owlhnode/stap"
-    "owlhnode/changeControl"
-    "github.com/astaxie/beego/logs")
+	changecontrol "github.com/OwlH-net/OwlH-Node/changeControl"
+	"github.com/OwlH-net/OwlH-Node/stap"
+	"github.com/astaxie/beego/logs"
+)
 
 func AddServer(anode map[string]string, username string) (err error) {
-    logs.Info("AddServer stap into Node file")
-    cc := anode
-    logs.Info("============")
-    logs.Info("STAP - AddServer")
-    for key :=range cc {
-        logs.Info(key +" -> "+ cc[key])
-    }
-    delete(anode,"action")
-    delete(anode,"controller")
-    delete(anode,"router")
+	logs.Info("AddServer stap into Node file")
+	cc := anode
+	logs.Info("============")
+	logs.Info("STAP - AddServer")
+	for key := range cc {
+		logs.Info(key + " -> " + cc[key])
+	}
+	delete(anode, "action")
+	delete(anode, "controller")
+	delete(anode, "router")
 
-    err = stap.AddServer(anode)
+	err = stap.AddServer(anode)
 
-    if err!=nil { 
-        cc["actionStatus"] = "error"
-        cc["errorDescription"] = err.Error()
-    }else{
-        cc["actionStatus"] = "success"
-    }
-    cc["username"] = username
-    cc["actionDescription"] = "Add a server"
+	if err != nil {
+		cc["actionStatus"] = "error"
+		cc["errorDescription"] = err.Error()
+	} else {
+		cc["actionStatus"] = "success"
+	}
+	cc["username"] = username
+	cc["actionDescription"] = "Add a server"
 
-    changecontrol.InsertChangeControl(cc)
-    // changecontrol.ChangeControlInsertData(err, "AddServer")    
-    return err
+	changecontrol.InsertChangeControl(cc)
+	// changecontrol.ChangeControlInsertData(err, "AddServer")
+	return err
 }
-func GetAllServers(username string)(servers map[string]map[string]string, err error) {
-    logs.Info("GetAllServers stap into Node file")
-    servers,err = stap.GetAllServers()  
-    // changecontrol.ChangeControlInsertData(err, "GetAllServers")    
-    return servers,err
+func GetAllServers(username string) (servers map[string]map[string]string, err error) {
+	logs.Info("GetAllServers stap into Node file")
+	servers, err = stap.GetAllServers()
+	// changecontrol.ChangeControlInsertData(err, "GetAllServers")
+	return servers, err
 }
 
-func GetServer(serveruuid string, username string)(servers map[string]map[string]string, err error) {
-    logs.Info("GetAllServers stap into Node file")
-    servers,err = stap.GetServer(serveruuid)
-    // changecontrol.ChangeControlInsertData(err, "GetServer")    
-    return servers,err
+func GetServer(serveruuid string, username string) (servers map[string]map[string]string, err error) {
+	logs.Info("GetAllServers stap into Node file")
+	servers, err = stap.GetServer(serveruuid)
+	// changecontrol.ChangeControlInsertData(err, "GetServer")
+	return servers, err
 }
 
 func PingStap(uuid string, username string) (status map[string]bool, err error) {
-    status, err = stap.PingStap(uuid)
-    // changecontrol.ChangeControlInsertData(err, "PingStap")    
-    return status, err
+	status, err = stap.PingStap(uuid)
+	// changecontrol.ChangeControlInsertData(err, "PingStap")
+	return status, err
 }
 
 func PingServerStap(server string, username string) (status map[string]string, err error) {
-    status, err = stap.PingServerStap(server)
-    // changecontrol.ChangeControlInsertData(err, "PingServerStap")    
-    return status, err
+	status, err = stap.PingServerStap(server)
+	// changecontrol.ChangeControlInsertData(err, "PingServerStap")
+	return status, err
 }
 
 func RunStap(uuid string, username string) (data string, err error) {
-    logs.Info("Run RunStap system into node server")
-    data,err = stap.RunStap(uuid)
-    // changecontrol.ChangeControlInsertData(err, "RunStap")    
-    return data,err
+	logs.Info("Run RunStap system into node server")
+	data, err = stap.RunStap(uuid)
+	// changecontrol.ChangeControlInsertData(err, "RunStap")
+	return data, err
 }
 
 func StopStap(uuid string, username string) (data string, err error) {
-    logs.Info("Stops StopStap system into node server")
-    data,err = stap.StopStap(uuid)
-    // changecontrol.ChangeControlInsertData(err, "StopStap")    
-    return data,err
+	logs.Info("Stops StopStap system into node server")
+	data, err = stap.StopStap(uuid)
+	// changecontrol.ChangeControlInsertData(err, "StopStap")
+	return data, err
 }
 
 func RunStapServer(serveruuid string, username string) (data string, err error) {
-    logs.Info("Run RunStapServer system into node server")
-    data,err = stap.RunStapServer(serveruuid)
-    // changecontrol.ChangeControlInsertData(err, "RunStapServer")    
-    return data,err
+	logs.Info("Run RunStapServer system into node server")
+	data, err = stap.RunStapServer(serveruuid)
+	// changecontrol.ChangeControlInsertData(err, "RunStapServer")
+	return data, err
 }
 
 func DeleteStapServer(serveruuid string, username string) (data string, err error) {
-    data,err = stap.DeleteStapServer(serveruuid)
-    // changecontrol.ChangeControlInsertData(err, "DeleteStapServer")    
-    return data,err
+	data, err = stap.DeleteStapServer(serveruuid)
+	// changecontrol.ChangeControlInsertData(err, "DeleteStapServer")
+	return data, err
 }
 
 func StopStapServer(serveruuid string, username string) (data string, err error) {
-    logs.Info("Stops StopStapServer system into node server")
-    data,err = stap.StopStapServer(serveruuid)
-    // changecontrol.ChangeControlInsertData(err, "StopStapServer")    
-    return data,err
+	logs.Info("Stops StopStapServer system into node server")
+	data, err = stap.StopStapServer(serveruuid)
+	// changecontrol.ChangeControlInsertData(err, "StopStapServer")
+	return data, err
 }
 
 func EditStapServer(anode map[string]string, username string) (err error) {
-    cc := anode
-    logs.Info("============")
-    logs.Info("STAP - EditStapServer")
-    for key :=range cc {
-        logs.Info(key +" -> "+ cc[key])
-    }
-    delete(anode,"action")
-    delete(anode,"controller")
-    delete(anode,"router")
+	cc := anode
+	logs.Info("============")
+	logs.Info("STAP - EditStapServer")
+	for key := range cc {
+		logs.Info(key + " -> " + cc[key])
+	}
+	delete(anode, "action")
+	delete(anode, "controller")
+	delete(anode, "router")
 
-    err = stap.EditStapServer(anode)
+	err = stap.EditStapServer(anode)
 
-    if err!=nil { 
-        cc["actionStatus"] = "error"
-        cc["errorDescription"] = err.Error()
-    }else{
-        cc["actionStatus"] = "success"
-    }
-    cc["username"] = username
-    cc["actionDescription"] = "Edit Server - Software TAP"
+	if err != nil {
+		cc["actionStatus"] = "error"
+		cc["errorDescription"] = err.Error()
+	} else {
+		cc["actionStatus"] = "success"
+	}
+	cc["username"] = username
+	cc["actionDescription"] = "Edit Server - Software TAP"
 
-    changecontrol.InsertChangeControl(cc)
+	changecontrol.InsertChangeControl(cc)
 
-    // changecontrol.ChangeControlInsertData(err, "EditStapServer")    
-    return err
+	// changecontrol.ChangeControlInsertData(err, "EditStapServer")
+	return err
 }

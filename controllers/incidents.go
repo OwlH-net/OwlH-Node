@@ -1,14 +1,15 @@
 package controllers
 
 import (
-    "owlhnode/models"
-    "github.com/astaxie/beego"
-    "owlhnode/validation"
-    "encoding/json"
+	"encoding/json"
+
+	"github.com/OwlH-net/OwlH-Node/models"
+	"github.com/OwlH-net/OwlH-Node/validation"
+	"github.com/astaxie/beego"
 )
 
 type IncidentslController struct {
-    beego.Controller
+	beego.Controller
 }
 
 // @Title GetIncidentsNode
@@ -16,24 +17,24 @@ type IncidentslController struct {
 // @Success 200 {object} models.incidents
 // @router / [get]
 func (n *IncidentslController) GetIncidentsNode() {
-    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-        n.ServeJSON()
-        return
-    }    
-    permissions := []string{"GetIncidentsNode"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{         
-        data, err := models.GetIncidentsNode(n.Ctx.Input.Header("user"))
-        n.Data["json"] = data
-        if err != nil {
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-        }
-    }    
-    n.ServeJSON()
+	errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+	if errToken != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+		n.ServeJSON()
+		return
+	}
+	permissions := []string{"GetIncidentsNode"}
+	hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+	if permissionsErr != nil || hasPermission == false {
+		n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+	} else {
+		data, err := models.GetIncidentsNode(n.Ctx.Input.Header("user"))
+		n.Data["json"] = data
+		if err != nil {
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+	}
+	n.ServeJSON()
 }
 
 // @Title PutIncidentNode
@@ -41,28 +42,28 @@ func (n *IncidentslController) GetIncidentsNode() {
 // @Success 200 {object} models.monitor
 // @router / [post]
 func (n *MonitorController) PutIncidentNode() {
-    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-        n.ServeJSON()
-        return
-    }    
-    permissions := []string{"PutIncidentNode"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{         
-        var anode map[string]string
-        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        anode["action"] = "POST"
-        anode["controller"] = "INCIDENTS"
-        anode["router"] = "@router / [post]"
-        err := models.PutIncidentNode(anode, n.Ctx.Input.Header("user"))
-        n.Data["json"] = map[string]string{"ack": "true"}
-        if err != nil {
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-        }
-    }    
-    
-    n.ServeJSON()
+	errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+	if errToken != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+		n.ServeJSON()
+		return
+	}
+	permissions := []string{"PutIncidentNode"}
+	hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+	if permissionsErr != nil || hasPermission == false {
+		n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+	} else {
+		var anode map[string]string
+		json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+		anode["action"] = "POST"
+		anode["controller"] = "INCIDENTS"
+		anode["router"] = "@router / [post]"
+		err := models.PutIncidentNode(anode, n.Ctx.Input.Header("user"))
+		n.Data["json"] = map[string]string{"ack": "true"}
+		if err != nil {
+			n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+		}
+	}
+
+	n.ServeJSON()
 }
