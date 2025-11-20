@@ -1,6 +1,6 @@
 module github.com/OwlH-net/OwlH-Node
 
-go 1.20
+go 1.24.0
 
 require (
 	github.com/astaxie/beego v1.12.3
@@ -11,7 +11,7 @@ require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/pkg/sftp v1.13.9
 	github.com/shirou/gopsutil v3.21.11+incompatible
-	golang.org/x/crypto v0.37.0
+	golang.org/x/crypto v0.45.0
 )
 
 require (
@@ -31,9 +31,9 @@ require (
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	google.golang.org/protobuf v1.23.0 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
